@@ -1,0 +1,87 @@
+{
+  "name": "tdao-ui",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@carbon/colors": "^10.30.0",
+    "@carbon/icons-react": "^10.37.0",
+    "@carbon/themes": "^10.40.0",
+    "@ethersproject/experimental": "^5.0.1",
+    "@metamask/onboarding": "^1.0.1",
+    "@reduxjs/toolkit": "^1.6.1",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.0.0",
+    "@testing-library/user-event": "^13.2.1",
+    "@trustlessfi/addresses": "^0.3.6",
+    "@trustlessfi/artifacts": "^0.1.0",
+    "@trustlessfi/multicall": "^0.4.4",
+    "@trustlessfi/typechain": "^0.4.1",
+    "@types/carbon-components": "^10.27.1",
+    "@types/carbon-components-react": "^7.36.1",
+    "@types/carbon__colors": "^0.0.1",
+    "@types/carbon__icons-react": "^10.31.2",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^16.10.2",
+    "@types/react": "^17.0.19",
+    "@types/react-copy-to-clipboard": "^5.0.1",
+    "@types/react-dom": "^17.0.9",
+    "@types/react-redux": "^7.1.18",
+    "@types/react-router-dom": "^5.1.8",
+    "@types/sass": "^1.16.1",
+    "@types/uuid": "^8.3.1",
+    "@uniswap/sdk-core": "^3.0.1",
+    "@uniswap/v3-sdk": "^3.5.1-optimism-regensis",
+    "@web3-react/core": "^6.1.9",
+    "@web3-react/fortmatic-connector": "^6.1.6",
+    "@web3-react/injected-connector": "^6.0.7",
+    "@web3-react/portis-connector": "^6.1.9",
+    "@web3-react/walletconnect-connector": "^6.2.0",
+    "@web3-react/walletlink-connector": "^6.2.0",
+    "babel-plugin-module-resolver": "^4.1.0",
+    "babel-plugin-polyfill-corejs2": "^0.2.2",
+    "babel-plugin-polyfill-corejs3": "^0.2.4",
+    "babel-plugin-polyfill-regenerator": "^0.2.2",
+    "carbon-components": "^10.41.0",
+    "carbon-components-react": "^7.41.0",
+    "carbon-icons": "^7.0.7",
+    "ethers": "^5.4.6",
+    "jsbi": "^3.2.5",
+    "react": "^17.0.2",
+    "react-copy-to-clipboard": "^5.0.4",
+    "react-dom": "^17.0.2",
+    "react-flexbox-grid": "^2.1.2",
+    "react-redux": "^7.2.0",
+    "react-router-dom": "^5.2.1",
+    "react-scripts": "4.0.3",
+    "react-svg-loader": "^3.0.3",
+    "sass": "^1.39.0",
+    "svg-react-loader": "^0.4.6",
+    "typescript": "~4.4.2",
+    "uuid": "^8.3.2"
+  },
+  "resolutions": {
+    "jsbi": "3.1.4",
+    "csstype": "3.0.8"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
