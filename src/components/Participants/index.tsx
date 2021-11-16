@@ -3,27 +3,21 @@ import AppTile from '../library/AppTile';
 import SimpleTable from "../library/SimpleTable";
 
 const Participants: FunctionComponent = () => {
-    const participantList = [];
-
-    const rows = Object.values(participantList).map((participant: LiquidityPosition) => (
-        {
-            key: lqPos.positionID,
-            data: {
-
-            },
-            onClick: () => {
-                dispatch(clearPoolCurrentData(pool.address))
-                dispatch(startEdit({ positionID: lqPos.positionID, }))
-            }
+    const participantList = [{
+        key: "something",
+        data: {
+            "value_1": 1,
+            "value_2": 2
         }
-    ))
-  return (
-    <>
-      <AppTile title="Participants" className="participants" >
-          <SimpleTable rows={rows} />
-      </AppTile>
-    </>
-  );
+    }];
+
+    return (
+        <>
+            <AppTile title="Participants" className="participants" >
+                <SimpleTable rows={participantList} />
+            </AppTile>
+        </>
+    );
 }
   
 export default Participants;
