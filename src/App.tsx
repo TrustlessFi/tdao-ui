@@ -3,8 +3,8 @@ import PageHeader from './components/PageHeader'
 import Claim from './components/Claim'
 import Participants from './components/Participants'
 import ErrorBoundary from './components/library/ErrorBoundary'
-import { Switch, Route } from "react-router-dom"
-import { BrowserRouter as Router } from "react-router-dom"
+import { Switch, Route, Redirect } from "react-router-dom"
+import { HashRouter as Router } from "react-router-dom"
 import LocalStorageManager from './components/utils/LocalStorageManager'
 import AppModal from './components/AppModal'
 import Notifications from './components/Notifications'
@@ -37,13 +37,15 @@ function App() {
           <Switch>
             {Object.values(Tab).map((tab, index) => {
               const path = '/' + tab.toLowerCase()
-              const paths = index === 0 ? ['/', path] : [path]
               return (
-                <Route exact={index === 0} path={paths} key={index}>
+                <Route path={path} key={index}>
                   {tabToRender[tab]}
                 </Route>
               )
             })}
+            <Route path={`/`} key={"default"}>
+              <Redirect to={`/${Object.values(Tab)[0].toLowerCase()}`} />
+            </Route>
           </Switch>
         </div>
       </Router>

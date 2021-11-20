@@ -166,7 +166,7 @@ export const waitForMarket = getWaitFunction(
 export const waitForParticipants = getWaitFunction(
     (state: RootState) => state.participants,
     getParticipants,
-    [ProtocolContract.ProtocolDataAggregator, ProtocolContract.HuePositionNFT, ProtocolContract.Accounting, ProtocolContract.TrustlessMulticall],
+    [ProtocolContract.HuePositionNFT, ProtocolContract.Accounting, ProtocolContract.TrustlessMulticall],
 )
 
 export const waitForPositions = getWaitFunction(
