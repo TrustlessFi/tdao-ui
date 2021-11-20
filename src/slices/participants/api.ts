@@ -80,9 +80,9 @@ async function fetchLiquidityPositions({contracts, positionIDs}: {contracts: Con
 
 type LiquidityPosition = PromiseType<ReturnType<Accounting['getPoolPosition']>>
 type LiquidityPositionWithID = LiquidityPosition & {id: string}
-async function fetchLiquidityPositionWithPositiveLiquidity({contracts, positions}: {contracts: Contracts, positions: LiquidityPositionWithID[]}) {
+async function filterLiquidityPositionWithPositiveLiquidity({contracts, positions}: {contracts: Contracts, positions: LiquidityPositionWithID[]}) {
     const filteredPositions = positions.filter((position)=>(position.liquidity.gt(BigNumber.from(0))))
-    console.log(`fetchLiquidityPositionWithPositiveLiquidity`, filteredPositions);
+    console.log(`filterLiquidityPositionWithPositiveLiquidity`, filteredPositions);
     return {contracts, positions: filteredPositions};
 }
 
@@ -112,7 +112,7 @@ export async function fetchParticipants({contracts}: {contracts: Contracts}) {
             .then(fetchDebtPositionOwners)
             .then(fetchLiquidityPositionsIDsFromOwnerIDs)
             .then(fetchLiquidityPositions)
-            .then(fetchLiquidityPositionWithPositiveLiquidity)
+            .then(filterLiquidityPositionWithPositiveLiquidity)
             .then(fetchLiquidityPositionOwners)
             .then(({ownerIDs}) => ownerIDs.map((ownerID) => addresses.add(ownerID)))
     }
