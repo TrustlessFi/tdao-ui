@@ -16,6 +16,7 @@ import { getRewardsInfo } from './rewards'
 import { getPricesInfo } from './prices'
 import { fetchEthBalance } from './ethBalance'
 import { getPoolCurrentData } from './poolCurrentData'
+import { getParticipants } from './participants'
 
 import { ProtocolContract, getGovernorContract, getProtocolDataAggregatorContract, getContractThunk, getTrustlessMulticallContract } from './contracts'
 
@@ -160,6 +161,12 @@ export const waitForMarket = getWaitFunction(
   (state: RootState) => state.market,
   getMarketInfo,
   [ProtocolContract.Market, ProtocolContract.TrustlessMulticall],
+)
+
+export const waitForParticipants = getWaitFunction(
+    (state: RootState) => state.participants,
+    getParticipants,
+    [ProtocolContract.ProtocolDataAggregator, ProtocolContract.HuePositionNFT, ProtocolContract.Accounting, ProtocolContract.TrustlessMulticall],
 )
 
 export const waitForPositions = getWaitFunction(

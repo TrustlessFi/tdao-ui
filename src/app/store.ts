@@ -1,5 +1,7 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit'
 
+import participantsReducer from '../slices/participants';
+
 import positionsReducer from '../slices/positions'
 import poolsMetadataReducer from '../slices/poolsMetadata'
 import poolCurrentDataReducer from '../slices/poolCurrentData'
@@ -57,6 +59,8 @@ export const store = configureStore({
 
     contracts: contractsReducer,
     notifications: notificationsReducer,
+
+    participants: participantsReducer
   },
 })
 
