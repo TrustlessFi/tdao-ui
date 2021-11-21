@@ -67,7 +67,7 @@ export const getGenesisPositions = createAsyncThunk(
 export const getGenesisRounds = createAsyncThunk(
   "genesis/getGenesisRounds",
   async (_: {}) => {
-    return fetchRounds()
+    return fetchRounds() as Promise<Round[]>
   }
 )
 

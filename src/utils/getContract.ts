@@ -26,6 +26,7 @@ import {
   Rates,
   Rewards,
   Settlement,
+  TcpAllocation,
   TcpTimelock,
   Hue,
   HuePositionNFT,
@@ -47,6 +48,7 @@ import protocolLockArtifact from "@trustlessfi/artifacts/dist/contracts/core/uti
 import ratesArtifact from "@trustlessfi/artifacts/dist/contracts/core/logic/Rates.sol/Rates.json"
 import rewardsArtifact from "@trustlessfi/artifacts/dist/contracts/core/logic/Rewards.sol/Rewards.json"
 import settlementArtifact from "@trustlessfi/artifacts/dist/contracts/core/logic/Settlement.sol/Settlement.json"
+import tcpAllocation from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/allocations/TcpAllocation.sol/TcpAllocation.json"
 import tcpArtifact from "@trustlessfi/artifacts/dist/contracts/core/governance/Tcp.sol/Tcp.json"
 import tcpGovernorAlphaArtifact from "@trustlessfi/artifacts/dist/contracts/core/governance/TcpGovernorAlpha.sol/TcpGovernorAlpha.json"
 import trustlessMulticallArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/multicall/TrustlessMulticall.sol/TrustlessMulticall.json"
@@ -75,6 +77,7 @@ const artifactLookup: { [key in ProtocolContract]: contractAbi } = {
   [ProtocolContract.Rewards]: rewardsArtifact,
   [ProtocolContract.Settlement]: settlementArtifact,
   [ProtocolContract.Tcp]: tcpArtifact,
+  [ProtocolContract.TcpAllocation]: tcpAllocation,
   [ProtocolContract.TcpGovernorAlpha]: tcpGovernorAlphaArtifact,
   [ProtocolContract.TcpTimelock]: tcpTimelockArtifact,
 }
@@ -149,6 +152,8 @@ const getContract = (
       return contract as Settlement
     case ProtocolContract.Tcp:
       return contract as Tcp
+    case ProtocolContract.TcpAllocation:
+      return contract as TcpAllocation
     case ProtocolContract.TcpGovernorAlpha:
       return contract as TcpGovernorAlpha
     case ProtocolContract.TcpTimelock:

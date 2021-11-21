@@ -1,6 +1,5 @@
 import React, { ReactNode } from "react"
 import PageHeader from "./components/PageHeader"
-import Claim from "./components/Claim"
 import Genesis from "./components/Genesis"
 import ErrorBoundary from "./components/library/ErrorBoundary"
 import { Switch, Route, Redirect } from "react-router-dom"
@@ -19,13 +18,11 @@ declare global {
 }
 
 export enum Tab {
-  Genesis = "Genesis",
-  Claim = "Claim",
+  Genesis = "Genesis"
 }
 
 const tabToRender: { [key in Tab]: ReactNode } = {
-  Genesis: <Genesis />,
-  Claim: <Claim />,
+  Genesis: <Genesis />
 }
 
 function App() {

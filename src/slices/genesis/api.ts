@@ -289,7 +289,7 @@ export async function fetchGenesisLiquidityPositions({
 // ROUNDS
 interface RoundEntry {
   address: string
-  amount: number
+  signature: string
 }
 export interface Round {
   id: number
@@ -316,7 +316,7 @@ async function _fetchRound(id: number) {
     .then((entries) => (entries !== null ? { id, entries } : null))
 
   console.log(`_fetchRound ${id}`, round)
-  return round
+  return round as Round
 }
 
 export async function fetchRounds() {

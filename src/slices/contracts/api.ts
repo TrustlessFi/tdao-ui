@@ -1,35 +1,58 @@
-import { getAddress } from '@trustlessfi/addresses'
-import { Governor } from '@trustlessfi/typechain'
-import { getContractArgs, ProtocolContract, getContractReturnType, getSingleContractArgs } from './'
+import { getAddress } from "@trustlessfi/addresses"
+import { Governor } from "@trustlessfi/typechain"
+import {
+  getContractArgs,
+  ProtocolContract,
+  getContractReturnType,
+  getSingleContractArgs,
+} from "./"
 
-import getProvider from '../../utils/getProvider'
-import { assertUnreachable } from '../../utils'
-import { Contract } from 'ethers'
-import localHardhatAddresses from '../../utils/localHardhatAddresses.json'
+import getProvider from "../../utils/getProvider"
+import { assertUnreachable } from "../../utils"
+import { Contract } from "ethers"
+import localHardhatAddresses from "../../utils/localHardhatAddresses.json"
 
-import governorArtifact from '@trustlessfi/artifacts/dist/contracts/core/governance/Governor.sol/Governor.json'
+import governorArtifact from "@trustlessfi/artifacts/dist/contracts/core/governance/Governor.sol/Governor.json"
 
 export const executeGetGovernor = async (args: getSingleContractArgs) =>
-  getAddress(args.chainID, 'TCP', 'Governor', localHardhatAddresses)
+  getAddress(args.chainID, "TCP", "Governor", localHardhatAddresses)
 
-export const executeGetTrustlessMulticall = async (args: getSingleContractArgs) =>
-  getAddress(args.chainID, 'TrustlessMulticall', 'multicall', localHardhatAddresses)
+export const executeGetTrustlessMulticall = async (
+  args: getSingleContractArgs
+) =>
+  getAddress(
+    args.chainID,
+    "TrustlessMulticall",
+    "multicall",
+    localHardhatAddresses
+  )
 
-export const executeGetProtocolDataAggregator = async (args: getSingleContractArgs) =>
-  getAddress(args.chainID, 'TCP', 'ProtocolDataAggregator', localHardhatAddresses)
+export const executeGetProtocolDataAggregator = async (
+  args: getSingleContractArgs
+) =>
+  getAddress(
+    args.chainID,
+    "TCP",
+    "ProtocolDataAggregator",
+    localHardhatAddresses
+  )
 
-export const executeGetContract = async (args: getContractArgs): Promise<getContractReturnType> => {
+export const executeGetContract = async (
+  args: getContractArgs
+): Promise<getContractReturnType> => {
   const governor = new Contract(
     args.Governor,
     governorArtifact.abi,
-    getProvider(),
+    getProvider()
   ) as Governor
 
-  const contractAddress = await getContract(governor, args.contract)
-  return contractAddress
+  return await getContract(governor, args.contract)
 }
 
-const getContract = async (governor: Governor, contract: ProtocolContract): Promise<string> => {
+const getContract = async (
+  governor: Governor,
+  contract: ProtocolContract
+): Promise<string> => {
   switch (contract) {
     case ProtocolContract.TcpGovernorAlpha:
       return await governor.governorAlpha()
@@ -57,6 +80,10 @@ const getContract = async (governor: Governor, contract: ProtocolContract): Prom
       return await governor.settlement()
     case ProtocolContract.Tcp:
       return await governor.tcp()
+    case ProtocolContract.TcpAllocation:
+      const value = await governor.tcpAllocation()
+      console.log("getContract", value)
+      return value
     case ProtocolContract.TcpTimelock:
       return await governor.timelock()
     case ProtocolContract.Hue:
@@ -65,15 +92,17 @@ const getContract = async (governor: Governor, contract: ProtocolContract): Prom
       return await governor.huePositionNFT()
 
     case ProtocolContract.Governor:
-      throw new Error('getContract: Handled in executeGetGovernor')
+      throw new Error("getContract: Handled in executeGetGovernor")
     case ProtocolContract.TrustlessMulticall:
-      throw new Error('getContract: Handled in executeGetMulticall')
+      throw new Error("getContract: Handled in executeGetMulticall")
     case ProtocolContract.ProtocolDataAggregator:
-      throw new Error('getContract: Handled in executeGetProtocolDataAggregator')
+      throw new Error(
+        "getContract: Handled in executeGetProtocolDataAggregator"
+      )
 
     default:
       assertUnreachable(contract)
 
-    throw new Error('getContract: Shouldnt get here')
+      throw new Error("getContract: Shouldnt get here")
   }
 }
