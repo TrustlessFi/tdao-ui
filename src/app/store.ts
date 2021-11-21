@@ -1,34 +1,34 @@
-import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit'
+import { configureStore, ThunkAction, Action } from "@reduxjs/toolkit"
 
-import participantsReducer from '../slices/participants';
+import positionsReducer from "../slices/positions"
+import poolsMetadataReducer from "../slices/poolsMetadata"
+import poolCurrentDataReducer from "../slices/poolCurrentData"
+import liquidityPositionsReducer from "../slices/liquidityPositions"
+import proposalsReducer from "../slices/proposals"
+import chainIDReducer from "../slices/chainID"
+import transactionsReducer from "../slices/transactions"
+import walletReducer from "../slices/wallet"
+import systemDebtReducer from "../slices/systemDebt"
+import positionsEditorReducer from "../slices/positionsEditor"
+import liquidityPositionsEditorReducer from "../slices/liquidityPositionsEditor"
+import lendSelectionReducer from "../slices/lendSelection"
+import modalReducer from "../slices/modal"
 
-import positionsReducer from '../slices/positions'
-import poolsMetadataReducer from '../slices/poolsMetadata'
-import poolCurrentDataReducer from '../slices/poolCurrentData'
-import liquidityPositionsReducer from '../slices/liquidityPositions'
-import proposalsReducer from '../slices/proposals'
-import chainIDReducer from '../slices/chainID'
-import transactionsReducer from '../slices/transactions'
-import walletReducer from '../slices/wallet'
-import systemDebtReducer from '../slices/systemDebt'
-import positionsEditorReducer from '../slices/positionsEditor'
-import liquidityPositionsEditorReducer from '../slices/liquidityPositionsEditor'
-import lendSelectionReducer from '../slices/lendSelection'
-import modalReducer from '../slices/modal'
+import governorReducer from "../slices/governor"
+import liquidationsReducer from "../slices/liquidations"
+import marketReducer from "../slices/market"
+import pricesReducer from "../slices/prices"
+import rewardsReducer from "../slices/rewards"
+import ratesReducer from "../slices/rates"
 
-import governorReducer from '../slices/governor'
-import liquidationsReducer from '../slices/liquidations'
-import marketReducer from '../slices/market'
-import pricesReducer from '../slices/prices'
-import rewardsReducer from '../slices/rewards'
-import ratesReducer from '../slices/rates'
+import ethBalanceReducer from "../slices/ethBalance"
+import hueBalanceReducer from "../slices/balances/hueBalance"
+import lendHueBalanceReducer from "../slices/balances/lendHueBalance"
 
-import ethBalanceReducer from '../slices/ethBalance'
-import hueBalanceReducer from '../slices/balances/hueBalance'
-import lendHueBalanceReducer from '../slices/balances/lendHueBalance'
+import contractsReducer from "../slices/contracts"
+import notificationsReducer from "../slices/notifications"
 
-import contractsReducer from '../slices/contracts'
-import notificationsReducer from '../slices/notifications'
+import genesis from "../slices/genesis"
 
 export const store = configureStore({
   reducer: {
@@ -60,10 +60,15 @@ export const store = configureStore({
     contracts: contractsReducer,
     notifications: notificationsReducer,
 
-    participants: participantsReducer
+    genesis: genesis,
   },
 })
 
 export type AppDispatch = typeof store.dispatch
 export type RootState = ReturnType<typeof store.getState>
-export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action<string>>
+export type AppThunk<ReturnType = void> = ThunkAction<
+  ReturnType,
+  RootState,
+  unknown,
+  Action<string>
+>

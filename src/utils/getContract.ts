@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: UNLICENSED
 
 import { ContractInterface, Contract } from "ethers"
-import { Web3Provider } from '@ethersproject/providers'
+import { Web3Provider } from "@ethersproject/providers"
 
-import getProvider from './getProvider'
-import { ProtocolContract } from '../slices/contracts'
+import getProvider from "./getProvider"
+import { ProtocolContract } from "../slices/contracts"
 
 // ==================== Typechain =========================
 import {
@@ -49,15 +49,15 @@ import rewardsArtifact from "@trustlessfi/artifacts/dist/contracts/core/logic/Re
 import settlementArtifact from "@trustlessfi/artifacts/dist/contracts/core/logic/Settlement.sol/Settlement.json"
 import tcpArtifact from "@trustlessfi/artifacts/dist/contracts/core/governance/Tcp.sol/Tcp.json"
 import tcpGovernorAlphaArtifact from "@trustlessfi/artifacts/dist/contracts/core/governance/TcpGovernorAlpha.sol/TcpGovernorAlpha.json"
-import trustlessMulticallArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/TrustlessMulticall.sol/TrustlessMulticall.json"
-import trustlessMulticallViewOnlyArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/TrustlessMulticallViewOnly.sol/TrustlessMulticallViewOnly.json"
+import trustlessMulticallArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/multicall/TrustlessMulticall.sol/TrustlessMulticall.json"
+import trustlessMulticallViewOnlyArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/multicall/TrustlessMulticallViewOnly.sol/TrustlessMulticallViewOnly.json"
 import tcpTimelockArtifact from "@trustlessfi/artifacts/dist/contracts/core/governance/TcpTimelock.sol/TcpTimelock.json"
-import { assertUnreachable } from '@trustlessfi/utils'
+import { assertUnreachable } from "@trustlessfi/utils"
 
-type abi = {[key in string]: any}[]
+type abi = { [key in string]: any }[]
 type contractAbi = { abi: abi }
 
-const artifactLookup: {[key in ProtocolContract]: contractAbi} = {
+const artifactLookup: { [key in ProtocolContract]: contractAbi } = {
   [ProtocolContract.Accounting]: accountingArtifact,
   [ProtocolContract.Auctions]: auctionsArtifact,
   [ProtocolContract.EnforcedDecentralization]: enforcedDecentralizationArtifact,
@@ -79,16 +79,34 @@ const artifactLookup: {[key in ProtocolContract]: contractAbi} = {
   [ProtocolContract.TcpTimelock]: tcpTimelockArtifact,
 }
 
-export const contract = <T extends Contract>(address: string, abi: ContractInterface, provider?: Web3Provider): T =>
-  new Contract(address, abi, provider === undefined ? getProvider() : provider) as T
+export const contract = <T extends Contract>(
+  address: string,
+  abi: ContractInterface,
+  provider?: Web3Provider
+): T =>
+  new Contract(
+    address,
+    abi,
+    provider === undefined ? getProvider() : provider
+  ) as T
 
 export const getMulticallContract = (address: string) =>
-  getContract(address, ProtocolContract.TrustlessMulticall, true) as unknown as TrustlessMulticallViewOnly
+  getContract(
+    address,
+    ProtocolContract.TrustlessMulticall,
+    true
+  ) as unknown as TrustlessMulticallViewOnly
 
-const getContract = (address: string, protocolContract: ProtocolContract, multicallViewOnly = false) => {
+const getContract = (
+  address: string,
+  protocolContract: ProtocolContract,
+  multicallViewOnly = false
+) => {
   const getAbi = (): abi => {
     if (protocolContract === ProtocolContract.TrustlessMulticall) {
-      return multicallViewOnly ? trustlessMulticallViewOnlyArtifact.abi : trustlessMulticallArtifact.abi
+      return multicallViewOnly
+        ? trustlessMulticallViewOnlyArtifact.abi
+        : trustlessMulticallArtifact.abi
     } else {
       return artifactLookup[protocolContract].abi
     }
@@ -138,7 +156,7 @@ const getContract = (address: string, protocolContract: ProtocolContract, multic
     default:
       assertUnreachable(protocolContract)
 
-    throw new Error('getContract: Should never get here')
+      throw new Error("getContract: Should never get here")
   }
 }
 
