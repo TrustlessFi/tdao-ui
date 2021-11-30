@@ -4,16 +4,16 @@ import { connectWallet } from '../utils/WalletConnection'
 import { Button } from 'carbon-components-react'
 
 const ConnectWalletButton = ({
-  mini
+  small
 }: {
-  mini?: boolean,
+  small?: boolean,
 }) => {
   const dispatch = useAppDispatch()
 
   const wallet = selector(state => state.wallet)
 
   const text = wallet.connecting
-    ? 'Confirm in Metamask'
+    ? 'Waiting for User in Metamask...'
     : (wallet.address !== null
         ? 'Connected'
         : 'Connect a Wallet')
@@ -27,9 +27,13 @@ const ConnectWalletButton = ({
     }
   }
 
-  return (mini
-    ? <Button onClick={onClick} size="small">{text}</Button>
-    : <Button onClick={onClick}>{text}</Button>
+  return (
+    <Button
+      onClick={onClick}
+      disabled={wallet.connecting}
+      small={small}>
+      {text}
+    </Button>
   )
 }
 

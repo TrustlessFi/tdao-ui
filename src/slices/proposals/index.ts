@@ -2,6 +2,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
 import { genProposals } from './api'
 import { getGenericReducerBuilder } from '../'
+import { ContractsInfo } from '../contracts'
+
 
 export enum ProposalState {
   Pending = 'Pending',
@@ -17,6 +19,7 @@ export enum ProposalState {
 export interface Proposal {
   proposal: {
     id: number
+    ipfsHash: string
     proposer: string
     eta: number
     targets: string[]
@@ -41,10 +44,13 @@ export interface Proposal {
   voted: boolean
 }
 
-export interface proposalsInfo { [key: number]: Proposal }
+export interface proposalsInfo {
+  quorum: number,
+  proposals: {[key in number]: Proposal}
+}
 
 export type proposalsArgs = {
-  TcpGovernorAlpha: string
+  contracts: ContractsInfo
   userAddress: string
 }
 
@@ -58,10 +64,16 @@ export const getProposals = createAsyncThunk(
 export const proposalsSlice = createSlice({
   name: 'proposals',
   initialState: initialState as ProposalsState,
-  reducers: {},
+  reducers: {
+    clearProposals: (state) => {
+      state.data.value = null
+    },
+  },
   extraReducers: (builder) => {
     builder = getGenericReducerBuilder(builder, getProposals)
   },
 })
+
+export const { clearProposals } = proposalsSlice.actions
 
 export default proposalsSlice.reducer

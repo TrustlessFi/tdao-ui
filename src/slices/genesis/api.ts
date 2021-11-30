@@ -1,14 +1,17 @@
 import { PromiseType } from "@trustlessfi/utils"
+import * as ethers from "ethers"
 import {
   Accounting,
+  GenesisAllocation,
   HuePositionNFT,
   TrustlessMulticallViewOnly,
 } from "@trustlessfi/typechain"
-import { BigNumber, BigNumberish } from "ethers"
 import {
   executeMulticalls,
   getDuplicateFuncMulticall,
 } from "@trustlessfi/multicall"
+import {waitingForMetamask} from "../wallet";
+import getProvider from "../../utils/getProvider";
 
 // DEBT
 type BaseDebtPosition = PromiseType<ReturnType<Accounting["getPosition"]>> & {
@@ -25,12 +28,12 @@ interface DebtPositionContracts {
   trustlessMulticall: TrustlessMulticallViewOnly
 }
 
-async function _fetchGenesisBaseDebtPositions({
+async function _fetchBaseDebtPositions({
   contracts,
   positionIDs,
 }: {
   contracts: DebtPositionContracts
-  positionIDs: BigNumber[]
+  positionIDs: ethers.BigNumber[]
 }) {
   // fetch all positions via multicall
   const { accounting, trustlessMulticall } = contracts
@@ -51,7 +54,7 @@ async function _fetchGenesisBaseDebtPositions({
     ([positionID, position]) => ({ ...position, id: positionID })
   )
 
-  console.log(`_fetchGenesisBaseDebtPositions`, positions)
+  console.log(`_fetchBaseDebtPositions`, positions)
   return { contracts, positions }
 }
 
@@ -64,14 +67,14 @@ async function _filterPositiveGenesisDebtPositions<T extends BaseDebtPosition>({
 }) {
   //filter positions with positive debt
   const filteredPositions = positions.filter((position) =>
-    position.debt.gt(BigNumber.from(0))
+    position.debt.gt(ethers.BigNumber.from(0))
   )
 
   console.log(`_filterPositiveGenesisDebtPositions`, filteredPositions)
   return { contracts, positions: filteredPositions }
 }
 
-async function _fetchGenesiBaseDebtPositionOwners({
+async function _fetchBaseDebtPositionOwners({
   contracts,
   positions,
 }: {
@@ -98,7 +101,7 @@ async function _fetchGenesiBaseDebtPositionOwners({
     owner: owners[index],
   }))
 
-  console.log(`_fetchGenesiBaseDebtPositionOwners`, positionsWithOwners)
+  console.log(`_fetchBaseDebtPositionOwners`, positionsWithOwners)
   return { contracts, positions: positionsWithOwners }
 }
 
@@ -117,17 +120,20 @@ function _convertBaseDebtPositions({
   return { contracts, positions: converted }
 }
 
-function _bigNumberSlice(start: BigNumberish, end: BigNumberish): BigNumber[] {
+function _bigNumberSlice(
+  start: ethers.BigNumberish,
+  end: ethers.BigNumberish
+): ethers.BigNumber[] {
   // generates a BigNumber array: [start, ..., end-1]
-  const bnStart = BigNumber.from(start)
-  const bnEnd = BigNumber.from(end)
+  const bnStart = ethers.BigNumber.from(start)
+  const bnEnd = ethers.BigNumber.from(end)
   const sliceSize = bnEnd.sub(bnStart)
   return Array.from(Array(sliceSize.toNumber()).keys()).map((key) =>
-    BigNumber.from(key)
+    ethers.BigNumber.from(key)
   )
 }
 
-export async function fetchGenesisDebtPositions({
+export async function fetchDebtPositions({
   contracts,
 }: {
   contracts: DebtPositionContracts
@@ -138,7 +144,7 @@ export async function fetchGenesisDebtPositions({
   let positions = [] as DebtPosition[]
 
   // fetch all debt posiitons in batches
-  let curr = BigNumber.from(0)
+  let curr = ethers.BigNumber.from(0)
   while (curr < total) {
     // fetch a batch of positions
     // NOTE: currently fetches everything in one batch
@@ -147,12 +153,12 @@ export async function fetchGenesisDebtPositions({
     const positionIDs = _bigNumberSlice(curr, nextCurr)
     curr = nextCurr
 
-    const fetchedPositions = await _fetchGenesisBaseDebtPositions({
+    const fetchedPositions = await _fetchBaseDebtPositions({
       contracts,
       positionIDs,
     })
       .then(_filterPositiveGenesisDebtPositions)
-      .then(_fetchGenesiBaseDebtPositionOwners)
+      .then(_fetchBaseDebtPositionOwners)
       .then(_convertBaseDebtPositions)
       .then(({ positions }) => positions)
     positions.push(...fetchedPositions)
@@ -174,7 +180,7 @@ interface LiquidityPositionContracts {
   accounting: Accounting
 }
 
-async function _fetchGenesisLiquidityPositionIDsFromOwnerIDs({
+async function _fetchLiquidityPositionIDsFromOwnerIDs({
   contracts,
   ownerIDs,
 }: {
@@ -197,21 +203,21 @@ async function _fetchGenesisLiquidityPositionIDsFromOwnerIDs({
     ),
   })
   // flatten ownerID -> [...positionID] map to a list of position IDs.
-  const positionIDs = [] as BigNumber[]
+  const positionIDs = [] as ethers.BigNumber[]
   Object.values(positions).map((ownerPositions) =>
     positionIDs.push(...ownerPositions)
   )
 
-  console.log(`_fetchGenesisLiquidityPositionIDsFromOwnerIDs`, positionIDs)
+  console.log(`_fetchLiquidityPositionIDsFromOwnerIDs`, positionIDs)
   return { contracts, positionIDs }
 }
 
-async function _fetchGenesisLiquidityPositions({
+async function _fetchLiquidityPositions({
   contracts,
   positionIDs,
 }: {
   contracts: LiquidityPositionContracts
-  positionIDs: BigNumber[]
+  positionIDs: ethers.BigNumber[]
 }) {
   // fetch liquidity positions via multicall
   const { trustlessMulticall, accounting } = contracts
@@ -232,7 +238,7 @@ async function _fetchGenesisLiquidityPositions({
     ([positionID, position]) => ({ ...position, id: positionID })
   )
 
-  console.log(`_fetchGenesisLiquidityPositions`, positions)
+  console.log(`_fetchLiquidityPositions`, positions)
   return { contracts, positions }
 }
 
@@ -247,7 +253,7 @@ async function _filterPositiveGenesisLiquidityPositions<
 }) {
   // filter all positions with a positive liquidity
   const filteredPositions = positions.filter((position) =>
-    position.liquidity.gt(BigNumber.from(0))
+    position.liquidity.gt(ethers.BigNumber.from(0))
   )
 
   console.log(`_filterPositiveGenesisLiquidityPositions`, filteredPositions)
@@ -269,57 +275,51 @@ async function _convertBaseLiquidityPositions({
   return { contracts, positions: converted }
 }
 
-export async function fetchGenesisLiquidityPositions({
+export async function fetchLiquidityPositions({
   contracts,
   ownerIDs,
 }: {
   contracts: LiquidityPositionContracts
   ownerIDs: string[]
 }) {
-  return await _fetchGenesisLiquidityPositionIDsFromOwnerIDs({
+  return await _fetchLiquidityPositionIDsFromOwnerIDs({
     contracts,
     ownerIDs,
   })
-    .then(_fetchGenesisLiquidityPositions)
+    .then(_fetchLiquidityPositions)
     .then(_filterPositiveGenesisLiquidityPositions)
     .then(_convertBaseLiquidityPositions)
     .then(({ positions }) => positions)
 }
 
 // ROUNDS
-interface RoundEntry {
-  address: string
-  signature: string
-}
 export interface Round {
-  id: number
-  entries: RoundEntry[]
+  roundID: number
+  count: number
+  signatures: { [key: string]: string }
 }
 
 async function _fetchRound(id: number) {
   const url = `/rounds/${id}.json`
-  const round = await fetch(url)
-    .then((response) => {
-      // parse if found
-      if (response.ok) {
-        return response.json()
-      }
-      // return null if missing
-      if (response.status === 404) {
-        return null
-      }
-      // raise error on non-404 HTTP errors.
-      throw new Error(
-        `Request to ${url} failed with status code ${response.status}`
-      )
-    })
-    .then((entries) => (entries !== null ? { id, entries } : null))
-
+  const round = await fetch(url).then((response) => {
+    // parse if found
+    if (response.ok) {
+      return response.json()
+    }
+    // return null if missing
+    if (response.status === 404) {
+      return null
+    }
+    // raise error on non-404 HTTP errors.
+    throw new Error(
+      `Request to ${url} failed with status code ${response.status}`
+    )
+  })
   console.log(`_fetchRound ${id}`, round)
   return round as Round
 }
 
-export async function fetchRounds() {
+async function _fetchRounds() {
   async function* iter() {
     // starting at 0,
     // fetch rounds sequentially until payload not found
@@ -339,4 +339,43 @@ export async function fetchRounds() {
   return rounds
 }
 
+export interface Allocation {
+  auth: { r: string; s: string; v: number }
+  roundID: ethers.BigNumberish
+  count: ethers.BigNumberish
+}
+
+export interface Allocations {
+  [key: string]: Allocation[]
+}
+
+export async function fetchAllocations() {
+  const rounds = await _fetchRounds()
+  const allocations = {} as Allocations
+  for (const round of rounds) {
+    const { roundID, count } = round
+    for (const [address, signature] of Object.entries(round.signatures)) {
+      const { r, s, v } = ethers.utils.splitSignature(signature)
+      allocations[address] = allocations[address] || []
+      allocations[address].push({
+        roundID,
+        count,
+        auth: { r, s, v },
+      })
+    }
+  }
+  return allocations
+}
+
 // CLAIM
+export interface claimAllocationsArgs {
+  genesisAllocation: GenesisAllocation
+  allocations: Allocation[]
+}
+export async function claimAllocations({
+  genesisAllocation,
+  allocations,
+}: claimAllocationsArgs) {
+  console.log('claimAllocations', genesisAllocation, allocations);
+  return await genesisAllocation.claimAllocations(allocations);
+}

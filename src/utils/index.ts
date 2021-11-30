@@ -2,6 +2,7 @@ import { BigNumber, BigNumberish, utils } from "ethers"
 import { ChainID } from '@trustlessfi/addresses'
 import JSBI from "jsbi"
 import { TickMath } from '@uniswap/v3-sdk'
+import { poolMetadata } from '../slices/poolsMetadata'
 
 export const zeroAddress = '0x0000000000000000000000000000000000000000'
 
@@ -110,6 +111,7 @@ export const numDisplay = (
 
 // ======================= Transactions =========================
 export const getDefaultTransactionTimeout = (chainID: ChainID) => chainID === ChainID.Hardhat ? 60 * 2000 : 60 * 20
+export const SLIPPAGE_TOLERANCE = 0.05
 
 // ======================= Constants ============================
 export const uint256Max = '115792089237316195423570985008687907853269984665640564039457584007913129639935'
@@ -133,9 +135,11 @@ export const hours = (hours: number)     => hours * minutes(60)
 export const minutes = (minutes: number) => minutes * seconds(60)
 export const seconds = (seconds: number) => seconds
 
-export const timeMS = () => (new Date().getTime())
+export const timeMS = () => Date.now()
 
-export const timeS = () => Math.floor(timeMS() / 1000)
+export const msToS = (ms: number) => Math.floor(ms / 1000)
+
+export const timeS = () => msToS(timeMS())
 
 // ======================= Local Storage ============================
 export const getLocalStorage = (key: string, defaultValue: any = null) => {
@@ -181,6 +185,7 @@ export type PromiseType<T> = T extends PromiseLike<infer U> ? U : T
 
 
 export const parseMetamaskError = (error: any): string[] => {
+  const metamaskError = error
   if (error.hasOwnProperty('error')) error = error.error
 
   if (error.hasOwnProperty('data')) {
@@ -220,6 +225,7 @@ export const parseMetamaskError = (error: any): string[] => {
     }
   }
 
+  console.error({metamaskError})
   return ['Unknown metamask error']
 
 }
@@ -272,6 +278,8 @@ export const getSpaceForFee = (fee: Fee) => {
       return 60
     case Fee.HIGH:
       return 200
+    default:
+      return 10
   }
 }
 
@@ -285,6 +293,27 @@ export const tickToSqrtPriceX96 = (tick: number) => bnf(TickMath.getSqrtRatioAtT
 export const sqrtPriceX96ToTick = (sqrtPriceX96: string) => TickMath.getTickAtSqrtRatio(JSBI.BigInt(sqrtPriceX96))
 
 export const tickToPrice = (tick: number): number => unscale(getE18PriceForSqrtX96Price(tickToSqrtPriceX96(tick)))
+
+export const tickToPriceDisplay = (tick: number) => numDisplay(tickToPrice(tick))
+
+export const displaySymbol = (value?: string) => {
+  if(!value) {
+    return ''
+  }
+
+  return value.toLowerCase() === 'weth' ? 'Eth' : upperCaseWord(value)
+}
+
+export const getPoolName = (pool?: poolMetadata | null) => {
+  if(!pool) {
+    return '-'
+  }
+
+  const token0Symbol = displaySymbol(pool.token0.symbol)
+  const token1Symbol = displaySymbol(pool.token1.symbol)
+
+  return `${token0Symbol}:${token1Symbol}`
+}
 
 export const maxLiquidityForAmount0 = (sqrtRatioAX96: BigNumber, sqrtRatioBX96: BigNumber, amount0: BigNumber) => {
   if (sqrtRatioAX96.gt(sqrtRatioBX96)) [sqrtRatioAX96, sqrtRatioBX96] = [sqrtRatioBX96, sqrtRatioAX96]

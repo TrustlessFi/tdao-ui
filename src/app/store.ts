@@ -12,7 +12,6 @@ import systemDebtReducer from "../slices/systemDebt"
 import positionsEditorReducer from "../slices/positionsEditor"
 import liquidityPositionsEditorReducer from "../slices/liquidityPositionsEditor"
 import lendSelectionReducer from "../slices/lendSelection"
-import modalReducer from "../slices/modal"
 
 import governorReducer from "../slices/governor"
 import liquidationsReducer from "../slices/liquidations"
@@ -28,7 +27,7 @@ import lendHueBalanceReducer from "../slices/balances/lendHueBalance"
 import contractsReducer from "../slices/contracts"
 import notificationsReducer from "../slices/notifications"
 
-import genesis from "../slices/genesis"
+import genesisReducer from "../slices/genesis"
 
 export const store = configureStore({
   reducer: {
@@ -44,7 +43,6 @@ export const store = configureStore({
     positionsEditor: positionsEditorReducer,
     liquidityPositionsEditor: liquidityPositionsEditorReducer,
     lendSelection: lendSelectionReducer,
-    modal: modalReducer,
 
     governor: governorReducer,
     liquidations: liquidationsReducer,
@@ -60,7 +58,7 @@ export const store = configureStore({
     contracts: contractsReducer,
     notifications: notificationsReducer,
 
-    genesis: genesis,
+    genesis: genesisReducer,
   },
 })
 

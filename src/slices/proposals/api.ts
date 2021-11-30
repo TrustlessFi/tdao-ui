@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers"
-import { TcpGovernorAlpha } from '@trustlessfi/typechain'
+import { Tcp, TcpGovernorAlpha } from '@trustlessfi/typechain'
 import { unscale, zeroAddress } from "../../utils"
 import { Proposal, ProposalState, proposalsInfo } from "./"
 import { ProtocolContract } from '../contracts'
@@ -32,6 +32,7 @@ const convertStateIDToState = (stateID: number) => {
 interface RawProposal {
   proposal: {
     id: number
+    ipfsHash: string
     proposer: string
     eta: number
     targets: string[]
@@ -57,6 +58,7 @@ interface RawProposal {
 const rawProposalToProposal = (rawProposal: RawProposal): Proposal => ({
   proposal: {
     id: rawProposal.proposal.id,
+    ipfsHash: rawProposal.proposal.ipfsHash,
     proposer: rawProposal.proposal.proposer,
     eta: rawProposal.proposal.eta,
     targets: rawProposal.proposal.targets,
@@ -82,30 +84,31 @@ const rawProposalToProposal = (rawProposal: RawProposal): Proposal => ({
 })
 
 export const genProposals = async (args: proposalsArgs): Promise<proposalsInfo | null> => {
-  const tcpGovernorAlpha = getContract(args.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha) as TcpGovernorAlpha
+  const tcpGovernorAlpha = getContract(args.contracts[ProtocolContract.TcpGovernorAlpha], ProtocolContract.TcpGovernorAlpha) as TcpGovernorAlpha
+  const tcp = getContract(args.contracts[ProtocolContract.Tcp], ProtocolContract.Tcp) as Tcp
 
-  const rawProposalData = await (tcpGovernorAlpha as TcpGovernorAlpha).getAllProposals(args.userAddress)
+  const [rawProposalData, quorumVotes] = await Promise.all([
+    (tcpGovernorAlpha as TcpGovernorAlpha).getAllProposals(args.userAddress),
+    (tcpGovernorAlpha as TcpGovernorAlpha).quorumVotes(),
+  ]);
   const haveUserAddress = args.userAddress !== zeroAddress
 
   let _proposals = rawProposalData._proposals
   let _states = rawProposalData._proposalStates
   let _receipts = rawProposalData._receipts
+  let _quorum = quorumVotes
 
   let _votingPower = new Array(_proposals.length).fill(0)
 
-  // This needs to be added once we have CNP, for now copied our old code
-
-  /* if (haveUserAddress) {
-    const cnp = await getProtocolContract('cnp') as CNP
+  if (haveUserAddress) {
     _votingPower = await Promise.all(_proposals.map(async (_proposal, index) => {
       // can't vote anyways if the proposal is in pending state
       if (_states[index] === 0) return 0
 
-      let votingPower = await cnp.getPriorVotes(userAddress, _proposal.startBlock)
+      let votingPower = await tcp.getPriorVotes(args.userAddress, _proposal.startBlock)
       return unscale(votingPower)
     }))
   }
-  */
 
   const proposals: Array<Proposal> = []
   for (let i = 0; i < _proposals.length; i++) {
@@ -119,11 +122,14 @@ export const genProposals = async (args: proposalsArgs): Promise<proposalsInfo |
     proposals.push(rawProposalToProposal(rawProposal))
   }
 
-  const returnProposals = {} as proposalsInfo
+  const returnProposals: {[key in number]: Proposal} = {}
   for (let i = 0; i < proposals.length; i++) {
     const proposal = proposals[i]
     returnProposals[proposal.proposal.id] = proposal
   }
 
-  return returnProposals
+  return {
+    quorum: unscale(_quorum),
+    proposals: returnProposals,
+  }
 }

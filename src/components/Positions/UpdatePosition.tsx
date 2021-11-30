@@ -1,5 +1,5 @@
-import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { useState } from "react"
+import { useParams } from 'react-router';
 import {
   waitForLiquidations,
   waitForRates,
@@ -7,27 +7,30 @@ import {
   waitForMarket,
   waitForHueBalance,
   waitForEthBalance,
-  getContractWaitFunction,
+  waitForContracts,
   waitForPositions
 } from '../../slices/waitFor'
 import {
   TextAreaSkeleton,
   Button,
 } from 'carbon-components-react'
+import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { ProtocolContract } from '../../slices/contracts'
-import { openModal } from '../../slices/modal'
 import { numDisplay, zeroIfNaN } from '../../utils/index'
 import { reason } from '../library/ErrorMessage'
+import Breadcrumbs from '../library/Breadcrumbs'
 import { TransactionType } from '../../slices/transactions'
 import { clearPositions } from '../../slices/positions'
 import { editorClosed } from '../../slices/positionsEditor'
 import PositionNumberInput from '../library/PositionNumberInput'
 import LargeText from '../utils/LargeText'
-import PositionMetadata from '../library/PositionMetadata'
+import Text from '../utils/Text'
 import Bold from '../utils/Bold'
 import ErrorMessage from '../library/ErrorMessage'
 import InputPicker from '../Lend/library/InputPicker'
-import ApprovalButton from '../utils/ApprovalButton'
+import CreateTransactionButton from '../utils/CreateTransactionButton';
+import { Row, Col } from 'react-flexbox-grid'
+import PositionMetadata2 from '../library/PositionMetadata2';
 
 enum CollateralChange {
   Increase = 'Increase',
@@ -39,8 +42,15 @@ enum DebtChange {
   Payback = 'Payback',
 }
 
-const UpdatePosition = ({ id }: { id: number }) => {
+interface MatchParams {
+  positionID: string
+}
+
+const UpdatePosition = () => {
+  const params: MatchParams = useParams()
   const dispatch = useAppDispatch()
+
+  const positionID = Number(params.positionID)
 
   const [collateralCount, setCollateralCount] = useState(0)
   const [debtCount, setDebtCount] = useState(0)
@@ -55,7 +65,7 @@ const UpdatePosition = ({ id }: { id: number }) => {
   const userEthBalance = waitForEthBalance(selector, dispatch)
   const market = waitForMarket(selector, dispatch)
   const rates = waitForRates(selector, dispatch)
-  const marketContract = getContractWaitFunction(ProtocolContract.Market)(selector, dispatch)
+  const contracts = waitForContracts(selector, dispatch)
   const positions = waitForPositions(selector, dispatch)
 
   const userAddress = selector(state => state.wallet.address)
@@ -73,13 +83,13 @@ const UpdatePosition = ({ id }: { id: number }) => {
     priceInfo === null ||
     market === null ||
     rates === null ||
-    marketContract === null ||
+    contracts === null ||
     userEthBalance === null ||
     userAddress === null ||
     positions === null
   ) return <TextAreaSkeleton />
 
-  const position = positions[id]
+  const position = positions[positionID]
   const increaseCollateral = collateralChange === CollateralChange.Increase
   const increaseDebt = debtChange === DebtChange.Borrow
 
@@ -99,7 +109,7 @@ const UpdatePosition = ({ id }: { id: number }) => {
 
   const totalLiquidationIncentive = (liquidations.discoveryIncentive + liquidations.liquidationIncentive - 1) * 100
 
-  const interestRate = (rates.positiveInterestRate ? rates.interestRateAbsoluteValue : -rates.interestRateAbsoluteValue) * 100
+  // const interestRate = (rates.positiveInterestRate ? rates.interestRateAbsoluteValue : -rates.interestRateAbsoluteValue) * 100
 
   const failures: {[key in string]: reason} = {
     noChange: {
@@ -136,103 +146,128 @@ const UpdatePosition = ({ id }: { id: number }) => {
   const failureReasons: reason[] = Object.values(failures)
   const isFailing = failureReasons.filter(reason => reason.failing).length > 0
 
-  const openUpdatePositionDialog = () => {
-    dispatch(openModal({
-      args: {
-        type: TransactionType.UpdatePosition,
-        positionID: id,
-        debtIncrease,
-        collateralIncrease,
-        Market: marketContract,
-      },
-      collateralization,
-      minCollateralization: market.collateralizationRequirement,
-      ethPrice: priceInfo.ethPrice,
-      liquidationPrice,
-    }))
-  }
+  const paragraphDivider = <div style={{height: 32}} />
+
+  const newDebtCountDisplay = numDisplay(newDebtCount < 0 ? 0 : newDebtCount, 2)
+
+  const ethPriceDisplay = priceInfo === null ? '-' : numDisplay(priceInfo.ethPrice, 0)
 
   return (
     <>
-      <LargeText>
-        Position #{id} has {numDisplay(position.collateralCount, 2)} Eth of Collateral
-        and {numDisplay(position.debtCount, 2)} Hue of debt.
-        <div />
-        I want to
-        <InputPicker
-          options={CollateralChange}
-          initialValue={initialCollateralChange}
-          onChange ={(option: CollateralChange) => setCollateralChange(option)}
-        />
-        collateral by
-        <PositionNumberInput
-          id="collateralInput"
-          action={(value: number) => setCollateralCount(value)}
-          value={collateralCount}
-        />
-        Eth and
-        <InputPicker
-          options={DebtChange}
-          initialValue={initialDebtChange}
-          onChange ={(option: DebtChange) => setDebtChange(option)}
-        />
-        <PositionNumberInput
-          id="debtInput"
-          action={(value: number) => setDebtCount(value)}
-          value={debtCount}
-        />
-        Hue.
-      </LargeText>
-      <div style={{marginTop: 36, marginBottom: 30}}>
-        <PositionMetadata items={[
-          {
-            title: 'Position Collateral',
-            value: numDisplay(newCollateralCount, 2) + ' Eth',
-            failing: failures.negativeCollateral.failing,
-          },{
-            title: 'Position Debt',
-            value: numDisplay(newDebtCount < 0 ? 0 : newDebtCount, 2) + ' Hue',
-          },{
-            title: 'Min position Debt',
-            value: numDisplay(market.minPositionSize) + ' Hue',
-            failing: failures.notBigEnough.failing,
-          },{
-            title: 'Collateralization Ratio',
-            value: collateralizationDisplay,
-            failing: failures.undercollateralized.failing,
-          },{
-            title: 'Wallet Eth Balance',
-            value: numDisplay(userEthBalance - collateralIncrease, 2) + ' Eth',
-            failing: failures.insufficientEthInWallet.failing,
-          },{
-            title: 'Wallet Hue Balance',
-            value: numDisplay(hueBalance.userBalance + debtIncrease, 2) + ' Hue',
-            failing: failures.insufficientHueInWallet.failing,
-          },{
-            title: 'Interest Rate',
-            value: numDisplay(interestRate, 2) + '%',
-          },
-        ]} />
-      </div>
-      <LargeText>
-        Eth is currently <Bold>{numDisplay(priceInfo.ethPrice, 0)}</Bold> Hue.
-        If the price of Eth falls below <Bold>{liquidationPriceDisplay}</Bold> Hue
-        I could lose <Bold>{numDisplay(totalLiquidationIncentive, 0)}%</Bold> or more of my position value in Eth to liquidators.
-      </LargeText>
-      <div style={{marginTop: 32}}>
-        <ApprovalButton
-          disabled={debtIncrease >= 0}
-          token={ProtocolContract.Hue}
-          protocolContract={ProtocolContract.Market}
-          approvalLabels={{waiting: 'Approve Payback', approving: 'Approving Payback...', approved: 'Payback Approved'}}
-        />
-      </div>
-      <div style={{marginTop: 32, marginBottom: 32}}>
-        <Button onClick={openUpdatePositionDialog} disabled={isFailing}>
-          Update Position
-        </Button>
-      </div>
-      <ErrorMessage reasons={failureReasons} />
+      <Breadcrumbs items={[{ text: 'Positions', href: '/' }, 'Update']} />
+      <Row>
+        <Col xs={4}>
+          <Text>
+            <div />
+            <Row bottom='xs' style={{marginBottom: 8}}>
+              <Col>
+                <InputPicker
+                  options={CollateralChange}
+                  initialValue={initialCollateralChange}
+                  onChange ={(option: CollateralChange) => setCollateralChange(option)}
+                />
+              </Col>
+              <Col>
+                Eth collateral by
+              </Col>
+            </Row>
+            <PositionNumberInput
+              id="collateralInput"
+              action={(value: number) => setCollateralCount(value)}
+              value={collateralCount}
+            />
+            <Row bottom='xs' style={{marginBottom: 8}}>
+              <Col>
+                <InputPicker
+                  options={DebtChange}
+                  initialValue={initialDebtChange}
+                  onChange ={(option: DebtChange) => setDebtChange(option)}
+                />
+              </Col>
+              <Col>
+                Hue
+              </Col>
+            </Row>
+            <PositionNumberInput
+              id="debtInput"
+              action={(value: number) => setDebtCount(value)}
+              value={debtCount}
+            />
+          </Text>
+          <div style={{marginTop: 36, marginBottom: 30}}>
+            <PositionMetadata2 items={[
+              {
+                title: 'Position Collateral',
+                value: numDisplay(newCollateralCount, 2) + ' Eth',
+                failing: failures.negativeCollateral.failing,
+              },{
+                title: 'Position Debt',
+                value: newDebtCountDisplay + ' Hue',
+              },{
+                title: 'Hue/Eth Current Price',
+                value: ethPriceDisplay,
+                failing: false,
+              },{
+                title: 'Hue/Eth Liquidation Price',
+                value: liquidationPriceDisplay,
+                failing: liquidationPrice >= priceInfo.ethPrice,
+              },{
+                title: 'Collateralization Ratio',
+                value: collateralizationDisplay,
+                failing: collateralization < market.collateralizationRequirement,
+              },
+            ]} />
+          </div>
+          <div style={{marginTop: 32}}>
+            <CreateTransactionButton
+              title={"Approve Payback"}
+              disabled={debtIncrease >= 0 || hueBalance.approval.Market?.approved}
+              showDisabledInsteadOfConnectWallet={true}
+              shouldOpenTxTab={false}
+              txArgs={{
+                type: TransactionType.ApproveHue,
+                Hue: contracts!.Hue,
+                spenderAddress: contracts!.Market,
+              }}
+            />
+          </div>
+          <div style={{marginTop: 32, marginBottom: 32}}>
+            <CreateTransactionButton
+              title="Update Position"
+              disabled={isFailing}
+              txArgs={{
+                type: TransactionType.UpdatePosition,
+                positionID,
+                debtIncrease,
+                collateralIncrease,
+                Market: contracts!.Market,
+              }}
+            />
+          </div>
+          <ErrorMessage reasons={failureReasons} />
+        </Col>
+        <Col xs={8} style={{marginTop: 32}}>
+          <LargeText>
+            Position #{positionID} currently has {numDisplay(position.collateralCount, 2)} Eth of Collateral
+            and {numDisplay(position.debtCount, 2)} Hue of debt.
+
+            {paragraphDivider}
+
+            You are going to {collateralChange.toLowerCase()} collateral
+            by {numDisplay(collateralCount)} Eth for a new total
+            of {numDisplay(newCollateralCount, 2)} Eth of collateral
+            and {debtChange.toLowerCase()} {numDisplay(debtCount)} Hue for a new total
+            of {newDebtCountDisplay} Hue debt in position #{positionID}.
+
+            {paragraphDivider}
+
+            The price of Eth is currently {numDisplay(priceInfo.ethPrice, 0)} Hue.
+            If the price of Eth falls below <Bold>{liquidationPriceDisplay}</Bold> Hue
+            you could lose <Bold>{numDisplay(totalLiquidationIncentive, 0)}%</Bold> or more of your position value in Eth to liquidators.
+
+          </LargeText>
+        </Col>
+      </Row>
     </>
   )
 }

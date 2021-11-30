@@ -4,8 +4,7 @@ import {
 } from 'carbon-components-react'
 import LargeText from '../utils/LargeText'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import { waitForHueBalance, waitForLendHueBalance, waitForMarket, getContractWaitFunction, waitForRates, waitForSDI } from '../../slices/waitFor'
-import { openModal } from '../../slices/modal'
+import { waitForHueBalance, waitForLendHueBalance, waitForMarket, waitForContracts, waitForRates, waitForSDI } from '../../slices/waitFor'
 import { numDisplay }  from '../../utils/'
 import PositionNumberInput from '../library/PositionNumberInput'
 import { LendBorrowOption } from './'
@@ -17,10 +16,9 @@ import { selectionMade } from '../../slices/lendSelection'
 import { TransactionType } from '../../slices/transactions/index'
 import { ProtocolContract } from '../../slices/contracts/index'
 import { getAPR } from './library'
-import ApprovalButton from '../utils/ApprovalButton'
-import { zeroIfNaN } from '../../utils/index';
-import ConnectWalletButton from '../utils/ConnectWalletButton';
-import RelativeLoading from '../library/RelativeLoading';
+import { zeroIfNaN } from '../../utils/index'
+import CreateTransactionButton from '../utils/CreateTransactionButton'
+import RelativeLoading from '../library/RelativeLoading'
 
 const Lend = () => {
   const dispatch = useAppDispatch()
@@ -30,7 +28,7 @@ const Lend = () => {
   const market = waitForMarket(selector, dispatch)
   const rates = waitForRates(selector, dispatch)
   const sdi = waitForSDI(selector, dispatch)
-  const marketContract = getContractWaitFunction(ProtocolContract.Market)(selector, dispatch)
+  const contracts = waitForContracts(selector, dispatch)
 
   const userAddress = selector(state => state.wallet.address)
 
@@ -42,7 +40,7 @@ const Lend = () => {
     market === null ||
     rates === null ||
     sdi === null ||
-    marketContract === null
+    contracts === null
 
   const apr = dataNull ? 0 : getAPR({market, rates, sdi, hueBalance})
 
@@ -73,16 +71,6 @@ const Lend = () => {
 
   const failureReasons: reason[] = Object.values(failures)
   const isFailing = dataNull ? false : failureReasons.filter(reason => reason.failing).length > 0
-
-  const openLendDialog = () => {
-    dispatch(openModal({
-      args: {
-        type: TransactionType.Lend,
-        count: amount,
-        Market: marketContract!,
-      },
-    }))
-  }
 
   return (
     <>
@@ -124,18 +112,27 @@ const Lend = () => {
           ]} />
         </div>
       </div>
-      <ApprovalButton
-        disabled={failingDueToNonApprovalReason || zeroIfNaN(amount) === 0}
-        token={ProtocolContract.Hue}
-        protocolContract={ProtocolContract.Market}
-        approvalLabels={{waiting: 'Approve Lend', approving: 'Approve in Metamask...', approved: 'Lend Approved'}}
+      <CreateTransactionButton
+        title={"Approve Lend"}
+        disabled={failingDueToNonApprovalReason || zeroIfNaN(amount) === 0 || dataNull || hueBalance.approval.Market?.approved}
+        showDisabledInsteadOfConnectWallet={true}
+        shouldOpenTxTab={false}
+        txArgs={{
+          type: TransactionType.ApproveHue,
+          Hue: contracts!.Hue,
+          spenderAddress: contracts!.Market,
+        }}
       />
       <div style={{marginTop: 32, marginBottom: 32}}>
-        {userAddress === null ? <ConnectWalletButton /> :
-          <Button disabled={isFailing || amount === 0} onClick={openLendDialog}>
-            Lend
-          </Button>
-        }
+        <CreateTransactionButton
+          title="Lend"
+          disabled={isFailing || amount === 0}
+          txArgs={{
+            type: TransactionType.Lend,
+            count: amount,
+            Market: contracts!.Market,
+          }}
+        />
       </div>
       <div>
         <ErrorMessage reasons={failureReasons} />

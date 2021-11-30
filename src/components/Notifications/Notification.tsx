@@ -5,10 +5,9 @@ import { TransactionStatus } from '../../slices/transactions'
 import { ErrorFilled24, CheckmarkFilled24, Close24 } from '@carbon/icons-react';
 import { getOpacityTransition } from '../utils'
 import ExplorerLink from '../utils/ExplorerLink'
-import { assertUnreachable, timeMS, isTxHash } from '../../utils'
+import { assertUnreachable, timeMS } from '../../utils'
 import { notificationInfo } from '../../slices/notifications'
-import { getTxHash } from '../../slices/transactions'
-import { getTxNamePastTense, getTxNamePresentTense } from '../../slices/transactions'
+import { getTxErrorName, getTxShortName } from '../../slices/transactions'
 import { useEffect, useState, useRef } from "react";
 import { useAppDispatch } from '../../app/hooks';
 
@@ -51,26 +50,17 @@ const NotificationText = ({large, children}: {large?: boolean, children: ReactNo
 const NOTIFICATION_DURATION_SECONDS = 12
 const FADE_OUT_MS = 300
 
-const Notification = ({ data, }: { data: notificationInfo, }) => {
+const Notification = ({ notif }: { notif: notificationInfo, }) => {
   const dispatch = useAppDispatch()
 
   const iconWidth = 56
   const totalWidth = 400
   const paddingRight = 40
 
-  const calculateLoadingBarWidth = () => {
-    const duration = timeMS() - data.startTimeMS
-    const portion = duration / (NOTIFICATION_DURATION_SECONDS * 1000)
-    return (1 - portion) * totalWidth
-  }
-
-  const [ loadingBarWidth, setLoadingBarWidth ] = useState(calculateLoadingBarWidth())
   const [ visible, setVisible ] = useState(true)
   const closeCalled = useRef(false)
 
-  const endTime = data.startTimeMS + (NOTIFICATION_DURATION_SECONDS * 1000)
-
-  const hash = getTxHash(data)
+  const endTime = notif.startTimeMS + (NOTIFICATION_DURATION_SECONDS * 1000)
 
   const close = () => {
     if (closeCalled.current) return
@@ -78,33 +68,36 @@ const Notification = ({ data, }: { data: notificationInfo, }) => {
 
     clearInterval()
     setVisible(false)
-    setTimeout(() => dispatch(notificationClosed(getTxHash(data))), FADE_OUT_MS)
+    setTimeout(() => dispatch(notificationClosed(notif.uid)), FADE_OUT_MS)
   }
 
-  const explorerLink = isTxHash(hash)
-    ? <ExplorerLink txHash={hash}>View on Explorer</ExplorerLink>
-    : null
+  const explorerLink = notif.hash === undefined
+    ? null
+    : (
+      <Row>
+        <ExplorerLink txHash={notif.hash}>
+          View on Explorer
+        </ExplorerLink>
+      </Row>
+    )
 
   useEffect(() => {
     const interval = setInterval(() => {
       const currentTimeMS = timeMS()
-      if (currentTimeMS > endTime) {
-        close()
-      } else {
-        setLoadingBarWidth(calculateLoadingBarWidth())
-      }
+      if (currentTimeMS > endTime) close()
     }, (NOTIFICATION_DURATION_SECONDS * 1000) / 250)
     return () => clearInterval(interval)
   })
 
   if (timeMS() > endTime + FADE_OUT_MS) {
-    dispatch(notificationClosed(getTxHash(data)))
+    dispatch(notificationClosed(notif.uid))
     return null
   }
 
-  const title = data.status === TransactionStatus.Failure
-    ? getTxNamePastTense(data.type)
-    : getTxNamePresentTense(data.type)
+  const title =
+    notif.status === TransactionStatus.Failure
+      ? getTxErrorName(notif.type)
+      : getTxShortName(notif.type)
 
   return (
     <div style={{
@@ -123,23 +116,24 @@ const Notification = ({ data, }: { data: notificationInfo, }) => {
       <Col>
         <Row middle='xs' style={{paddingRight}}>
           <Col style={{paddingLeft: 16, width: iconWidth}}>
-            <NotificationIcon status={data.status} />
+            <NotificationIcon status={notif.status} />
           </Col>
           <Col style={{width: (totalWidth - iconWidth) - paddingRight}}>
-            <NotificationText large>{title}</NotificationText>
+            <Row>
+              <NotificationText large>{title}</NotificationText>
+            </Row>
             {explorerLink}
+            {(notif.status === TransactionStatus.Failure
+                ? <Row>
+                    <NotificationText>
+                      See console for more information.
+                    </NotificationText>
+                  </Row>
+                : null
+            )}
           </Col>
         </Row>
       </Col>
-      <div style={{
-        width: loadingBarWidth,
-        display: visible ? 'block' : 'none',
-        height: 3,
-        backgroundColor: statusColor(data.status),
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-      }} />
       <Close24 aria-label="close" onClick={close} style={{
         position: 'absolute',
         top: 8,

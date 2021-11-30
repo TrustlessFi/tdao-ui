@@ -1,17 +1,24 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
-import { sliceState, initialState as baseInitialState } from "../index"
+import { initialState as baseInitialState, sliceState } from "../index"
 import getContract, { getMulticallContract } from "../../utils/getContract"
 
-import { Accounting, HuePositionNFT } from "@trustlessfi/typechain"
-import { ProtocolContract } from "../contracts"
 import {
-  fetchGenesisDebtPositions,
-  fetchGenesisLiquidityPositions,
-  fetchRounds,
+  Accounting,
+  GenesisAllocation,
+  HuePositionNFT,
+} from "@trustlessfi/typechain"
+import {ContractsInfo, ProtocolContract, RootContract} from "../contracts"
+import {
   DebtPosition,
+  fetchDebtPositions,
+  fetchLiquidityPositions,
+  fetchAllocations,
+  claimAllocations,
   LiquidityPosition,
-  Round,
+  Allocation,
+  Allocations,
 } from "./api"
+import getProvider from "../../utils/getProvider";
 
 interface GenesisPositions {
   debt: DebtPosition[]
@@ -20,39 +27,39 @@ interface GenesisPositions {
 
 export interface GenesisState {
   positions: sliceState<GenesisPositions>
-  rounds: sliceState<Round[]>
+  allocations: sliceState<Allocations>
 }
 
 const initialState: GenesisState = {
   positions: baseInitialState as sliceState<GenesisPositions>,
-  rounds: baseInitialState as sliceState<Round[]>,
+  allocations: baseInitialState as sliceState<Allocations>,
 }
 
 export interface getGenesisPositionsArgs {
-  Accounting: string
-  HuePositionNFT: string
-  TrustlessMulticall: string
+  contracts: ContractsInfo
+  trustlessMulticall: string
 }
 
 export const getGenesisPositions = createAsyncThunk(
   "genesis/getGenesisPositions",
   async (args: getGenesisPositionsArgs) => {
     const accounting = getContract(
-      args.Accounting,
+      args.contracts.Accounting,
       ProtocolContract.Accounting
     ) as Accounting
     const huePositionNFT = getContract(
-      args.HuePositionNFT,
+      args.contracts.HuePositionNFT,
       ProtocolContract.HuePositionNFT
     ) as HuePositionNFT
-    const trustlessMulticall = getMulticallContract(args.TrustlessMulticall)
+
+    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
     const contracts = { accounting, huePositionNFT, trustlessMulticall }
 
-    const debtPositions = await fetchGenesisDebtPositions({ contracts })
+    const debtPositions = await fetchDebtPositions({ contracts })
     const debtOwnerIDs = Array.from(
       new Set(debtPositions.map((debtPosition) => debtPosition.owner))
     )
-    const liquidityPositions = await fetchGenesisLiquidityPositions({
+    const liquidityPositions = await fetchLiquidityPositions({
       contracts,
       ownerIDs: debtOwnerIDs,
     })
@@ -64,10 +71,32 @@ export const getGenesisPositions = createAsyncThunk(
   }
 )
 
-export const getGenesisRounds = createAsyncThunk(
-  "genesis/getGenesisRounds",
+export const getGenesisAllocations = createAsyncThunk(
+  "genesis/getGenesisAllocations",
   async (_: {}) => {
-    return fetchRounds() as Promise<Round[]>
+    return fetchAllocations()
+  }
+)
+
+interface claimAllocationsArgs {
+  genesisAllocation: string
+  allocations: Allocation[]
+}
+export const waitForGenesisClaimAllocations = createAsyncThunk(
+  "genesis/claimAllocations",
+  async (opts: claimAllocationsArgs, {dispatch}) => {
+    const { allocations } = opts
+
+    const provider = getProvider();
+    const genesisAllocation = getContract(
+      opts.genesisAllocation,
+      RootContract.GenesisAllocation
+    ).connect(provider.getSigner()) as GenesisAllocation
+
+    const transaction = await claimAllocations({ genesisAllocation, allocations });
+    const receipt = await provider.waitForTransaction(transaction.hash);
+
+    console.log(transaction, receipt);
   }
 )
 
@@ -79,24 +108,24 @@ export const genesisSlice = createSlice({
     builder.addCase(getGenesisPositions.pending, (state) => {
       state.positions.loading = true
     })
-    builder.addCase(getGenesisRounds.pending, (state) => {
-      state.rounds.loading = true
+    builder.addCase(getGenesisAllocations.pending, (state) => {
+      state.allocations.loading = true
     })
     builder.addCase(getGenesisPositions.rejected, (state, action) => {
       state.positions.loading = false
       state.positions.data.error = action.error
     })
-    builder.addCase(getGenesisRounds.rejected, (state, action) => {
-      state.rounds.loading = false
-      state.rounds.data.error = action.error
+    builder.addCase(getGenesisAllocations.rejected, (state, action) => {
+      state.allocations.loading = false
+      state.allocations.data.error = action.error
     })
     builder.addCase(getGenesisPositions.fulfilled, (state, action) => {
       state.positions.loading = false
       state.positions.data.value = action.payload
     })
-    builder.addCase(getGenesisRounds.fulfilled, (state, action) => {
-      state.rounds.loading = false
-      state.rounds.data.value = action.payload
+    builder.addCase(getGenesisAllocations.fulfilled, (state, action) => {
+      state.allocations.loading = false
+      state.allocations.data.value = action.payload
     })
   },
 })

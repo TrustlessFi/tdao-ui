@@ -11,13 +11,13 @@ export interface EthBalanceState extends sliceState<ethBalance> {}
 
 export type ethBalanceArgs = {
   userAddress: string,
-  TrustlessMulticall: string,
+  trustlessMulticall: string,
 }
 
 export const fetchEthBalance = createAsyncThunk(
   'ethBalance/fetchEthBalance',
   async (args: ethBalanceArgs) => {
-    const trustlessMulticall = getMulticallContract(args.TrustlessMulticall)
+    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
     return unscale(await trustlessMulticall.getEthBalance(args.userAddress))
   }
