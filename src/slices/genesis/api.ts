@@ -10,8 +10,6 @@ import {
   executeMulticalls,
   getDuplicateFuncMulticall,
 } from "@trustlessfi/multicall"
-import {waitingForMetamask} from "../wallet";
-import getProvider from "../../utils/getProvider";
 
 // DEBT
 type BaseDebtPosition = PromiseType<ReturnType<Accounting["getPosition"]>> & {
@@ -293,10 +291,15 @@ export async function fetchLiquidityPositions({
 }
 
 // ROUNDS
+// NOTE: must match tcp-genesis/src/rounds.ts:_SignatureData
+export interface Signature {
+  tokenCount: string,
+  signature: string
+}
+// NOTE: sync'ed with tcp-genesis/src/rounds.ts:_RoundData
 export interface Round {
   roundID: number
-  count: number
-  signatures: { [key: string]: string }
+  signatures: { [key: string]: Signature }
 }
 
 async function _fetchRound(id: number) {
@@ -341,8 +344,8 @@ async function _fetchRounds() {
 
 export interface Allocation {
   auth: { r: string; s: string; v: number }
-  roundID: ethers.BigNumberish
-  count: ethers.BigNumberish
+  roundID: number
+  count: string
 }
 
 export interface Allocations {
@@ -353,13 +356,13 @@ export async function fetchAllocations() {
   const rounds = await _fetchRounds()
   const allocations = {} as Allocations
   for (const round of rounds) {
-    const { roundID, count } = round
-    for (const [address, signature] of Object.entries(round.signatures)) {
+    const { roundID } = round
+    for (const [address, {tokenCount, signature}] of Object.entries(round.signatures)) {
       const { r, s, v } = ethers.utils.splitSignature(signature)
       allocations[address] = allocations[address] || []
       allocations[address].push({
         roundID,
-        count,
+        count: tokenCount,
         auth: { r, s, v },
       })
     }
@@ -376,6 +379,9 @@ export async function claimAllocations({
   genesisAllocation,
   allocations,
 }: claimAllocationsArgs) {
-  console.log('claimAllocations', genesisAllocation, allocations);
-  return await genesisAllocation.claimAllocations(allocations);
+  const convertedAllocations = allocations.map(({auth, roundID, count})=>({
+    auth, roundID, count: ethers.BigNumber.from(count)
+  }));
+  console.log('claimAllocations', genesisAllocation, convertedAllocations);
+  return await genesisAllocation.claimAllocations(convertedAllocations);
 }
