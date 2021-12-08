@@ -6,6 +6,7 @@ import Center from '../library/Center'
 import SimpleTable, { TableHeaderOnly } from '../library/SimpleTable'
 import ConnectWalletButton from '../utils/ConnectWalletButton'
 import { getSortedUserTxs, UserTxSortOption } from '../utils'
+import { getDateTimeStringMS } from '../../utils'
 import { getEtherscanTxLink, getEtherscanAddressLink } from '../utils/ExplorerLink'
 import { getChainIDFromState } from '../../slices/chainID'
 
@@ -23,11 +24,6 @@ const RecentTransactions = () => {
   const chainID = selector(state => state.chainID)
 
   const txs = getSortedUserTxs(getChainIDFromState(chainID), userAddress, transactions, UserTxSortOption.NONCE_DESCENDING)
-
-  const getDateTimeString = (timeInMS: number) => {
-    const date = (new Date(timeInMS))
-    return [date.toDateString(), date.toLocaleTimeString()].join(' ')
-  }
 
   const table =
     userAddress === null || txs.length === 0
@@ -52,7 +48,7 @@ const RecentTransactions = () => {
         data: {
           'Nonce': tx.nonce,
           'Transaction': getTxLongName(tx.args),
-          'Start Time': getDateTimeString(tx.startTimeMS),
+          'Start Time': getDateTimeStringMS(tx.startTimeMS),
           'Status': <InlineLoading status={txStatusToLoadingStatus[tx.status]} />,
         },
         onClick: () => window.open(getEtherscanTxLink(tx.hash, chainID.chainID!), '_blank'),

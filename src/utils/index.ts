@@ -74,9 +74,26 @@ export const unscale = (quantity: BigNumber, decimals = 18): number => {
   return result
 }
 
-export const timeToPeriod = (time: number, periodLength: number, firstPeriod: number) => {
-  return (Math.floor(time / periodLength)) - firstPeriod
+export const timeToPeriod = (time: number, periodLength: number, firstPeriod: number) =>
+  (Math.floor(time / periodLength)) - firstPeriod
+
+export const periodToTime = (period: number, periodLength: number, firstPeriod: number) =>
+  periodLength * (firstPeriod + period)
+
+export const monthsToDays = (months: number) => Math.floor((months * 365) / 12)
+
+export const getDateTimeStringMS = (timeInMS: number) => {
+  const date = (new Date(timeInMS))
+  return [date.toDateString(), date.toLocaleTimeString()].join(' ')
 }
+
+export const getDateStringMS = (timeInMS: number) => {
+  const date = (new Date(timeInMS))
+  return [date.toDateString()].join(' ')
+}
+
+export const invert = (input: {[key in string]: string}): {[key in string]: string} =>
+  Object.fromEntries(Object.entries(input).map(([key, val]) => [val, key]))
 
 export const toInt = (val: number | string) => typeof val === 'number' ? val : parseInt(val)
 

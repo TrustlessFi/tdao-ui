@@ -3,6 +3,11 @@ import UpdatePosition from './UpdatePosition'
 import CreatePosition from './CreatePosition'
 import ExistingPositions from './ExistingPositions'
 
+export enum PositionUpdateOptions {
+  IncreaseLockTime = 'Increase Lock Time',
+  Withdraw = 'Withdraw',
+}
+
 const Positions = () => (
   <Switch>
     <Route exact path={['/', '/positions']}>

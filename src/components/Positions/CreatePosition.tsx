@@ -167,7 +167,7 @@ const CreatePosition = () => {
       columnOne={columnOne}
       columnTwo={columnTwo}
       loading={userAddress !== null && dataNull}
-      breadCrumbItems={[{ text: 'Positions', href: '/' }, 'New']}
+      crumbs={[{ text: 'Positions', href: '/' }, 'New']}
     />
   )
 }

@@ -55,13 +55,9 @@ export interface contractsArgs {
 export const getContracts = createAsyncThunk(
   "contracts/getContracts",
   async (args: contractsArgs): Promise<ContractsInfo> => {
-    console.log("here A")
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
-    console.log("here A2")
     const governor = getContract(args.governor, RootContract.Governor) as Governor
-    console.log("here A3")
     const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
-    console.log("here B")
 
     const { tcpContracts, tdaoContracts } = await executeMulticalls(
       trustlessMulticall,

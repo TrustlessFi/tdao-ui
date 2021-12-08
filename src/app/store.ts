@@ -11,7 +11,6 @@ import walletReducer from "../slices/wallet"
 import systemDebtReducer from "../slices/systemDebt"
 import positionsEditorReducer from "../slices/positionsEditor"
 import liquidityPositionsEditorReducer from "../slices/liquidityPositionsEditor"
-import lendSelectionReducer from "../slices/lendSelection"
 import tdaoPositionsReducer from "../slices/tdaoPositions"
 import tdaoInfoReducer from "../slices/tdaoInfo"
 
@@ -44,7 +43,6 @@ export const store = configureStore({
     systemDebt: systemDebtReducer,
     positionsEditor: positionsEditorReducer,
     liquidityPositionsEditor: liquidityPositionsEditorReducer,
-    lendSelection: lendSelectionReducer,
     tdaoPositions: tdaoPositionsReducer,
     tdaoInfo: tdaoInfoReducer,
 

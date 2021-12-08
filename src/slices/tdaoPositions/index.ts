@@ -79,7 +79,7 @@ export const tdaoPositionsSlice = createSlice({
   name: 'tDaoPositions',
   initialState: initialState as TDaoPositionsState,
   reducers: {
-    clearPositions: (state) => {
+    clearTDaoPositions: (state) => {
       state.data.value = null
     },
   },
@@ -88,6 +88,6 @@ export const tdaoPositionsSlice = createSlice({
   },
 })
 
-export const { clearPositions } = tdaoPositionsSlice.actions
+export const { clearTDaoPositions } = tdaoPositionsSlice.actions
 
 export default tdaoPositionsSlice.reducer

@@ -10,12 +10,13 @@ import { clearEthBalance } from '../ethBalance'
 import { clearHueBalance } from '../balances/hueBalance'
 import { clearPoolCurrentData } from '../poolCurrentData'
 import { clearLendHueBalance } from '../balances/lendHueBalance'
+import { clearTDaoPositions } from '../tdaoPositions'
 import { clearProposals } from '../proposals'
 import { ethers, ContractTransaction, BigNumber } from 'ethers'
-import { ProtocolContract } from '../contracts'
+import { ProtocolContract, TDaoRootContract } from '../contracts'
 import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 
-import { Market, Rewards, TcpGovernorAlpha } from '@trustlessfi/typechain'
+import { Market, Rewards, TcpGovernorAlpha, TDao } from '@trustlessfi/typechain'
 import getContract, { getMulticallContract } from '../../utils/getContract'
 import { scale, SLIPPAGE_TOLERANCE, timeMS } from '../../utils'
 import { UIID } from '../../constants'
@@ -38,6 +39,7 @@ export enum TransactionType {
   ClaimAllPositionRewards,
   ApprovePoolToken,
   VoteProposal,
+  UpdateTDaoPositionLockDuration,
 }
 
 export enum TransactionStatus {
@@ -147,6 +149,13 @@ export interface txVoteProposal {
   support: boolean
 }
 
+export interface txUpdateTDaoPositionLockDuration {
+  type: TransactionType.UpdateTDaoPositionLockDuration
+  tdao: string
+  positionID: number
+  durationMonths: number
+}
+
 export type TransactionArgs =
   txCreatePositionArgs |
   txUpdatePositionArgs |
@@ -159,7 +168,8 @@ export type TransactionArgs =
   txApprovePoolToken |
   txApproveHue |
   txApproveLendHue |
-  txVoteProposal
+  txVoteProposal |
+  txUpdateTDaoPositionLockDuration
 
 export interface TransactionData {
   args: TransactionArgs
@@ -209,6 +219,8 @@ export const getTxLongName = (args: TransactionArgs) => {
       return 'Approve ' + args.symbol
     case TransactionType.VoteProposal:
       return 'Vote Proposal ' + args.proposalID
+    case TransactionType.UpdateTDaoPositionLockDuration:
+      return `Increase position ${args.positionID} lock duration to ${args.durationMonths} months`
     default:
       assertUnreachable(type)
   }
@@ -241,6 +253,8 @@ export const getTxShortName = (type: TransactionType) => {
       return 'Approve Token'
     case TransactionType.VoteProposal:
       return 'Vote Proposal'
+    case TransactionType.UpdateTDaoPositionLockDuration:
+      return 'Increase Position Lock Duration'
     default:
       assertUnreachable(type)
   }
@@ -273,6 +287,10 @@ const executeTransaction = async (
   const getTcpGovernorAlpha = (address: string) =>
     getContract(address, ProtocolContract.TcpGovernorAlpha)
       .connect(provider.getSigner()) as TcpGovernorAlpha
+
+  const getTDao = (address: string) =>
+    getContract(address, TDaoRootContract.TDao)
+      .connect(provider.getSigner()) as TDao
 
   const type = args.type
 
@@ -369,12 +387,15 @@ const executeTransaction = async (
     case TransactionType.ApproveLendHue:
       const lendHue = new Contract(args.LendHue, erc20Artifact.abi, provider) as ERC20
       return await lendHue.connect(provider.getSigner()).approve(args.spenderAddress, uint256Max)
-    
+
     case TransactionType.VoteProposal:
       return await getTcpGovernorAlpha(args.TcpGovernorAlpha).castVote(
         args.proposalID,
         args.support
       )
+
+    case TransactionType.UpdateTDaoPositionLockDuration:
+      return await getTDao(args.tdao).increaseLockDuration(args.positionID, args.durationMonths)
 
     default:
       assertUnreachable(type)
@@ -471,6 +492,9 @@ export const waitForTransaction = createAsyncThunk(
           break
         case TransactionType.VoteProposal:
           dispatch(clearProposals())
+          break
+        case TransactionType.UpdateTDaoPositionLockDuration:
+          dispatch(clearTDaoPositions())
           break
       default:
         assertUnreachable(type)
