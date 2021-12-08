@@ -10,6 +10,7 @@ import {
 } from 'carbon-components-react'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
+import Breadcrumbs from '../library/Breadcrumbs'
 
 interface MatchParams {
   positionID: string
@@ -35,8 +36,10 @@ const UpdatePosition = () => {
 
 
   return (
-    <TDaoPositionDisplay position={position} width={800} />
-
+    <>
+      <Breadcrumbs crumbs={[{ text: 'Positions', href: '/positions' }, positionID.toString()]} />
+      <TDaoPositionDisplay position={position} width={800} />
+    </>
   )
 
 }

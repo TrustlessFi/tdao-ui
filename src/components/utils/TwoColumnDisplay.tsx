@@ -21,7 +21,7 @@ const TwoColumnDisplay = ({
     <div style={{position: 'relative'}}>
       {breadCrumbItems.length === 0
         ? null
-        : <Breadcrumbs items={[{ text: 'Positions', href: '/' }, 'New']} />
+        : <Breadcrumbs crumbs={[{ text: 'Positions', href: '/' }, 'New']} />
       }
       <RelativeLoading show={loading} />
       {
