@@ -4,6 +4,7 @@ import AppTile from '../library/AppTile'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { editorOpened } from '../../slices/positionsEditor'
 import { waitForTdaoPositions } from '../../slices/waitFor'
+import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import { TransactionType } from '../../slices/transactions'
 import { waitForContracts } from '../../slices/waitFor'
@@ -30,12 +31,9 @@ const ExistingPositions = () => {
     return (
       <>
         {Object.values(positions).map(position =>
-          <img
-            src={`data:image/svg+xml;base64,${Buffer.from(position.svg, 'binary').toString('base64')}`}
-            width={500}
-            style={{paddingRight: 16, paddingBottom: 16}}
-            alt={`TDao Position ID ${position.nftTokenID}`}
-            onClick={() => alert('positionID ' + position.nftTokenID + 'clicked' )}
+          <TDaoPositionDisplay
+            position={position}
+            onClick={(positionID: string) => history.push(`/positions/${positionID}`)}
           />
         )}
       </>

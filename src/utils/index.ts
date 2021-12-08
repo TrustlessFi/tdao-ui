@@ -31,6 +31,12 @@ export const mnt = (quantity: number, decimals = 18): string => {
 
 export const numVal = (num: string | number): number => typeof num == 'string' ? parseFloat(num) : num
 
+export const range = (start: number, cieling: number): number[] => {
+  const result: number[] = []
+  for(; start < cieling; start++) result.push(start)
+  return result
+}
+
 type direction = 'up' | 'down'
 
 export const onNumChange = (numChangeFunc: (val: number) => void) => (

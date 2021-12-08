@@ -18,6 +18,7 @@ import { getPricesInfo } from "./prices"
 import { fetchEthBalance } from "./ethBalance"
 import { getPoolCurrentData } from "./poolCurrentData"
 import { getContracts } from "./contracts"
+import { getTDaoInfo } from './tdaoInfo'
 
 import { sliceState } from "./"
 import { assertUnreachable } from "../utils/index"
@@ -110,7 +111,6 @@ const getWaitFunction =
     fetchNodes.map((fetchNode) => {
       const fetchedNode = getNodeFetch(fetchNode, selector, dispatch)
       inputArgs = { ...inputArgs, ...fetchedNode }
-      console.log({inputArgs})
     })
 
     if (Object.values(inputArgs).includes(null)) return null
@@ -267,6 +267,12 @@ export const waitForTdaoPositions = getWaitFunction(
   (state: RootState) => state.tdaoPositions,
   getTDaoPositions,
   [FetchNode.UserAddress, FetchNode.TDao, FetchNode.Contracts, FetchNode.TrustlessMulticall]
+)
+
+export const waitForTdaoInfo = getWaitFunction(
+  (state: RootState) => state.tdaoInfo,
+  getTDaoInfo,
+  [FetchNode.TDao, FetchNode.TrustlessMulticall]
 )
 
 export const waitForGenesisAllocationContract = getWaitFunction
