@@ -5,7 +5,7 @@ import { ContractInterface, Contract } from "ethers"
 import { Web3Provider } from "@ethersproject/providers"
 
 import getProvider from "./getProvider"
-import { ProtocolContract, RootContract } from "../slices/contracts"
+import { ProtocolContract, RootContract, TDaoRootContract, TDaoContract } from "../slices/contracts"
 
 // ==================== Typechain =========================
 import {
@@ -30,6 +30,13 @@ import {
   TcpTimelock,
   Hue,
   HuePositionNFT,
+  TDao,
+  TDaoToken,
+  TDaoPositionNFT,
+  TDaoPositionNFTDescriptor,
+  TDaoGovernorAlpha,
+  TDaoTimelock,
+  TDaoVotingRewardsSafe,
 } from "@trustlessfi/typechain"
 
 // ================ ARTIFACTS =======================
@@ -54,13 +61,23 @@ import trustlessMulticallArtifact from "@trustlessfi/artifacts/dist/contracts/co
 import trustlessMulticallViewOnlyArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/multicall/TrustlessMulticallViewOnly.sol/TrustlessMulticallViewOnly.json"
 import tcpTimelockArtifact from "@trustlessfi/artifacts/dist/contracts/core/governance/TcpTimelock.sol/TcpTimelock.json"
 import genesisAllocationArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/allocations/GenesisAllocation.sol/GenesisAllocation.json"
+
+import tDaoArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDao.sol/TDao.json"
+
+import tDaoTokenArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoToken.sol/TDaoToken.json"
+import tDaoPositionNFTArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoPositionNFT.sol/TDaoPositionNFT.json"
+import tDaoPositionNFTDescriptorArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoPositionNFTDescriptor.sol/TDaoPositionNFTDescriptor.json"
+import tDaoGovernorAlphaArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoGovernorAlpha.sol/TDaoGovernorAlpha.json"
+import tDaoTimelockArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoTimelock.sol/TDaoTimelock.json"
+import tDaoVotingRewardsSafeArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoTimelock.sol/TDaoTimelock.json"
+
 import { assertUnreachable } from "@trustlessfi/utils"
 
 type abi = { [key in string]: any }[]
 type contractAbi = { abi: abi }
 
 const artifactLookup: {
-  [key in ProtocolContract | RootContract]: contractAbi
+  [key in ProtocolContract | RootContract | TDaoContract | TDaoRootContract]: contractAbi
 } = {
   [ProtocolContract.Accounting]: accountingArtifact,
   [ProtocolContract.Auctions]: auctionsArtifact,
@@ -83,6 +100,14 @@ const artifactLookup: {
   [RootContract.ProtocolDataAggregator]: protocolDataAggregatorArtifact,
   [RootContract.GenesisAllocation]: genesisAllocationArtifact,
   [RootContract.TrustlessMulticall]: trustlessMulticallArtifact,
+
+  [TDaoRootContract.TDao]: tDaoArtifact,
+
+  [TDaoContract.TDaoToken]: tDaoTokenArtifact,
+  [TDaoContract.TDaoPositionNFT]: tDaoPositionNFTArtifact,
+  [TDaoContract.TDaoGovernorAlpha]: tDaoGovernorAlphaArtifact,
+  [TDaoContract.TDaoTimelock]: tDaoTimelockArtifact,
+  [TDaoContract.TDaoVotingRewardsSafe]: tDaoVotingRewardsSafeArtifact,
 }
 
 export const contract = <T extends Contract>(
@@ -105,7 +130,7 @@ export const getMulticallContract = (address: string) =>
 
 const getContract = (
   address: string,
-  theContract: ProtocolContract | RootContract,
+  theContract: ProtocolContract | RootContract | TDaoContract | TDaoRootContract,
   multicallViewOnly = false
 ) => {
   const getAbi = (): abi => {
@@ -162,6 +187,21 @@ const getContract = (
       return contract as GenesisAllocation
     case RootContract.TrustlessMulticall:
       return contract as TrustlessMulticall
+
+    case TDaoRootContract.TDao:
+      return contract as TDao
+
+    case TDaoContract.TDaoToken:
+      return contract as TDaoToken
+    case TDaoContract.TDaoPositionNFT:
+      return contract as TDaoPositionNFT
+    case TDaoContract.TDaoGovernorAlpha:
+      return contract as TDaoGovernorAlpha
+    case TDaoContract.TDaoTimelock:
+      return contract as TDaoTimelock
+    case TDaoContract.TDaoVotingRewardsSafe:
+      return contract as TDaoVotingRewardsSafe
+
     default:
       assertUnreachable(theContract)
   }

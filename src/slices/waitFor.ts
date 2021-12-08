@@ -8,6 +8,7 @@ import { getHueBalance } from "./balances/hueBalance"
 import { getPoolsMetadata } from "./poolsMetadata"
 import { getLendHueBalance } from "./balances/lendHueBalance"
 import { getLiquidityPositions } from "./liquidityPositions"
+import { getTDaoPositions } from "./tdaoPositions"
 import { getPositions } from "./positions"
 import { getProposals } from "./proposals"
 import { getSystemDebtInfo } from "./systemDebt"
@@ -26,6 +27,7 @@ import { getGenesisPositions, getGenesisAllocations } from "./genesis"
 enum FetchNode {
   ChainID,
   Governor,
+  TDao,
   TrustlessMulticall,
   ProtocolDataAggregator,
 
@@ -51,6 +53,8 @@ const getNodeFetch = (
       return { chainID: selector((state) => state.chainID.chainID) }
     case FetchNode.Governor:
       return { governor: selector((state) => state.chainID.governor) }
+    case FetchNode.TDao:
+      return { tdao: selector((state) => state.chainID.tdao) }
     case FetchNode.GenesisAllocation:
       return {
         genesisAllocation: selector((state) => state.chainID.genesisAllocation),
@@ -106,6 +110,7 @@ const getWaitFunction =
     fetchNodes.map((fetchNode) => {
       const fetchedNode = getNodeFetch(fetchNode, selector, dispatch)
       inputArgs = { ...inputArgs, ...fetchedNode }
+      console.log({inputArgs})
     })
 
     if (Object.values(inputArgs).includes(null)) return null
@@ -129,7 +134,7 @@ const getWaitFunction =
 export const waitForContracts = getWaitFunction(
   (state: RootState) => state.contracts,
   getContracts,
-  [FetchNode.ChainID, FetchNode.Governor, FetchNode.TrustlessMulticall]
+  [FetchNode.TDao, FetchNode.Governor, FetchNode.TrustlessMulticall]
 )
 
 export const getPoolCurrentDataWaitFunction = (poolAddress: string) =>
@@ -256,6 +261,12 @@ export const waitForGenesisAllocations = getWaitFunction(
   (state: RootState) => state.genesis.allocations,
   getGenesisAllocations,
   [FetchNode.Contracts, FetchNode.TrustlessMulticall]
+)
+
+export const waitForTdaoPositions = getWaitFunction(
+  (state: RootState) => state.tdaoPositions,
+  getTDaoPositions,
+  [FetchNode.UserAddress, FetchNode.TDao, FetchNode.Contracts, FetchNode.TrustlessMulticall]
 )
 
 export const waitForGenesisAllocationContract = getWaitFunction

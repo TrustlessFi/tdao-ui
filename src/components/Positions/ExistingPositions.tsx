@@ -3,90 +3,47 @@ import { useHistory } from 'react-router-dom'
 import AppTile from '../library/AppTile'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { editorOpened } from '../../slices/positionsEditor'
-import { waitForPositions , waitForPrices } from '../../slices/waitFor'
-import Center from '../library/Center'
-import SimpleTable, { TableHeaderOnly } from '../library/SimpleTable'
-import RelativeLoading from '../library/RelativeLoading'
-import { numDisplay } from '../../utils'
-import ConnectWalletButton from '../utils/ConnectWalletButton'
-import Text from '../utils/Text'
+import { waitForTdaoPositions } from '../../slices/waitFor'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import { TransactionType } from '../../slices/transactions'
 import { waitForContracts } from '../../slices/waitFor'
-
-const ExistingPositionsTable = () => {
-  const dispatch = useAppDispatch()
-  const history = useHistory()
-
-  const positions = waitForPositions(selector, dispatch)
-  const priceInfo = waitForPrices(selector, dispatch)
-  const userAddress = selector(state => state.wallet.address)
-  const contracts = waitForContracts(selector, dispatch)
-
-  if (positions === null || priceInfo === null || userAddress === null || contracts === null) {
-    return (
-      <div style={{position: 'relative'}}>
-        <RelativeLoading show={userAddress !== null} />
-        <TableHeaderOnly headers=
-          {[
-            'Position ID',
-            'Debt',
-            'Collateral',
-            'Collateralization Ratio',
-            'Approximate Rewards',
-          ]}
-        />
-        <Center>
-          <div style={{margin: 32}}>
-            <ConnectWalletButton />
-          </div>
-        </Center>
-      </div>
-    )
-  }
-
-  if (Object.values(positions).length === 0) {
-    return (
-      <Center style={{padding: 24}}>
-        <Text>
-          You have no positions.
-        </Text>
-      </Center>
-    )
-  }
-
-  const rows = Object.values(positions).map(position => {
-    const collateralization = (position.collateralCount * priceInfo.ethPrice) / position.debtCount
-
-    return {
-      key: position.id,
-      data: {
-        'Position ID': position.id,
-        'Debt': numDisplay(position.debtCount, 2) + ' Hue',
-        'Collateral': numDisplay(position.collateralCount, 2) + ' Eth',
-        'Collateralization Ratio': numDisplay(collateralization * 100, 0) + '%',
-        'Approximate Rewards': numDisplay(position.approximateRewards) + " TCP"
-      },
-      onClick: () => {
-        dispatch(editorOpened({
-          positionID: position.id,
-          creating: false,
-        }))
-        history.push(`/positions/${position.id}`)
-      }
-    }
-  })
-
-  return <SimpleTable rows={rows} />
-}
+import { first } from '../../utils'
 
 const ExistingPositions = () => {
   const dispatch = useAppDispatch()
   const history = useHistory()
 
-  const positions = waitForPositions(selector, dispatch)
-  const contracts = waitForContracts(selector, dispatch)
+  // const userAddress = selector((state) => state.wallet.address)
 
+  // const tdao = selector((state) => state.chainID.tdao)
+  // const mc = selector((state) => state.chainID.trustlessMulticall)
+  // const contracts = waitForContracts(selector, dispatch)
+      // return { userAddress:  }
+  const positions = waitForTdaoPositions(selector, dispatch)
+  console.log({positions})
+  // const contracts = waitForContracts(selector, dispatch)
+
+  // console.log({positions});
+  if (positions === null) return <>loading existing positions</>
+  else {
+    if (Object.values(positions).length === 0) return <>No Positions</>
+    return (
+      <>
+        {Object.values(positions).map(position =>
+          <img
+            src={`data:image/svg+xml;base64,${Buffer.from(position.svg, 'binary').toString('base64')}`}
+            alt=""
+            onClick={() => alert('positionID ' + position.nftTokenID + 'clicked' )}
+          />
+        )}
+      </>
+    )
+
+  }
+
+
+
+  /*
   const positionsIDsWithRewards =
     positions === null
     ? []
@@ -124,6 +81,7 @@ const ExistingPositions = () => {
       <ExistingPositionsTable />
     </AppTile>
   )
+  */
 }
 
 export default ExistingPositions

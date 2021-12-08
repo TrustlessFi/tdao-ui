@@ -10,6 +10,7 @@ export interface ChainIDState {
   trustlessMulticall: string | null
   protocolDataAggregator: string | null
   genesisAllocation: string | null
+  tdao: string | null
 }
 
 const initialState: ChainIDState = {
@@ -19,6 +20,7 @@ const initialState: ChainIDState = {
   trustlessMulticall: null,
   protocolDataAggregator: null,
   genesisAllocation: null,
+  tdao: null,
 }
 
 export const getChainIDFromState = (state: ChainIDState) =>
@@ -40,6 +42,7 @@ export const chainIDSlice = createSlice({
             trustlessMulticall: null,
             protocolDataAggregator: null,
             genesisAllocation: null,
+            tdao: null,
           }
         : {
             unknownChainID: null,
@@ -66,6 +69,12 @@ export const chainIDSlice = createSlice({
               chainID,
               "TCP",
               "GenesisAllocation",
+              localHardhatAddresses
+            ),
+            tdao: getAddress(
+              chainID,
+              "TDAO",
+              "TDao",
               localHardhatAddresses
             ),
           }
