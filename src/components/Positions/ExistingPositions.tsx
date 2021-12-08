@@ -32,7 +32,9 @@ const ExistingPositions = () => {
         {Object.values(positions).map(position =>
           <img
             src={`data:image/svg+xml;base64,${Buffer.from(position.svg, 'binary').toString('base64')}`}
-            alt=""
+            width={500}
+            style={{paddingRight: 16, paddingBottom: 16}}
+            alt={`TDao Position ID ${position.nftTokenID}`}
             onClick={() => alert('positionID ' + position.nftTokenID + 'clicked' )}
           />
         )}
