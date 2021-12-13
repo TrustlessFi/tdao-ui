@@ -7,6 +7,7 @@ import { Switch, Route } from 'react-router-dom'
 import { HashRouter as Router } from 'react-router-dom'
 import LocalStorageManager from './components/utils/LocalStorageManager'
 import Notifications from './components/Notifications'
+import RecentTransactions from './components/RecentTransactions'
 
 import './App.css'
 import './styles/night_app.scss'
@@ -20,11 +21,13 @@ declare global {
 export enum Tab {
   Genesis = 'Genesis',
   Positions = 'Positions',
+  Transactions = 'Transactions',
 }
 
 const tabToRender: { [key in Tab]: ReactNode } = {
   Genesis: <Genesis />,
   Positions: <Positions />,
+  Transactions: <RecentTransactions />,
 }
 
 function App() {

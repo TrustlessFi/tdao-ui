@@ -12,7 +12,6 @@ const CreateTransactionButton = ({
   title,
   disabled,
   shouldOpenTxTab,
-  small,
   kind,
   size,
   style,
@@ -22,7 +21,6 @@ const CreateTransactionButton = ({
   title: string
   disabled: boolean
   shouldOpenTxTab: boolean
-  small: boolean
   kind: ButtonKind
   size: ButtonSize
   style: CSSProperties
@@ -35,7 +33,9 @@ const CreateTransactionButton = ({
   const userAddress = selector(state => state.wallet.address)
   const chainID = getChainIDFromState(selector(state => state.chainID))
 
-  if (chainID === null || (userAddress === null && !showDisabledInsteadOfConnectWallet)) return <ConnectWalletButton />
+  if (chainID === null || (userAddress === null && !showDisabledInsteadOfConnectWallet)) {
+    return <ConnectWalletButton size={size} style={style} kind={kind} />
+  }
 
   const buttonDisplay =
     waitingForMetamask
@@ -55,7 +55,6 @@ const CreateTransactionButton = ({
 
   return (
     <Button
-      small={small}
       kind={kind}
       size={size}
       style={style}
@@ -70,7 +69,6 @@ CreateTransactionButton.defaultProps = {
   title: 'Confirm in Metamask',
   disabled: false,
   shouldOpenTxTab: true,
-  small: false,
   kind: 'primary',
   size: 'default',
   style: {},

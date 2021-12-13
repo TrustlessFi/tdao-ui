@@ -1,12 +1,17 @@
 import MetaMaskOnboarding from "@metamask/onboarding"
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { connectWallet } from '../utils/WalletConnection'
-import { Button } from 'carbon-components-react'
+import { CSSProperties } from 'react'
+import { Button, ButtonKind, ButtonSize } from 'carbon-components-react'
 
 const ConnectWalletButton = ({
-  small
+  size,
+  style,
+  kind,
 }: {
-  small?: boolean,
+  size?: ButtonSize
+  style?: CSSProperties
+  kind?: ButtonKind
 }) => {
   const dispatch = useAppDispatch()
 
@@ -31,7 +36,9 @@ const ConnectWalletButton = ({
     <Button
       onClick={onClick}
       disabled={wallet.connecting}
-      small={small}>
+      size={size}
+      kind={kind}
+      style={style}>
       {text}
     </Button>
   )

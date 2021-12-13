@@ -253,6 +253,20 @@ export const parseMetamaskError = (error: any): string[] => {
 
 }
 
+export const extractRevertReasonString  = (input: string): string | null => {
+  const vmExceptionMessage = 'Error: VM Exception while processing transaction: reverted with reason string \''
+  const messageIndex = input.indexOf(vmExceptionMessage)
+  if (messageIndex < 0) return null
+  const result = input.substring(vmExceptionMessage.length, input.lastIndexOf('\''))
+
+  switch(result) {
+    case 'STF':
+      return 'Token transfer failed'
+    default:
+      return result
+  }
+}
+
 export const upperCaseWord = (word: string) => word.length === 0
   ? word
   : word.substr(0, 1).toUpperCase() + word.substr(1).toLowerCase()

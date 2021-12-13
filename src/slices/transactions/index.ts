@@ -20,7 +20,7 @@ import { Market, Rewards, TcpGovernorAlpha, TDao } from '@trustlessfi/typechain'
 import getContract, { getMulticallContract } from '../../utils/getContract'
 import { scale, SLIPPAGE_TOLERANCE, timeMS } from '../../utils'
 import { UIID } from '../../constants'
-import { getDefaultTransactionTimeout, mnt, parseMetamaskError } from '../../utils'
+import { getDefaultTransactionTimeout, mnt, parseMetamaskError, extractRevertReasonString } from '../../utils'
 import { zeroAddress, bnf, uint256Max } from '../../utils/'
 import { ChainID } from '@trustlessfi/addresses'
 import { ERC20 } from '@trustlessfi/typechain'
@@ -40,7 +40,7 @@ export enum TransactionType {
   ApprovePoolToken,
   VoteProposal,
   UpdateTDaoPositionLockDuration,
-  UnlockTDaoPosition,
+  DeleteTDaoPosition,
 }
 
 export enum TransactionStatus {
@@ -157,8 +157,8 @@ export interface txUpdateTDaoPositionLockDuration {
   durationMonths: number
 }
 
-export interface txUnlockTdaoPosition {
-  type: TransactionType.UnlockTDaoPosition
+export interface txDeleteTDaoPosition {
+  type: TransactionType.DeleteTDaoPosition
   tdao: string
   positionID: string
 }
@@ -177,7 +177,7 @@ export type TransactionArgs =
   txApproveLendHue |
   txVoteProposal |
   txUpdateTDaoPositionLockDuration |
-  txUnlockTdaoPosition
+  txDeleteTDaoPosition
 
 export interface TransactionData {
   args: TransactionArgs
@@ -229,8 +229,8 @@ export const getTxLongName = (args: TransactionArgs) => {
       return 'Vote Proposal ' + args.proposalID
     case TransactionType.UpdateTDaoPositionLockDuration:
       return `Increase position ${args.positionID} lock duration to ${args.durationMonths} months`
-    case TransactionType.UnlockTDaoPosition:
-      return `Unlock position ${args.positionID}`
+    case TransactionType.DeleteTDaoPosition:
+      return `Delete position ${args.positionID}`
     default:
       assertUnreachable(type)
   }
@@ -265,8 +265,8 @@ export const getTxShortName = (type: TransactionType) => {
       return 'Vote Proposal'
     case TransactionType.UpdateTDaoPositionLockDuration:
       return 'Increase Position Lock Duration'
-    case TransactionType.UnlockTDaoPosition:
-      return 'Unlock Position'
+    case TransactionType.DeleteTDaoPosition:
+      return 'Delete Position'
     default:
       assertUnreachable(type)
   }
@@ -409,7 +409,7 @@ const executeTransaction = async (
     case TransactionType.UpdateTDaoPositionLockDuration:
       return await getTDao(args.tdao).increaseLockDuration(args.positionID, args.durationMonths)
 
-    case TransactionType.UnlockTDaoPosition:
+    case TransactionType.DeleteTDaoPosition:
       return await getTDao(args.tdao).unlockTokens(args.positionID)
 
     default:
@@ -431,12 +431,20 @@ export const waitForTransaction = createAsyncThunk(
       dispatch(waitingForMetamask())
       tx = await executeTransaction(args, provider)
     } catch (e) {
-      console.error("failureMessages: " + parseMetamaskError(e).join(', '))
+      const errorMessages = parseMetamaskError(e)
+      console.error("failureMessages: " + errorMessages.join(', '))
+
+      const reasonString =
+        errorMessages.length > 0
+        ? extractRevertReasonString(errorMessages[0])
+        : null
+
       dispatch(addNotification({
         type: args.type,
         userAddress,
         status: TransactionStatus.Failure,
         chainID: data.chainID,
+        message: reasonString ? reasonString : errorMessages.join(', ')
       }))
       dispatch(metamaskComplete())
       return
@@ -509,7 +517,7 @@ export const waitForTransaction = createAsyncThunk(
           dispatch(clearProposals())
           break
         case TransactionType.UpdateTDaoPositionLockDuration:
-        case TransactionType.UnlockTDaoPosition:
+        case TransactionType.DeleteTDaoPosition:
           dispatch(clearTDaoPositions())
           break
       default:

@@ -40,22 +40,24 @@ const DeletePosition = () => {
 
   const columnOne =
     <>
-      <InputPicker
-        options={PositionUpdateOptions}
-        initialValue={PositionUpdateOptions.Delete}
-        navigation={{
-          [PositionUpdateOptions.IncreaseLockTime]: `/positions/${positionID}`
-        }}
-        width={300}
-        label="TDao position update options"
-        style={{}}
-      />
+      <div>
+        <InputPicker
+          options={PositionUpdateOptions}
+          initialValue={PositionUpdateOptions.Delete}
+          navigation={{
+            [PositionUpdateOptions.IncreaseLockTime]: `/positions/${positionID}`
+          }}
+          width={300}
+          label="TDao position update options"
+          style={{}}
+        />
+      </div>
       <CreateTransactionButton
         style={{marginTop: 8}}
         disabled={position === null || !position.canBeUnlocked }
         title={"Delete position " + positionID}
         txArgs={{
-          type: TransactionType.UnlockTDaoPosition,
+          type: TransactionType.DeleteTDaoPosition,
           positionID,
           tdao: tdao === null ? '' : tdao,
         }}
@@ -65,10 +67,11 @@ const DeletePosition = () => {
   const columnTwo =
     position?.canBeUnlocked
     ? <LargeText>
-        You will unlock {position === null ? '-' : position.count} tokens from position {positionID}.
+        You are deleting position {positionID} forever, and position {positionID} will no longer accrue
+        TDao tokens.
         <ParagraphDivider />
-        All unclaimed TDao rewards will be claimed, but this position will be deleted forever and
-        will never accrue additional TDao rewards.
+        All unclaimed TDao rewards will be claimed, and {position === null ? '-' : position.count} will
+        be returned to your wallet.
       </LargeText>
     : <LargeText>
         Position {positionID} can not be deleted because the lock duration is not complete.
