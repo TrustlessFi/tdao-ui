@@ -26,7 +26,7 @@ interface MatchParams {
   positionID: string
 }
 
-const UpdatePosition = () => {
+const IncreaseLockTime = () => {
   const params: MatchParams = useParams()
   const dispatch = useAppDispatch()
 
@@ -90,7 +90,7 @@ const UpdatePosition = () => {
         options={PositionUpdateOptions}
         initialValue={PositionUpdateOptions.IncreaseLockTime}
         navigation={{
-          [PositionUpdateOptions.Withdraw]: `/positions/${positionID}/withdraw`
+          [PositionUpdateOptions.Delete]: `/positions/delete/${positionID}`
         }}
         width={300}
         label="TDao position update options"
@@ -148,4 +148,4 @@ const UpdatePosition = () => {
 
 }
 
-export default UpdatePosition
+export default IncreaseLockTime

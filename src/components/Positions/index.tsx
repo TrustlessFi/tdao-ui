@@ -1,11 +1,12 @@
 import { Switch, Route } from 'react-router-dom'
-import UpdatePosition from './UpdatePosition'
+import IncreaseLockTime from './IncreaseLockTime'
 import CreatePosition from './CreatePosition'
 import ExistingPositions from './ExistingPositions'
+import DeletePosition from './DeletePosition'
 
 export enum PositionUpdateOptions {
   IncreaseLockTime = 'Increase Lock Time',
-  Withdraw = 'Withdraw',
+  Delete = 'Delete',
 }
 
 const Positions = () => (
@@ -16,8 +17,11 @@ const Positions = () => (
     <Route path='/positions/new'>
       <CreatePosition />
     </Route>
+    <Route path='/positions/delete/:positionID'>
+      <DeletePosition />
+    </Route>
     <Route path='/positions/:positionID'>
-      <UpdatePosition />
+      <IncreaseLockTime />
     </Route>
   </Switch>
 )

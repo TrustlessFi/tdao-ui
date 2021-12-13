@@ -40,6 +40,7 @@ export enum TransactionType {
   ApprovePoolToken,
   VoteProposal,
   UpdateTDaoPositionLockDuration,
+  UnlockTDaoPosition,
 }
 
 export enum TransactionStatus {
@@ -156,6 +157,12 @@ export interface txUpdateTDaoPositionLockDuration {
   durationMonths: number
 }
 
+export interface txUnlockTdaoPosition {
+  type: TransactionType.UnlockTDaoPosition
+  tdao: string
+  positionID: string
+}
+
 export type TransactionArgs =
   txCreatePositionArgs |
   txUpdatePositionArgs |
@@ -169,7 +176,8 @@ export type TransactionArgs =
   txApproveHue |
   txApproveLendHue |
   txVoteProposal |
-  txUpdateTDaoPositionLockDuration
+  txUpdateTDaoPositionLockDuration |
+  txUnlockTdaoPosition
 
 export interface TransactionData {
   args: TransactionArgs
@@ -221,6 +229,8 @@ export const getTxLongName = (args: TransactionArgs) => {
       return 'Vote Proposal ' + args.proposalID
     case TransactionType.UpdateTDaoPositionLockDuration:
       return `Increase position ${args.positionID} lock duration to ${args.durationMonths} months`
+    case TransactionType.UnlockTDaoPosition:
+      return `Unlock position ${args.positionID}`
     default:
       assertUnreachable(type)
   }
@@ -255,6 +265,8 @@ export const getTxShortName = (type: TransactionType) => {
       return 'Vote Proposal'
     case TransactionType.UpdateTDaoPositionLockDuration:
       return 'Increase Position Lock Duration'
+    case TransactionType.UnlockTDaoPosition:
+      return 'Unlock Position'
     default:
       assertUnreachable(type)
   }
@@ -397,6 +409,9 @@ const executeTransaction = async (
     case TransactionType.UpdateTDaoPositionLockDuration:
       return await getTDao(args.tdao).increaseLockDuration(args.positionID, args.durationMonths)
 
+    case TransactionType.UnlockTDaoPosition:
+      return await getTDao(args.tdao).unlockTokens(args.positionID)
+
     default:
       assertUnreachable(type)
   }
@@ -494,6 +509,7 @@ export const waitForTransaction = createAsyncThunk(
           dispatch(clearProposals())
           break
         case TransactionType.UpdateTDaoPositionLockDuration:
+        case TransactionType.UnlockTDaoPosition:
           dispatch(clearTDaoPositions())
           break
       default:

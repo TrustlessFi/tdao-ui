@@ -18,6 +18,7 @@ export interface TDaoPosition {
   endPeriod: number
   durationMonths: number
   underlyingTokenID: number
+  canBeUnlocked: boolean
   svg: string
 }
 
@@ -32,47 +33,58 @@ export interface tdaoPositionsArgs {
 
 export interface TDaoPositionsState extends sliceState<tdaoPositionsInfo> {}
 
-const fetchTDaoPositions = async (args: tdaoPositionsArgs): Promise<tdaoPositionsInfo> => {
-  const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
-  const tdaoPostionNFT = getContract(args.contracts[TDaoContract.TDaoPositionNFT], TDaoContract.TDaoPositionNFT) as TDaoPositionNFT
-  const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
-
-  // fetch the positions
-  const positionIDs = (await tdaoPostionNFT.positionIDs(args.userAddress)).map(id => id.toString())
-
-  const getSVGId = (id: string) => id + 'svg'
-
-  const { positions, tokenSVGs } = await executeMulticalls(trustlessMulticall, {
-    positions: getDuplicateFuncMulticall(
-      tdao,
-      'getPosition',
-      (result: any) => result as PromiseType<ReturnType<TDao['getPosition']>>,
-      Object.fromEntries(positionIDs.map(positionID => [positionID.toString(), [positionID]]))
-    ),
-    tokenSVGs: getDuplicateFuncMulticall(
-      tdaoPostionNFT,
-      'tokenURI',
-      rc.String,
-      Object.fromEntries(positionIDs.map(positionID => [getSVGId(positionID.toString()), [positionID]]))
-    ),
-  })
-
-  return Object.fromEntries(positionIDs.map(id => [id, {
-    nftTokenID: id,
-    count: positions[id].count.toString(),
-    startTotalRewards: positions[id].startTotalRewards.toString(),
-    startCumulativeVirtualCount: positions[id].startCumulativeVirtualCount.toString(),
-    lastPeriodUpdated: positions[id].lastPeriodUpdated.toNumber(),
-    endPeriod: positions[id].endPeriod.toNumber(),
-    durationMonths: positions[id].durationMonths.toNumber(),
-    underlyingTokenID: positions[id].tokenID,
-    svg: tokenSVGs[getSVGId(id)]
-  }]))
-}
-
 export const getTDaoPositions = createAsyncThunk(
   'tdaoPositions/getTDaoPositions',
-  async (data: tdaoPositionsArgs) => await fetchTDaoPositions(data),
+  async (args: tdaoPositionsArgs): Promise<tdaoPositionsInfo> => {
+    const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
+    const tdaoPostionNFT = getContract(args.contracts[TDaoContract.TDaoPositionNFT], TDaoContract.TDaoPositionNFT) as TDaoPositionNFT
+    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
+
+    // fetch the positions
+    console.log("here 1")
+    const positionIDs = (await tdaoPostionNFT.positionIDs(args.userAddress)).map(id => id.toString())
+
+    const getSVGId = (id: string) => id + 'svg'
+    const getCanBeUnlockedId = (id: string) => id + 'canBeUnlocked'
+
+    console.log("here 3")
+    const { positions, tokenSVGs, canBeUnlocked } = await executeMulticalls(trustlessMulticall, {
+      positions: getDuplicateFuncMulticall(
+        tdao,
+        'getPosition',
+        (result: any) => result as PromiseType<ReturnType<TDao['getPosition']>>,
+        Object.fromEntries(positionIDs.map(positionID => [positionID, [positionID]]))
+      ),
+      tokenSVGs: getDuplicateFuncMulticall(
+        tdaoPostionNFT,
+        'tokenURI',
+        rc.String,
+        Object.fromEntries(positionIDs.map(positionID => [getSVGId(positionID), [positionID]]))
+      ),
+      canBeUnlocked: getDuplicateFuncMulticall(
+        tdao,
+        'positionIsAbleToBeUnlocked',
+        rc.Boolean,
+        Object.fromEntries(positionIDs.map(positionID => [getCanBeUnlockedId(positionID), [positionID]]))
+      ),
+    })
+    console.log("here 3")
+
+    const result = Object.fromEntries(positionIDs.map(id => [id, {
+      nftTokenID: id,
+      count: positions[id].count.toString(),
+      startTotalRewards: positions[id].startTotalRewards.toString(),
+      startCumulativeVirtualCount: positions[id].startCumulativeVirtualCount.toString(),
+      lastPeriodUpdated: positions[id].lastPeriodUpdated.toNumber(),
+      endPeriod: positions[id].endPeriod.toNumber(),
+      durationMonths: positions[id].durationMonths.toNumber(),
+      underlyingTokenID: positions[id].tokenID,
+      canBeUnlocked: canBeUnlocked[getCanBeUnlockedId(id)],
+      svg: tokenSVGs[getSVGId(id)]
+    }]))
+    console.log("here 4")
+    return result
+  }
 )
 
 export const tdaoPositionsSlice = createSlice({
