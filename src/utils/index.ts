@@ -31,10 +31,23 @@ export const mnt = (quantity: number, decimals = 18): string => {
 
 export const numVal = (num: string | number): number => typeof num == 'string' ? parseFloat(num) : num
 
-export const range = (start: number, cieling: number): number[] => {
+export const range = (start: number, max: number, delta = 1 ): number[] => {
   const result: number[] = []
-  for(; start < cieling; start++) result.push(start)
+  for(; start <= max; start += delta) result.push(start)
   return result
+}
+
+export const notNullString = (input: null | string): string => input === null ? '' : input
+
+export const notNullNumber = (input?: null | number): number => {
+  switch(input) {
+    case undefined:
+    case null:
+    case 0:
+      return 0
+    default:
+      return input
+  }
 }
 
 type direction = 'up' | 'down'

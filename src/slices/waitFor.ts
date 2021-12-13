@@ -52,27 +52,27 @@ const getNodeFetch = (
 ) => {
   switch (fetchNode) {
     case FetchNode.ChainID:
-      return { chainID: selector((state) => state.chainID.chainID) }
+      return { chainID: selector(state => state.chainID.chainID) }
     case FetchNode.Governor:
-      return { governor: selector((state) => state.chainID.governor) }
+      return { governor: selector(state => state.chainID.governor) }
     case FetchNode.TDao:
-      return { tdao: selector((state) => state.chainID.tdao) }
+      return { tdao: selector(state => state.chainID.tdao) }
     case FetchNode.TDaoInfo:
       return { tdaoInfo: waitForTDaoInfo(selector, dispatch) }
     case FetchNode.GenesisAllocation:
       return {
-        genesisAllocation: selector((state) => state.chainID.genesisAllocation),
+        genesisAllocation: selector(state => state.chainID.genesisAllocation),
       }
     case FetchNode.TrustlessMulticall:
       return {
         trustlessMulticall: selector(
-          (state) => state.chainID.trustlessMulticall
+          state => state.chainID.trustlessMulticall
         ),
       }
     case FetchNode.ProtocolDataAggregator:
       return {
         protocolDataAggregator: selector(
-          (state) => state.chainID.protocolDataAggregator
+          state => state.chainID.protocolDataAggregator
         ),
       }
 
@@ -91,7 +91,7 @@ const getNodeFetch = (
     case FetchNode.SDI:
       return { sdi: waitForSDI(selector, dispatch) }
     case FetchNode.UserAddress:
-      return { userAddress: selector((state) => state.wallet.address) }
+      return { userAddress: selector(state => state.wallet.address) }
     case FetchNode.Contracts:
       return { contracts: waitForContracts(selector, dispatch) }
 

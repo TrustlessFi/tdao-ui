@@ -2,11 +2,17 @@ import { Switch, Route } from 'react-router-dom'
 import TDaoPositionIncreaseLockTime from './TDaoPositionIncreaseLockTime'
 import ExistingTDaoPositions from './ExistingTDaoPositions'
 import DeleteTDaoPosition from './DeleteTDaoPosition'
-import CreateTcpTDaoPosition from './CreateTcpTDaoPosition'
+import CreateTDaoPosition from './CreateTDaoPosition'
+import ClaimUnderlyingTokens from './ClaimUnderlyingTokens'
 
 export enum PositionUpdateOptions {
   IncreaseLockTime = 'Increase Lock Time',
   Delete = 'Delete',
+}
+
+export enum TokenAllocationOptions {
+  LockTokens = 'Lock Tokens',
+  ClaimTokens = 'Claim Tokens',
 }
 
 const Positions = () => (
@@ -14,8 +20,11 @@ const Positions = () => (
     <Route exact path={['/', '/positions']}>
       <ExistingTDaoPositions />
     </Route>
-    <Route path='/positions/new'>
-      <CreateTcpTDaoPosition />
+    <Route path='/positions/new/tcp'>
+      <CreateTDaoPosition />
+    </Route>
+    <Route path='/positions/claim/tcp'>
+      <ClaimUnderlyingTokens />
     </Route>
     <Route path='/positions/delete/:positionID'>
       <DeleteTDaoPosition />

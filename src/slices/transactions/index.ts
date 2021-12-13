@@ -40,6 +40,7 @@ export enum TransactionType {
   UpdateTDaoPositionLockDuration,
   DeleteTDaoPosition,
   ClaimAllTDaoPositionRewards,
+  CreateTDaoPosition,
 }
 
 export enum TransactionStatus {
@@ -168,6 +169,17 @@ export interface txClaimAllTDaoPositionRewards {
   positionIDs: string[]
 }
 
+export interface txCreateTDaoPosition {
+  type: TransactionType.CreateTDaoPosition
+  tdao: string
+  tokenID: number
+  count: number
+  decimals: number
+  lockDurationMonths: number
+  userAddress: string
+  tokenSymbol: string
+}
+
 export type TransactionArgs =
   txCreatePositionArgs |
   txUpdatePositionArgs |
@@ -183,7 +195,8 @@ export type TransactionArgs =
   txVoteProposal |
   txUpdateTDaoPositionLockDuration |
   txDeleteTDaoPosition |
-  txClaimAllTDaoPositionRewards
+  txClaimAllTDaoPositionRewards |
+  txCreateTDaoPosition
 
 export interface TransactionData {
   args: TransactionArgs
@@ -239,6 +252,8 @@ export const getTxLongName = (args: TransactionArgs) => {
       return `Delete position ${args.positionID}`
     case TransactionType.ClaimAllTDaoPositionRewards:
       return `Claim Rewards for TDao positions ${args.positionIDs.join(', ')}`
+    case TransactionType.CreateTDaoPosition:
+      return `Create TDao position with ${args.count} ${args.tokenSymbol}`
     default:
       assertUnreachable(type)
   }
@@ -277,6 +292,8 @@ export const getTxShortName = (type: TransactionType) => {
       return 'Delete Position'
     case TransactionType.ClaimAllTDaoPositionRewards:
       return `Claim Rewards for TDao positions`
+    case TransactionType.CreateTDaoPosition:
+      return `Create TDao position`
     default:
       assertUnreachable(type)
   }
@@ -425,6 +442,14 @@ const executeTransaction = async (
     case TransactionType.ClaimAllTDaoPositionRewards:
       return await getTDao(args.tdao).getRewards(args.positionIDs)
 
+    case TransactionType.CreateTDaoPosition:
+      return await getTDao(args.tdao).lockTokens(
+        args.tokenID,
+        scale(args.count, args.decimals),
+        args.lockDurationMonths,
+        args.userAddress
+      )
+
     default:
       assertUnreachable(type)
   }
@@ -530,6 +555,10 @@ export const waitForTransaction = createAsyncThunk(
         case TransactionType.UpdateTDaoPositionLockDuration:
         case TransactionType.DeleteTDaoPosition:
         case TransactionType.ClaimAllTDaoPositionRewards:
+          dispatch(clearTDaoPositions())
+          break
+        case TransactionType.CreateTDaoPosition:
+          dispatch(clearBalances())
           dispatch(clearTDaoPositions())
           break
       default:
