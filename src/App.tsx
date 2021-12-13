@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 import PageHeader from './components/PageHeader'
 import Genesis from './components/Genesis'
-import Positions from './components/Positions'
+import TDaoPositions from './components/TDaoPositions'
 import ErrorBoundary from './components/library/ErrorBoundary'
 import { Switch, Route } from 'react-router-dom'
 import { HashRouter as Router } from 'react-router-dom'
@@ -26,7 +26,7 @@ export enum Tab {
 
 const tabToRender: { [key in Tab]: ReactNode } = {
   Genesis: <Genesis />,
-  Positions: <Positions />,
+  Positions: <TDaoPositions />,
   Transactions: <RecentTransactions />,
 }
 

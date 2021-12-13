@@ -10,7 +10,7 @@ import { TransactionType } from '../../slices/transactions'
 import { waitForContracts } from '../../slices/waitFor'
 import { first } from '../../utils'
 
-const ExistingPositions = () => {
+const ExistingTDaoPositions = () => {
   const dispatch = useAppDispatch()
   const history = useHistory()
 
@@ -84,4 +84,4 @@ const ExistingPositions = () => {
   */
 }
 
-export default ExistingPositions
+export default ExistingTDaoPositions

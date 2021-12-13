@@ -19,7 +19,7 @@ interface MatchParams {
   positionID: string
 }
 
-const DeletePosition = () => {
+const DeleteTDaoPosition = () => {
   const params: MatchParams = useParams()
   const dispatch = useAppDispatch()
 
@@ -91,4 +91,4 @@ const DeletePosition = () => {
 
 }
 
-export default DeletePosition
+export default DeleteTDaoPosition

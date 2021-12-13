@@ -6,10 +6,8 @@ import getProvider from '../../utils/getProvider'
 import { addNotification } from '../notifications'
 import { clearPositions } from '../positions'
 import { clearLiquidityPositions } from '../liquidityPositions'
-import { clearEthBalance } from '../ethBalance'
-import { clearHueBalance } from '../balances/hueBalance'
+import { clearBalances } from '../balances'
 import { clearPoolCurrentData } from '../poolCurrentData'
-import { clearLendHueBalance } from '../balances/lendHueBalance'
 import { clearTDaoPositions } from '../tdaoPositions'
 import { clearProposals } from '../proposals'
 import { ethers, ContractTransaction, BigNumber } from 'ethers'
@@ -487,13 +485,11 @@ export const waitForTransaction = createAsyncThunk(
         case TransactionType.CreatePosition:
         case TransactionType.UpdatePosition:
           dispatch(clearPositions())
-          dispatch(clearEthBalance())
-          dispatch(clearHueBalance())
+          dispatch(clearBalances())
           break
         case TransactionType.Lend:
         case TransactionType.Withdraw:
-          dispatch(clearLendHueBalance())
-          dispatch(clearHueBalance())
+          dispatch(clearBalances())
           break
         case TransactionType.CreateLiquidityPosition:
           dispatch(clearLiquidityPositions())
@@ -508,10 +504,10 @@ export const waitForTransaction = createAsyncThunk(
           dispatch(clearPoolCurrentData(args.poolAddress))
           break
         case TransactionType.ApproveHue:
-          dispatch(clearHueBalance())
+          dispatch(clearBalances())
           break
         case TransactionType.ApproveLendHue:
-          dispatch(clearLendHueBalance())
+          dispatch(clearBalances())
           break
         case TransactionType.VoteProposal:
           dispatch(clearProposals())

@@ -217,7 +217,7 @@ export const parseMetamaskError = (error: any): string[] => {
     }
   }
 
-  const userRejectedMessage = ['Please re-submit the transaction and accept it in Metamask.']
+  const userRejectedMessage = ['Please accept in metamask']
 
   if (error.hasOwnProperty('code') && error.code === 4001) {
     return userRejectedMessage

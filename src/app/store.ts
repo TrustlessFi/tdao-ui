@@ -21,9 +21,7 @@ import pricesReducer from "../slices/prices"
 import rewardsReducer from "../slices/rewards"
 import ratesReducer from "../slices/rates"
 
-import ethBalanceReducer from "../slices/ethBalance"
-import hueBalanceReducer from "../slices/balances/hueBalance"
-import lendHueBalanceReducer from "../slices/balances/lendHueBalance"
+import balancesReducer from "../slices/balances"
 
 import contractsReducer from "../slices/contracts"
 import notificationsReducer from "../slices/notifications"
@@ -53,9 +51,7 @@ export const store = configureStore({
     rewards: rewardsReducer,
     rates: ratesReducer,
 
-    ethBalance: ethBalanceReducer,
-    hueBalance: hueBalanceReducer,
-    lendHueBalance: lendHueBalanceReducer,
+    balances: balancesReducer,
 
     contracts: contractsReducer,
     notifications: notificationsReducer,

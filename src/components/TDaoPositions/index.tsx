@@ -1,8 +1,8 @@
 import { Switch, Route } from 'react-router-dom'
-import IncreaseLockTime from './IncreaseLockTime'
-import CreatePosition from './CreatePosition'
-import ExistingPositions from './ExistingPositions'
-import DeletePosition from './DeletePosition'
+import TDaoPositionIncreaseLockTime from './TDaoPositionIncreaseLockTime'
+import ExistingTDaoPositions from './ExistingTDaoPositions'
+import DeleteTDaoPosition from './DeleteTDaoPosition'
+import CreateTDaoPosition from './CreateTDaoPosition'
 
 export enum PositionUpdateOptions {
   IncreaseLockTime = 'Increase Lock Time',
@@ -12,16 +12,16 @@ export enum PositionUpdateOptions {
 const Positions = () => (
   <Switch>
     <Route exact path={['/', '/positions']}>
-      <ExistingPositions />
+      <ExistingTDaoPositions />
     </Route>
     <Route path='/positions/new'>
-      <CreatePosition />
+      <CreateTDaoPosition />
     </Route>
     <Route path='/positions/delete/:positionID'>
-      <DeletePosition />
+      <DeleteTDaoPosition />
     </Route>
     <Route path='/positions/:positionID'>
-      <IncreaseLockTime />
+      <TDaoPositionIncreaseLockTime />
     </Route>
   </Switch>
 )

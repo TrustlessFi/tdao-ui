@@ -26,7 +26,7 @@ interface MatchParams {
   positionID: string
 }
 
-const IncreaseLockTime = () => {
+const TDaoPositionIncreaseLockTime = () => {
   const params: MatchParams = useParams()
   const dispatch = useAppDispatch()
 
@@ -126,7 +126,7 @@ const IncreaseLockTime = () => {
       </LargeText>
     : <LargeText>
         You are increasing the lock time for position {positionID} from {position === null ? '-' : position.durationMonths} months
-        to {newDurationMonths} months. Your position will now be elligible for unlock
+        to {newDurationMonths} months. Your position will now be eligible for unlock
         on approximately {unlockDateString}.
         <ParagraphDivider />
         The multiplier on your underlying tokens will increase
@@ -148,4 +148,4 @@ const IncreaseLockTime = () => {
 
 }
 
-export default IncreaseLockTime
+export default TDaoPositionIncreaseLockTime
