@@ -2,7 +2,7 @@ import { Row, Col } from 'react-flexbox-grid'
 import Text from '../utils/Text'
 
 export interface metadata {
-  value: string,
+  value: string | number,
   title: string,
   failing?: boolean
 }

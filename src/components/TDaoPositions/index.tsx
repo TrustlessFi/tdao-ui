@@ -4,6 +4,7 @@ import ExistingTDaoPositions from './ExistingTDaoPositions'
 import DeleteTDaoPosition from './DeleteTDaoPosition'
 import CreateTDaoPosition from './CreateTDaoPosition'
 import ClaimUnderlyingTokens from './ClaimUnderlyingTokens'
+import { roundToXDecimals } from '../../utils'
 
 export enum PositionUpdateOptions {
   IncreaseLockTime = 'Increase Lock Time',
@@ -13,6 +14,11 @@ export enum PositionUpdateOptions {
 export enum TokenAllocationOptions {
   LockTokens = 'Lock Tokens',
   ClaimTokens = 'Claim Tokens',
+}
+
+export const getMultiplierForMonths = (months: number) => {
+  const multiplier = roundToXDecimals(months / 12, 2)
+  return multiplier
 }
 
 const Positions = () => (

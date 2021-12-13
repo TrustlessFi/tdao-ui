@@ -34,7 +34,7 @@ import {
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
-import { TokenAllocationOptions } from './'
+import { TokenAllocationOptions, getMultiplierForMonths } from './'
 import { invert, onNumChange, last, range, notNullNumber, notNullString } from '../../utils'
 import ParagraphDivider from '../utils/ParagraphDivider'
 
@@ -42,12 +42,13 @@ const CreateTDaoPosition = () => {
   const dispatch = useAppDispatch()
 
   const balances = waitForBalances(selector, dispatch)
+  const contracts = waitForContracts(selector, dispatch)
   const tdaoInfo = waitForTDaoInfo(selector, dispatch)
   const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
   const userAddress = selector(state => state.wallet.address)
   const tdao = selector(state => state.chainID.tdao)
 
-  const [ newDurationMonths, setNewDurationMonths ] = useState(48)
+  const [ lockDurationMonths, setLockDurationMonths ] = useState(48)
   const [ count, setCount ] = useState(0)
 
   const dataNull =
@@ -55,7 +56,8 @@ const CreateTDaoPosition = () => {
     tdaoInfo === null ||
     userAddress === null ||
     tdao === null ||
-    tcpAllocationInfo === null
+    tcpAllocationInfo === null ||
+    contracts === null
 
   const extensionOptionsMap = Object.fromEntries(
     (tdaoInfo === null
@@ -63,7 +65,52 @@ const CreateTDaoPosition = () => {
       : range(tdaoInfo.minMonths, tdaoInfo.maxMonths, tdaoInfo.monthIncrements)
     ).map(op => [op, op + ' months']))
 
-  const isFailing = true
+  const getTcpBalance = () =>
+    balances === null || contracts === null
+    ? 0
+    : balances.tokens[contracts.Tcp].userBalance
+
+  const failures: { [key in string]: reason } = dataNull ? {} : {
+    notEnoughTcp: {
+      message: 'Not enough Tcp.',
+      failing: balances === null || contracts === null ? false : count > getTcpBalance(),
+    },
+    noop: {
+      message: 'Must lock Tcp',
+      failing: isNaN(count) || count == 0,
+      silent: true,
+    },
+    lockDurationTooShort: {
+      message: 'Lock duration is too short.',
+      failing: true,
+    },
+  }
+
+  const multiplier = getMultiplierForMonths(lockDurationMonths)
+
+  const monthsToMonthsAndYears = (months: number): string => {
+    const _months = months % 12
+    const _years = (months - _months) / 12
+    return `${_years} years ${_months} months`
+  }
+
+  const metadataItems = [
+    {
+      title: 'New Tcp balance',
+      value: dataNull ? '-' : numDisplay(balances.tokens[contracts.Tcp].userBalance - count),
+      failing: dataNull ? false : failures.notEnoughTcp.failing,
+    },{
+      title: 'Lock Duration',
+      value: monthsToMonthsAndYears(lockDurationMonths),
+    },{
+      title: 'Multiplier',
+      value: multiplier + 'x',
+    },
+  ]
+
+  const failureReasons: reason[] = Object.values(failures)
+  const isFailing = failureReasons.filter(reason => reason.failing).length > 0
+
 
   const columnOne =
     <SpacedList>
@@ -82,7 +129,7 @@ const CreateTDaoPosition = () => {
         items={Object.values(extensionOptionsMap)}
         onChange={(data: OnChangeData<string>) => {
           const selectedItem = data.selectedItem
-          if (selectedItem) setNewDurationMonths(parseInt(invert(extensionOptionsMap)[selectedItem]))
+          if (selectedItem) setLockDurationMonths(parseInt(invert(extensionOptionsMap)[selectedItem]))
         }}
         size="lg"
         initialSelectedItem={last(Object.values(extensionOptionsMap))}
@@ -101,6 +148,7 @@ const CreateTDaoPosition = () => {
         value={isNaN(count) ? "" : count }
         style={{}}
       />
+      <PositionMetadata2 items={metadataItems} />
       <CreateTransactionButton
         style={{}}
         disabled={isFailing}
@@ -110,18 +158,29 @@ const CreateTDaoPosition = () => {
           tokenID: 0, // TODO make dynamic
           count,
           decimals: 18, // TODO make dynamic
-          lockDurationMonths: newDurationMonths,
+          lockDurationMonths,
           userAddress: notNullString(userAddress),
           tokenSymbol: 'Tcp' // TODO make dynamic
         }}
       />
+      <ErrorMessage reasons={failureReasons} />
     </SpacedList>
+
 
   const columnTwo =
     <LargeText>
-      strings and such
+      You have {numDisplay(getTcpBalance())} Tcp.
       <ParagraphDivider />
-      wooooo
+      All Tcp tokens must be claimed after an average of 1 year from the time the tokens were granted.
+      <ParagraphDivider />
+      The current average unlock time is 9 months from now, and the minimum average unlock time must
+      exceed 6 months.
+      <ParagraphDivider />
+      You want to lock {numDisplay(count)} Tcp tokens for {extensionOptionsMap[lockDurationMonths]} months,
+      changing the average unlock time to 11 months from now.
+      <ParagraphDivider />
+      This position will have a TDao multiplier of {multiplier}x, meaning your locked Tcp tokens will
+      accrue TDao rewards as if you had locked {numDisplay(count * parseInt(multiplier))} Tcp for 1 year.
     </LargeText>
 
   return (

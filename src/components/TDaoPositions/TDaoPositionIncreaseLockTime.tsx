@@ -16,7 +16,7 @@ import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
-import { PositionUpdateOptions } from './'
+import { PositionUpdateOptions, getMultiplierForMonths } from './'
 import { days, monthsToDays, timeS, getDateStringMS, invert, roundToXDecimals, last } from '../../utils'
 import TwoColumnDisplay from '../utils/TwoColumnDisplay'
 import LargeText from '../utils/LargeText'
@@ -106,11 +106,6 @@ const TDaoPositionIncreaseLockTime = () => {
 
   const newUnlockTime = timeS() + days(monthsToDays(newDurationMonths))
   const unlockDateString = getDateStringMS(newUnlockTime * 1000)
-
-  const getMultiplierForMonths = (months: number) => {
-    const multiplier = roundToXDecimals(months / 12, 2)
-    return multiplier
-  }
 
   const columnTwo =
     extensionOptions.length === 0
