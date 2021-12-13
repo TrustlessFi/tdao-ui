@@ -55,24 +55,9 @@ const ClaimUnderlyingTokens = () => {
 
   const extensionOptionsMap = Object.fromEntries(
     (tdaoInfo === null
-      ? [6]
+      ? [48]
       : range(tdaoInfo.minMonths, tdaoInfo.maxMonths, tdaoInfo.monthIncrements)
     ).map(op => [op, op + ' months']))
-
-  const monthSelector =
-    <Dropdown
-      ariaLabel="Dropdown"
-      id="month_selector"
-      items={Object.values(extensionOptionsMap)}
-      onChange={(data: OnChangeData<string>) => {
-        const selectedItem = data.selectedItem
-        if (selectedItem) setNewDurationMonths(parseInt(invert(extensionOptionsMap)[selectedItem]))
-      }}
-      size="lg"
-      initialSelectedItem={last(Object.values(extensionOptionsMap))}
-      label="Month Selector"
-      style={{width: 300, marginTop: 8}}
-    />
 
   const isFailing = true
 
@@ -80,15 +65,27 @@ const ClaimUnderlyingTokens = () => {
     <SpacedList>
       <InputPicker
         options={TokenAllocationOptions}
-        initialValue={TokenAllocationOptions.LockTokens}
+        initialValue={TokenAllocationOptions.ClaimTokens}
         navigation={{
-          [TokenAllocationOptions.ClaimTokens]: `/positions/claim/tcp`
+          [TokenAllocationOptions.LockTokens]: `/positions/new/tcp`
         }}
         width={300}
         label="Allocation options"
         style={{}}
       />
-      {monthSelector}
+      <Dropdown
+        ariaLabel="Dropdown"
+        id="month_selector"
+        items={Object.values(extensionOptionsMap)}
+        onChange={(data: OnChangeData<string>) => {
+          const selectedItem = data.selectedItem
+          if (selectedItem) setNewDurationMonths(parseInt(invert(extensionOptionsMap)[selectedItem]))
+        }}
+        size="lg"
+        initialSelectedItem={last(Object.values(extensionOptionsMap))}
+        label="Month Selector"
+        style={{width: 300, marginTop: 8}}
+      />
       <CreateTransactionButton
         style={{}}
         disabled={isFailing}

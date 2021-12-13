@@ -28,7 +28,7 @@ const InputPicker = <
   const [selectedItem, setSelectedItem] = useState<TEnumValue>(initialValue)
 
   return (
-    <div style={{display: 'inline-block', width}} >
+    <div style={{display: 'inline-block', width, marginTop: 8}} >
       <Dropdown
         ariaLabel="Dropdown"
         id={label}

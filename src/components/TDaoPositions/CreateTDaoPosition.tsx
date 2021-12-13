@@ -63,21 +63,6 @@ const CreateTDaoPosition = () => {
       : range(tdaoInfo.minMonths, tdaoInfo.maxMonths, tdaoInfo.monthIncrements)
     ).map(op => [op, op + ' months']))
 
-  const monthSelector =
-    <Dropdown
-      ariaLabel="Dropdown"
-      id="month_selector"
-      items={Object.values(extensionOptionsMap)}
-      onChange={(data: OnChangeData<string>) => {
-        const selectedItem = data.selectedItem
-        if (selectedItem) setNewDurationMonths(parseInt(invert(extensionOptionsMap)[selectedItem]))
-      }}
-      size="lg"
-      initialSelectedItem={last(Object.values(extensionOptionsMap))}
-      label="Month Selector"
-      style={{width: 300, marginTop: 8}}
-    />
-
   const isFailing = true
 
   const columnOne =
@@ -88,11 +73,22 @@ const CreateTDaoPosition = () => {
         navigation={{
           [TokenAllocationOptions.ClaimTokens]: `/positions/claim/tcp`
         }}
-        width={300}
         label="Allocation options"
         style={{}}
       />
-      {monthSelector}
+      <Dropdown
+        ariaLabel="Dropdown"
+        id="month_selector"
+        items={Object.values(extensionOptionsMap)}
+        onChange={(data: OnChangeData<string>) => {
+          const selectedItem = data.selectedItem
+          if (selectedItem) setNewDurationMonths(parseInt(invert(extensionOptionsMap)[selectedItem]))
+        }}
+        size="lg"
+        initialSelectedItem={last(Object.values(extensionOptionsMap))}
+        label="Month Selector"
+        style={{marginTop: 8}}
+      />
       <NumberInput
         hideSteppers
         id="Tcp Allocation Count Input"
