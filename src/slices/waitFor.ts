@@ -30,6 +30,8 @@ enum FetchNode {
   TrustlessMulticall,
   ProtocolDataAggregator,
 
+  TDaoInfo,
+
   GovernorInfo,
   LiquidationsInfo,
   RewardsInfo,
@@ -54,6 +56,8 @@ const getNodeFetch = (
       return { governor: selector((state) => state.chainID.governor) }
     case FetchNode.TDao:
       return { tdao: selector((state) => state.chainID.tdao) }
+    case FetchNode.TDaoInfo:
+      return { tdaoInfo: waitForTDaoInfo(selector, dispatch) }
     case FetchNode.GenesisAllocation:
       return {
         genesisAllocation: selector((state) => state.chainID.genesisAllocation),
@@ -217,7 +221,7 @@ export const waitForSDI = getWaitFunction(
 export const waitForBalances = getWaitFunction(
   (state: RootState) => state.balances,
   getBalances,
-  [FetchNode.Contracts, FetchNode.UserAddress, FetchNode.TrustlessMulticall, FetchNode.TDao]
+  [FetchNode.Contracts, FetchNode.UserAddress, FetchNode.TrustlessMulticall, FetchNode.TDao, FetchNode.TDaoInfo]
 )
 
 export const waitForLiquidityPositions = getWaitFunction(
@@ -249,13 +253,13 @@ export const waitForGenesisAllocations = getWaitFunction(
   [FetchNode.Contracts, FetchNode.TrustlessMulticall]
 )
 
-export const waitForTdaoPositions = getWaitFunction(
+export const waitForTDaoPositions = getWaitFunction(
   (state: RootState) => state.tdaoPositions,
   getTDaoPositions,
-  [FetchNode.UserAddress, FetchNode.TDao, FetchNode.Contracts, FetchNode.TrustlessMulticall]
+  [FetchNode.UserAddress, FetchNode.TDao, FetchNode.Contracts, FetchNode.TrustlessMulticall, FetchNode.TDaoInfo]
 )
 
-export const waitForTdaoInfo = getWaitFunction(
+export const waitForTDaoInfo = getWaitFunction(
   (state: RootState) => state.tdaoInfo,
   getTDaoInfo,
   [FetchNode.TDao, FetchNode.TrustlessMulticall]

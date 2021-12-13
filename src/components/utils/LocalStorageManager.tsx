@@ -9,6 +9,7 @@ import { liquidationsSlice, liquidationsInfo } from '../../slices/liquidations'
 import { marketSlice, marketInfo } from '../../slices/market'
 import { pricesSlice, pricesInfo } from '../../slices/prices'
 import { ratesSlice, ratesInfo } from '../../slices/rates'
+import { tdaoInfoSlice, tdaoInfo } from '../../slices/tdaoInfo'
 import { poolsMetadataSlice, poolsMetadata } from '../../slices/poolsMetadata'
 import { systemDebtSlice, systemDebtInfo } from '../../slices/systemDebt'
 import { notificationsSlice, NotificationState } from '../../slices/notifications'
@@ -24,6 +25,7 @@ type slicesState =
   ratesInfo |
   systemDebtInfo |
   NotificationState |
+  tdaoInfo |
   null
 
 type persistedSlice = {
@@ -66,6 +68,11 @@ export const slicesToPersist: persistedSlices = {
   },
 
   // Slices with loadable state
+  [tdaoInfoSlice.name]: {
+    slice: tdaoInfoSlice,
+    ttl: MEDIUM_EXPIRATION,
+    getState: (state: RootState) => state.tdaoInfo.data.value
+  },
   [poolsMetadataSlice.name]: {
     slice: poolsMetadataSlice,
     ttl: LONG_EXPIRATION,

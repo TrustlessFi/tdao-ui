@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { useParams } from 'react-router';
 import {
-  waitForTdaoPositions,
-  waitForTdaoInfo,
+  waitForTDaoPositions,
+  waitForTDaoInfo,
 } from '../../slices/waitFor'
 import {
   TextAreaSkeleton,
@@ -32,11 +32,9 @@ const TDaoPositionIncreaseLockTime = () => {
 
   const positionID = Number(params.positionID)
 
-  const positions = waitForTdaoPositions(selector, dispatch)
-  const tdaoInfo = waitForTdaoInfo(selector, dispatch)
+  const positions = waitForTDaoPositions(selector, dispatch)
+  const tdaoInfo = waitForTDaoInfo(selector, dispatch)
   const tdao =  selector((state) => state.chainID.tdao)
-
-  console.log({positions, tdaoInfo})
 
   const dataNull =
     positions === null ||
@@ -58,12 +56,9 @@ const TDaoPositionIncreaseLockTime = () => {
       months += tdaoInfo.monthIncrements) {
       extensionOptions.push(months)
     }
-    console.log({extensionOptions, position})
     if (extensionOptions.length !== 0) {
 
       const extensionOptionsMap = Object.fromEntries(extensionOptions.map(op => [op, op + ' months']))
-      const values = Object.values(extensionOptionsMap)
-      console.log({extensionOptionsMap, values})
 
       monthSelector =
         <Dropdown
@@ -137,7 +132,7 @@ const TDaoPositionIncreaseLockTime = () => {
   return (
     <>
       <Breadcrumbs crumbs={[{ text: 'Positions', href: '/positions' }, positionID.toString()]} />
-      {position === null ? null : <TDaoPositionDisplay position={position} width={800} />}
+      {position === null ? null : <TDaoPositionDisplay position={position} width={800} displayRewards={false} />}
       <TwoColumnDisplay
         columnOne={columnOne}
         columnTwo={columnTwo}

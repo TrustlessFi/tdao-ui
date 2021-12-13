@@ -1,13 +1,20 @@
 import { Contract } from 'ethers'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
-import { ContractsInfo } from '../contracts'
 import { getGenericReducerBuilder } from '../'
 import getContract, { getMulticallContract } from '../../utils/getContract'
-import { getDuplicateFuncMulticall, executeMulticalls, rc, getMulticall, contractFunctionSelector, getDuplicateContractMulticall } from '@trustlessfi/multicall'
-import { range, zeroAddress } from '../../utils'
+import {
+  executeMulticalls,
+  rc,
+  getMulticall,
+  contractFunctionSelector,
+  getDuplicateContractMulticall,
+  getDuplicateFuncMulticall
+} from '@trustlessfi/multicall'
+import { zeroAddress } from '../../utils'
 import getProvider from '../../utils/getProvider';
 import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
+import { PromiseType } from '@trustlessfi/utils'
 
 
 import { TDao } from '@trustlessfi/typechain'
@@ -25,11 +32,15 @@ export interface tdaoInfo {
   currentPeriod: number
   underlyingProtocolTokens: {
     [key in number]: {
-      id: number
+      tokenID: number
       address: string
       name: string
       symbol: string
       decimals: number
+      rs: {
+        cumulativeVirtualCount: string
+        totalRewards: string
+      }
     }
   }
 }
@@ -51,29 +62,21 @@ const fetchTDaoInfo = async (args: tdaoInfoArgs): Promise<tdaoInfo> => {
       tdao,
       {
         lastPeriodGlobalInflationUpdated: rc.BigNumberToNumber,
-        countUnderlyingProtocolTokens: rc.Number,
+        countUnderlyingProtocolTokens: rc.BigNumberToNumber,
         startPeriod: rc.BigNumberToNumber,
         periodLength: rc.BigNumberToNumber,
         firstPeriod: rc.BigNumberToNumber,
         currentPeriod: rc.BigNumberToNumber,
+        allTokens: (result: any) => result as PromiseType<ReturnType<TDao['allTokens']>>,
       }
-    ),
-  })
-
-  const tokenIDs = range(1, tdaoInfo.countUnderlyingProtocolTokens + 1)
-
-  const { underlyingTokens } = await executeMulticalls(trustlessMulticall, {
-    underlyingTokens: getDuplicateFuncMulticall(
-      tdao,
-      'idToToken',
-      rc.String,
-      Object.fromEntries(tokenIDs.map(tokenID => [tokenID.toString(), [tokenID]]))
     ),
   })
 
   const tokenContract = new Contract(zeroAddress, erc20Artifact.abi, provider)
 
-  const tokens = Object.values(underlyingTokens)
+  const tokens = tdaoInfo.allTokens
+
+  const getRewardsStatusID = (id: number) => id + 'rewardsStatus'
 
   const tokenInfo = await executeMulticalls(
     trustlessMulticall,
@@ -90,8 +93,15 @@ const fetchTDaoInfo = async (args: tdaoInfoArgs): Promise<tdaoInfo> => {
         tokenContract,
         Object.fromEntries(tokens.map(address => [contractFunctionSelector(address as string, 'decimals'), rc.Number])),
       ),
+      rewardsStatus: getDuplicateFuncMulticall(
+        tdao,
+        'getRewardsStatus',
+        (result: any) => result as PromiseType<ReturnType<TDao['getRewardsStatus']>>,
+        Object.fromEntries(tokens.map((_address, id) => [getRewardsStatusID(id), [id]]))
+      ),
     },
   )
+
   console.log({tokenInfo})
 
   return {
@@ -105,14 +115,19 @@ const fetchTDaoInfo = async (args: tdaoInfoArgs): Promise<tdaoInfo> => {
     firstPeriod: tdaoInfo.firstPeriod,
     currentPeriod: tdaoInfo.currentPeriod,
     underlyingProtocolTokens:
-      Object.fromEntries(tokenIDs.map(id => {
-        const address = underlyingTokens[id.toString()]
-        return [id, {
-          id,
+      Object.fromEntries(tokens.map((address, tokenID) => {
+        return [tokenID, {
+          tokenID,
           address,
           symbol: tokenInfo.symbol[contractFunctionSelector(address, 'symbol')],
           name: tokenInfo.name[contractFunctionSelector(address, 'name')],
           decimals: tokenInfo.decimals[contractFunctionSelector(address, 'decimals')],
+          rs: {
+            cumulativeVirtualCount:
+              tokenInfo.rewardsStatus[getRewardsStatusID(tokenID)].cumulativeVirtualCount.toString(),
+            totalRewards:
+              tokenInfo.rewardsStatus[getRewardsStatusID(tokenID)].totalRewards.toString(),
+          }
         }]
       }))
   }

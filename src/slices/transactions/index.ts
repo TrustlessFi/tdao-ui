@@ -39,6 +39,7 @@ export enum TransactionType {
   VoteProposal,
   UpdateTDaoPositionLockDuration,
   DeleteTDaoPosition,
+  ClaimAllTDaoPositionRewards,
 }
 
 export enum TransactionStatus {
@@ -161,6 +162,12 @@ export interface txDeleteTDaoPosition {
   positionID: string
 }
 
+export interface txClaimAllTDaoPositionRewards {
+  type: TransactionType.ClaimAllTDaoPositionRewards
+  tdao: string
+  positionIDs: string[]
+}
+
 export type TransactionArgs =
   txCreatePositionArgs |
   txUpdatePositionArgs |
@@ -175,7 +182,8 @@ export type TransactionArgs =
   txApproveLendHue |
   txVoteProposal |
   txUpdateTDaoPositionLockDuration |
-  txDeleteTDaoPosition
+  txDeleteTDaoPosition |
+  txClaimAllTDaoPositionRewards
 
 export interface TransactionData {
   args: TransactionArgs
@@ -229,6 +237,8 @@ export const getTxLongName = (args: TransactionArgs) => {
       return `Increase position ${args.positionID} lock duration to ${args.durationMonths} months`
     case TransactionType.DeleteTDaoPosition:
       return `Delete position ${args.positionID}`
+    case TransactionType.ClaimAllTDaoPositionRewards:
+      return `Claim Rewards for TDao positions ${args.positionIDs.join(', ')}`
     default:
       assertUnreachable(type)
   }
@@ -265,6 +275,8 @@ export const getTxShortName = (type: TransactionType) => {
       return 'Increase Position Lock Duration'
     case TransactionType.DeleteTDaoPosition:
       return 'Delete Position'
+    case TransactionType.ClaimAllTDaoPositionRewards:
+      return `Claim Rewards for TDao positions`
     default:
       assertUnreachable(type)
   }
@@ -410,6 +422,9 @@ const executeTransaction = async (
     case TransactionType.DeleteTDaoPosition:
       return await getTDao(args.tdao).unlockTokens(args.positionID)
 
+    case TransactionType.ClaimAllTDaoPositionRewards:
+      return await getTDao(args.tdao).getRewards(args.positionIDs)
+
     default:
       assertUnreachable(type)
   }
@@ -514,6 +529,7 @@ export const waitForTransaction = createAsyncThunk(
           break
         case TransactionType.UpdateTDaoPositionLockDuration:
         case TransactionType.DeleteTDaoPosition:
+        case TransactionType.ClaimAllTDaoPositionRewards:
           dispatch(clearTDaoPositions())
           break
       default:

@@ -1,9 +1,11 @@
 import { Button } from 'carbon-components-react'
+import { Row, Col } from 'react-flexbox-grid'
 import { useHistory } from 'react-router-dom'
 import AppTile from '../library/AppTile'
+import Center from '../library/Center'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { editorOpened } from '../../slices/positionsEditor'
-import { waitForTdaoPositions } from '../../slices/waitFor'
+import { waitForTDaoPositions } from '../../slices/waitFor'
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import { TransactionType } from '../../slices/transactions'
@@ -20,22 +22,40 @@ const ExistingTDaoPositions = () => {
   // const mc = selector((state) => state.chainID.trustlessMulticall)
   // const contracts = waitForContracts(selector, dispatch)
       // return { userAddress:  }
-  const positions = waitForTdaoPositions(selector, dispatch)
-  console.log({positions})
+  const positions = waitForTDaoPositions(selector, dispatch)
+  const tdao = selector((state) => state.chainID.tdao)
   // const contracts = waitForContracts(selector, dispatch)
 
-  // console.log({positions});
   if (positions === null) return <>loading existing positions</>
   else {
     if (Object.values(positions).length === 0) return <>No Positions</>
-    return (
-      <>
-        {Object.values(positions).map(position =>
+    const positionsIDsWithRewards: string[] = []
+
+    const positionDisplay =
+      Object.values(positions).map((position, index) => {
+        if (position.approximateRewards > 0) positionsIDsWithRewards.push(position.nftTokenID)
+        return (
           <TDaoPositionDisplay
+            key={"positionDisplay" + index}
             position={position}
             onClick={(positionID: string) => history.push(`/positions/${positionID}`)}
           />
-        )}
+        )
+      })
+
+    return (
+      <>
+        <CreateTransactionButton
+          style={{marginBottom: 16}}
+          disabled={positionsIDsWithRewards.length === 0 || tdao == null}
+          title="Claim all TDao Rewards"
+          txArgs={{
+            type: TransactionType.ClaimAllTDaoPositionRewards,
+            tdao: tdao === null ? '' : tdao,
+            positionIDs: positionsIDsWithRewards,
+          }}
+        />
+        {positionDisplay}
       </>
     )
 

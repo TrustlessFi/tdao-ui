@@ -1,16 +1,20 @@
+import { BigNumber } from "ethers"
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
 import { ContractsInfo } from '../contracts'
 import { getGenericReducerBuilder } from '../'
+import { tdaoInfo } from '../tdaoInfo'
 import getContract, { getMulticallContract } from '../../utils/getContract'
 import { getDuplicateFuncMulticall, executeMulticalls, rc } from '@trustlessfi/multicall'
 import { PromiseType } from '@trustlessfi/utils'
+import { unscale, bnf } from '../../utils'
 
 import { TDaoPositionNFT, TDao } from '@trustlessfi/typechain'
 import { TDaoContract, TDaoRootContract } from '../contracts'
 
 export interface TDaoPosition {
   nftTokenID: string
+  approximateRewards: number
   count: string
   startTotalRewards: string
   startCumulativeVirtualCount: string
@@ -25,10 +29,11 @@ export interface TDaoPosition {
 export interface tdaoPositionsInfo { [key: string]: TDaoPosition }
 
 export interface tdaoPositionsArgs {
-  userAddress: string,
-  tdao: string,
-  contracts: ContractsInfo,
-  trustlessMulticall: string,
+  userAddress: string
+  tdao: string
+  contracts: ContractsInfo
+  trustlessMulticall: string
+  tdaoInfo: tdaoInfo
 }
 
 export interface TDaoPositionsState extends sliceState<tdaoPositionsInfo> {}
@@ -40,14 +45,14 @@ export const getTDaoPositions = createAsyncThunk(
     const tdaoPostionNFT = getContract(args.contracts[TDaoContract.TDaoPositionNFT], TDaoContract.TDaoPositionNFT) as TDaoPositionNFT
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
+      console.log("getTDaoPositions", {args})
+
     // fetch the positions
-    console.log("here 1")
     const positionIDs = (await tdaoPostionNFT.positionIDs(args.userAddress)).map(id => id.toString())
 
     const getSVGId = (id: string) => id + 'svg'
     const getCanBeUnlockedId = (id: string) => id + 'canBeUnlocked'
 
-    console.log("here 3")
     const { positions, tokenSVGs, canBeUnlocked } = await executeMulticalls(trustlessMulticall, {
       positions: getDuplicateFuncMulticall(
         tdao,
@@ -68,21 +73,48 @@ export const getTDaoPositions = createAsyncThunk(
         Object.fromEntries(positionIDs.map(positionID => [getCanBeUnlockedId(positionID), [positionID]]))
       ),
     })
-    console.log("here 3")
 
-    const result = Object.fromEntries(positionIDs.map(id => [id, {
-      nftTokenID: id,
-      count: positions[id].count.toString(),
-      startTotalRewards: positions[id].startTotalRewards.toString(),
-      startCumulativeVirtualCount: positions[id].startCumulativeVirtualCount.toString(),
-      lastPeriodUpdated: positions[id].lastPeriodUpdated.toNumber(),
-      endPeriod: positions[id].endPeriod.toNumber(),
-      durationMonths: positions[id].durationMonths.toNumber(),
-      underlyingTokenID: positions[id].tokenID,
-      canBeUnlocked: canBeUnlocked[getCanBeUnlockedId(id)],
-      svg: tokenSVGs[getSVGId(id)]
-    }]))
-    console.log("here 4")
+    const result = Object.fromEntries(positionIDs.map(id => {
+      const position = positions[id]
+
+      let approximateRewards = BigNumber.from(0)
+      const lastPeriodPositionUpdated = position.lastPeriodUpdated.toNumber()
+
+      const tokenRewardsStatus = args.tdaoInfo.underlyingProtocolTokens[position.tokenID].rs
+
+      console.log({tdaoInfo: args.tdaoInfo, tokenRewardsStatus, approximateRewards, lastPeriodPositionUpdated,position})
+
+      if (lastPeriodPositionUpdated < args.tdaoInfo.lastPeriodGlobalInflationUpdated)   {
+        let avgDebtPerPeriod =
+          bnf(tokenRewardsStatus.cumulativeVirtualCount)
+            .sub(position.startCumulativeVirtualCount)
+            .div(args.tdaoInfo.lastPeriodGlobalInflationUpdated - lastPeriodPositionUpdated)
+
+        if (!avgDebtPerPeriod.eq(0)) {
+          approximateRewards =
+            position.count
+              .mul(position.durationMonths)
+              .div(12)
+              .mul(bnf(tokenRewardsStatus.totalRewards).sub(position.startTotalRewards))
+              .div(avgDebtPerPeriod)
+        }
+      }
+
+      return [id, {
+        nftTokenID: id,
+        approximateRewards: unscale(approximateRewards, 18),
+        count: positions[id].count.toString(),
+        startTotalRewards: positions[id].startTotalRewards.toString(),
+        startCumulativeVirtualCount: positions[id].startCumulativeVirtualCount.toString(),
+        lastPeriodUpdated: positions[id].lastPeriodUpdated.toNumber(),
+        endPeriod: positions[id].endPeriod.toNumber(),
+        durationMonths: positions[id].durationMonths.toNumber(),
+        underlyingTokenID: positions[id].tokenID,
+        canBeUnlocked: canBeUnlocked[getCanBeUnlockedId(id)],
+        svg: tokenSVGs[getSVGId(id)]
+      }]
+    }))
+
     return result
   }
 )

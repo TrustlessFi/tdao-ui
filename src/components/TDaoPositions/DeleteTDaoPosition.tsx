@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { useParams } from 'react-router';
 import {
-  waitForTdaoPositions,
-  waitForTdaoInfo,
+  waitForTDaoPositions,
+  waitForTDaoInfo,
 } from '../../slices/waitFor'
 import { TransactionType } from '../../slices/transactions'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
@@ -25,11 +25,9 @@ const DeleteTDaoPosition = () => {
 
   const positionID = params.positionID
 
-  const positions = waitForTdaoPositions(selector, dispatch)
-  const tdaoInfo = waitForTdaoInfo(selector, dispatch)
+  const positions = waitForTDaoPositions(selector, dispatch)
+  const tdaoInfo = waitForTDaoInfo(selector, dispatch)
   const tdao =  selector((state) => state.chainID.tdao)
-
-  console.log({positions, tdaoInfo})
 
   const dataNull =
     positions === null ||
@@ -80,7 +78,7 @@ const DeleteTDaoPosition = () => {
   return (
     <>
       <Breadcrumbs crumbs={[{ text: 'Positions', href: '/positions' }, positionID.toString(), 'delete']} />
-      {position === null ? null : <TDaoPositionDisplay position={position} width={800} />}
+      {position === null ? null : <TDaoPositionDisplay position={position} width={800} displayRewards={false} />}
       <TwoColumnDisplay
         columnOne={columnOne}
         columnTwo={columnTwo}

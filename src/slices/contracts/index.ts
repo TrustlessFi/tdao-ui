@@ -97,8 +97,6 @@ export const getContracts = createAsyncThunk(
       }
     )
 
-    console.log("here C")
-
     return {
       [ProtocolContract.Accounting]: tcpContracts.accounting,
       [ProtocolContract.Auctions]: tcpContracts.auctions,

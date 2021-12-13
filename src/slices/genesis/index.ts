@@ -95,8 +95,6 @@ export const waitForGenesisClaimAllocations = createAsyncThunk(
 
     const transaction = await claimAllocations({ genesisAllocation, allocations });
     const receipt = await provider.waitForTransaction(transaction.hash);
-
-    console.log(transaction, receipt);
   }
 )
 
