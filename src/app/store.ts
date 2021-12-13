@@ -13,6 +13,7 @@ import positionsEditorReducer from "../slices/positionsEditor"
 import liquidityPositionsEditorReducer from "../slices/liquidityPositionsEditor"
 import tdaoPositionsReducer from "../slices/tdaoPositions"
 import tdaoInfoReducer from "../slices/tdaoInfo"
+import tcpAllocationInfoReducer from "../slices/tcpAllocation"
 
 import governorReducer from "../slices/governor"
 import liquidationsReducer from "../slices/liquidations"
@@ -43,6 +44,7 @@ export const store = configureStore({
     liquidityPositionsEditor: liquidityPositionsEditorReducer,
     tdaoPositions: tdaoPositionsReducer,
     tdaoInfo: tdaoInfoReducer,
+    tcpAllocationInfo: tcpAllocationInfoReducer,
 
     governor: governorReducer,
     liquidations: liquidationsReducer,

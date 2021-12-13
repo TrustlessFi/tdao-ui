@@ -25,6 +25,7 @@ export enum ProtocolContract {
   Tcp = "Tcp",
   TcpGovernorAlpha = "TcpGovernorAlpha",
   TcpTimelock = "TcpTimelock",
+  TcpAllocation = "TcpAllocation",
 }
 
 export enum RootContract {
@@ -114,6 +115,7 @@ export const getContracts = createAsyncThunk(
       [ProtocolContract.Tcp]: tcpContracts.tcp,
       [ProtocolContract.TcpGovernorAlpha]: tcpContracts.governorAlpha,
       [ProtocolContract.TcpTimelock]: tcpContracts.timelock,
+      [ProtocolContract.TcpAllocation]: tcpContracts.tcpAllocation,
 
       [TDaoContract.TDaoToken]: tdaoContracts.tDaoToken,
       [TDaoContract.TDaoPositionNFT]: tdaoContracts.tDaoPositionNFT,

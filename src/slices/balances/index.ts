@@ -146,37 +146,38 @@ export const getBalances = createAsyncThunk(
       decimals: number
     }
 
-    const poolsMetadataMap: {[key in string]: poolTokensMetadata} = {}
+    const tokenMetadataMap: {[key in string]: poolTokensMetadata} = {}
 
     Object.values(args.tdaoInfo.underlyingProtocolTokens).map(token => {
-      poolsMetadataMap[token.address] = {
+      tokenMetadataMap[token.address] = {
         name: token.name,
         symbol: token.symbol,
         decimals: token.decimals,
       }
     })
 
-    poolsMetadataMap[args.tdao] = {
+    tokenMetadataMap[args.contracts.TDaoToken] = {
       name: 'TDao Token',
       symbol: 'TDao',
       decimals: 18,
     }
-    poolsMetadataMap[args.contracts.Tcp] = {
+    tokenMetadataMap[args.contracts.Tcp] = {
       name: 'Trustless Currency Protocol',
       symbol: 'Tcp',
       decimals: 18,
     }
 
+        console.log({tokenMetadataMap, tokenAddresses})
     return {
       userEthBalance: unscale(userEthBalance.getEthBalance),
       tokens: Object.fromEntries(tokenAddresses.map(address => {
-        const decimals = poolsMetadataMap[address].decimals
+        const decimals = tokenMetadataMap[address].decimals
 
         return [address, {
           token: {
             address,
-            name: poolsMetadataMap[address].name,
-            symbol: poolsMetadataMap[address].symbol,
+            name: tokenMetadataMap[address].name,
+            symbol: tokenMetadataMap[address].symbol,
             decimals,
           },
           userBalance: unscale(userBalance[getFullSelector(tokenContract, address, 'balanceOf', [args.userAddress])], decimals),

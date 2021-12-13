@@ -17,6 +17,7 @@ import { getPricesInfo } from "./prices"
 import { getPoolCurrentData } from "./poolCurrentData"
 import { getContracts } from "./contracts"
 import { getTDaoInfo } from './tdaoInfo'
+import { getTcpAllocationInfo } from './tcpAllocation'
 
 import { sliceState } from "./"
 import { assertUnreachable } from "../utils/index"
@@ -265,4 +266,8 @@ export const waitForTDaoInfo = getWaitFunction(
   [FetchNode.TDao, FetchNode.TrustlessMulticall]
 )
 
-export const waitForGenesisAllocationContract = getWaitFunction
+export const waitForTcpAllocationInfo = getWaitFunction(
+  (state: RootState) => state.tcpAllocationInfo,
+  getTcpAllocationInfo,
+  [FetchNode.UserAddress, FetchNode.TrustlessMulticall, FetchNode.Contracts]
+)

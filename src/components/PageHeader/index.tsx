@@ -19,7 +19,7 @@ import {
   Button,
 } from "carbon-components-react"
 import { Menu32 } from "@carbon/icons-react"
-import { Tab } from "../../App"
+import { Tab, tabDisplay } from "../../App"
 
 import Wallet from "./Wallet"
 import NetworkIndicator from "../library/NetworkIndicator"
@@ -49,6 +49,7 @@ const PageHeader = () => {
   const tabs = Object.values(Tab).map((tab, index) => {
     const link = index === 0 ? "/" : "/" + tab.toLowerCase()
     const isCurrentPage = location.pathname === link
+    const display = tabDisplay[tab]
     return (
       <HeaderMenuItem
         key={index}
@@ -56,7 +57,7 @@ const PageHeader = () => {
         onClick={navigateToRoute.bind(null, link)}
         isCurrentPage={isCurrentPage}
       >
-        {tab}
+        {display === undefined ? tab : display }
       </HeaderMenuItem>
     )
   })

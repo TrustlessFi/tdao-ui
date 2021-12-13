@@ -37,6 +37,7 @@ import {
   TDaoGovernorAlpha,
   TDaoTimelock,
   TDaoVotingRewardsSafe,
+  TcpAllocation,
 } from "@trustlessfi/typechain"
 
 // ================ ARTIFACTS =======================
@@ -61,6 +62,7 @@ import trustlessMulticallArtifact from "@trustlessfi/artifacts/dist/contracts/co
 import trustlessMulticallViewOnlyArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/multicall/TrustlessMulticallViewOnly.sol/TrustlessMulticallViewOnly.json"
 import tcpTimelockArtifact from "@trustlessfi/artifacts/dist/contracts/core/governance/TcpTimelock.sol/TcpTimelock.json"
 import genesisAllocationArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/allocations/GenesisAllocation.sol/GenesisAllocation.json"
+import tcpAllocationArtifact from "@trustlessfi/artifacts/dist/contracts/core/auxiliary/allocations/TcpAllocation.sol/TcpAllocation.json"
 
 import tDaoArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDao.sol/TDao.json"
 
@@ -95,6 +97,7 @@ const artifactLookup: {
   [ProtocolContract.Tcp]: tcpArtifact,
   [ProtocolContract.TcpGovernorAlpha]: tcpGovernorAlphaArtifact,
   [ProtocolContract.TcpTimelock]: tcpTimelockArtifact,
+  [ProtocolContract.TcpAllocation]: tcpAllocationArtifact,
 
   [RootContract.Governor]: governorArtifact,
   [RootContract.ProtocolDataAggregator]: protocolDataAggregatorArtifact,
@@ -178,6 +181,8 @@ const getContract = (
       return contract as TcpGovernorAlpha
     case ProtocolContract.TcpTimelock:
       return contract as TcpTimelock
+    case ProtocolContract.TcpAllocation:
+      return contract as TcpAllocation
 
     case RootContract.Governor:
       return contract as Governor

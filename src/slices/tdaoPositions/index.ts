@@ -74,6 +74,10 @@ export const getTDaoPositions = createAsyncThunk(
       ),
     })
 
+    console.log("tdao positions", {positions})
+
+
+
     const result = Object.fromEntries(positionIDs.map(id => {
       const position = positions[id]
 

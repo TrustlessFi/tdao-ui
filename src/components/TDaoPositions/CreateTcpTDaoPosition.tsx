@@ -18,7 +18,7 @@ import { TransactionType } from '../../slices/transactions'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import TwoColumnDisplay from '../utils/TwoColumnDisplay'
 
-const CreateTDaoPosition = () => {
+const CreateTcpTDaoPosition = () => {
   const dispatch = useAppDispatch()
 
   const balances = waitForBalances(selector, dispatch)
@@ -26,4 +26,4 @@ const CreateTDaoPosition = () => {
   return <>Todo create tdao position</>
 }
 
-export default CreateTDaoPosition
+export default CreateTcpTDaoPosition

@@ -18,16 +18,23 @@ declare global {
   }
 }
 
+
 export enum Tab {
   Genesis = 'Genesis',
   Positions = 'Positions',
   Transactions = 'Transactions',
+  LockTcp = 'LockTcp',
+}
+
+export const tabDisplay: { [key in Tab]?: string } = {
+  [Tab.LockTcp]: 'Lock Tcp',
 }
 
 const tabToRender: { [key in Tab]: ReactNode } = {
   Genesis: <Genesis />,
   Positions: <TDaoPositions />,
   Transactions: <RecentTransactions />,
+  LockTcp: <RecentTransactions />,
 }
 
 function App() {
