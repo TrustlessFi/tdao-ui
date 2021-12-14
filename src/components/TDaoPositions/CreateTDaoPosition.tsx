@@ -35,7 +35,10 @@ import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { TokenAllocationOptions, getMultiplierForMonths } from './'
-import { invert, onNumChange, last, range, notNullNumber, notNullString } from '../../utils'
+import {
+  invert, onNumChange, last, range, notNullNumber, notNullString,
+  days, monthsToDays, timeS, getDateStringMS,
+} from '../../utils'
 import ParagraphDivider from '../utils/ParagraphDivider'
 
 const CreateTDaoPosition = () => {
@@ -59,11 +62,20 @@ const CreateTDaoPosition = () => {
     tcpAllocationInfo === null ||
     contracts === null
 
+  const monthsToMonthsAndYears = (months: number): string => {
+    const _months = months % 12
+    const _years = (months - _months) / 12
+
+    if (_months === 0) return _years + (_years === 1 ? ' year' : ' years')
+    if (_years === 0) return `${_months} months`
+    return `${_years} years ${_months} months`
+  }
+
   const extensionOptionsMap = Object.fromEntries(
     (tdaoInfo === null
       ? [48]
       : range(tdaoInfo.minMonths, tdaoInfo.maxMonths, tdaoInfo.monthIncrements)
-    ).map(op => [op, op + ' months']))
+    ).map(op => [op, monthsToMonthsAndYears(op)]))
 
   const getTcpBalance = () =>
     balances === null || contracts === null
@@ -86,13 +98,10 @@ const CreateTDaoPosition = () => {
     },
   }
 
-  const multiplier = getMultiplierForMonths(lockDurationMonths)
+  const newUnlockTime = timeS() + days(monthsToDays(lockDurationMonths))
+  const unlockDateString = getDateStringMS(newUnlockTime * 1000)
 
-  const monthsToMonthsAndYears = (months: number): string => {
-    const _months = months % 12
-    const _years = (months - _months) / 12
-    return `${_years} years ${_months} months`
-  }
+  const multiplier = getMultiplierForMonths(lockDurationMonths)
 
   const metadataItems = [
     {
@@ -100,11 +109,14 @@ const CreateTDaoPosition = () => {
       value: dataNull ? '-' : numDisplay(balances.tokens[contracts.Tcp].userBalance - count),
       failing: dataNull ? false : failures.notEnoughTcp.failing,
     },{
+      title: 'Multiplier',
+      value: multiplier + 'x',
+    },{
       title: 'Lock Duration',
       value: monthsToMonthsAndYears(lockDurationMonths),
     },{
-      title: 'Multiplier',
-      value: multiplier + 'x',
+      title: 'Unlock Date',
+      value: unlockDateString,
     },
   ]
 
