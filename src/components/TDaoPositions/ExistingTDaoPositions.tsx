@@ -49,7 +49,7 @@ const ExistingTDaoPositions = () => {
         <div style={{marginBottom: 16}}>
           <CreateTransactionButton
             style={{marginRight: 16}}
-            disabled={tcpAllocationInfo === null || tdao == null}
+            disabled={tcpAllocationInfo === null || tdao == null || positionsIDsWithRewards.length === 0}
             title="Claim all TDao Rewards"
             txArgs={{
               type: TransactionType.ClaimAllTDaoPositionRewards,
