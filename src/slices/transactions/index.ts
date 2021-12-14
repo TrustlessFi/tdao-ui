@@ -9,6 +9,7 @@ import { clearLiquidityPositions } from '../liquidityPositions'
 import { clearBalances } from '../balances'
 import { clearPoolCurrentData } from '../poolCurrentData'
 import { clearTDaoPositions } from '../tdaoPositions'
+import { clearTcpAllocationInfo } from '../tcpAllocation'
 import { clearProposals } from '../proposals'
 import { ethers, ContractTransaction, BigNumber } from 'ethers'
 import { ProtocolContract, TDaoRootContract } from '../contracts'
@@ -585,6 +586,7 @@ export const waitForTransaction = createAsyncThunk(
           break
         case TransactionType.CreateTDaoAllocationPosition:
           dispatch(clearTDaoPositions())
+          dispatch(clearTcpAllocationInfo())
           break
         case TransactionType.CreateTDaoPosition:
           dispatch(clearBalances())
