@@ -25,6 +25,7 @@ export const bnf = (val: BigNumberish) => BigNumber.from(val)
 export const scale = (quantity: number, decimals = 18): BigNumber => bnf(mnt(quantity, decimals))
 
 export const mnt = (quantity: number, decimals = 18): string => {
+  if (isNaN(quantity)) return '0'
   if (decimals < 6) throw new Error('too few decimals: ' + decimals)
   return (BigInt(Math.round(quantity * 1e6))).toString() + '0'.repeat(decimals - 6)
 }
@@ -164,12 +165,12 @@ export const enforce = (conditional: boolean, errorMessage: string) => {
 }
 
 // ======================= Time ============================
-export const years = (years: number)     => years * days(365)
-export const weeks = (weeks: number)     => weeks * days(7)
-export const days = (days: number)       => days * hours(24)
-export const hours = (hours: number)     => hours * minutes(60)
-export const minutes = (minutes: number) => minutes * seconds(60)
-export const seconds = (seconds: number) => seconds
+export const years = (years: number)     => Math.floor(years * days(365))
+export const weeks = (weeks: number)     => Math.floor(weeks * days(7))
+export const days = (days: number)       => Math.floor(days * hours(24))
+export const hours = (hours: number)     => Math.floor(hours * minutes(60))
+export const minutes = (minutes: number) => Math.floor(minutes * seconds(60))
+export const seconds = (seconds: number) => Math.floor(seconds)
 
 export const timeMS = () => Date.now()
 

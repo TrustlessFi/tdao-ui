@@ -59,7 +59,7 @@ const ExistingTDaoPositions = () => {
           />
           <Button
             disabled={tokensToBeAllocated === null || tokensToBeAllocated === 0}
-            onClick={() => history.push(`/positions/new/tcp`)}
+            onClick={() => history.push(`/positions/allocate/lock/tcp`)}
             style={{marginBottom: 16}}>
             Earn TDao with {tokensToBeAllocated === null ? '-' : numDisplay(tokensToBeAllocated)} TCP
           </Button>

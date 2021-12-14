@@ -13,8 +13,6 @@ import {
   getDuplicateFuncMulticall
 } from '@trustlessfi/multicall'
 import { zeroAddress, unscale } from '../../utils'
-import getProvider from '../../utils/getProvider';
-import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import { PromiseType } from '@trustlessfi/utils'
 
 
@@ -24,6 +22,8 @@ import { TDaoRootContract, ProtocolContract } from '../contracts'
 export interface tcpAllocationInfo {
   restrictedToUnlockDuration: boolean
   restrictedUnlockTime: number
+  startTime: number
+  blockTime: number
   totalAllocation: number
   minimumAverageTokensAllocatedxLockYears: string
   tokensAllocated: number
@@ -48,12 +48,13 @@ export const getTcpAllocationInfo = createAsyncThunk(
 
     console.log("here 1")
 
-    const { tdaoInfo, lockPosition } = await executeMulticalls(trustlessMulticall, {
+    const { tdaoInfo, lockPosition, blockTime } = await executeMulticalls(trustlessMulticall, {
       tdaoInfo: getMulticall(
         tcpAllocation,
         {
           restrictedToUnlockDuration: rc.Boolean,
           restrictedUnlockTime: rc.BigNumberToNumber,
+          startTime: rc.BigNumberToNumber,
           getUserAllocation:
             (result: any) => result as PromiseType<ReturnType<TcpAllocation['getUserAllocation']>>,
         },
@@ -61,6 +62,12 @@ export const getTcpAllocationInfo = createAsyncThunk(
           restrictedToUnlockDuration: [args.userAddress],
           getUserAllocation: [args.userAddress],
         }
+      ),
+      blockTime: getMulticall(
+        trustlessMulticall,
+        {
+          getCurrentBlockTimestamp: rc.BigNumberToNumber,
+        },
       ),
       lockPosition: getDuplicateFuncMulticall(
         tcpAllocation,
@@ -76,6 +83,8 @@ export const getTcpAllocationInfo = createAsyncThunk(
     return {
       restrictedToUnlockDuration: tdaoInfo.restrictedToUnlockDuration,
       restrictedUnlockTime: tdaoInfo.restrictedUnlockTime,
+      startTime: tdaoInfo.startTime,
+      blockTime: blockTime.getCurrentBlockTimestamp,
       totalAllocation: unscale(tdaoInfo.getUserAllocation.totalAllocation),
       minimumAverageTokensAllocatedxLockYears: tdaoInfo.getUserAllocation.minimumAverageTokensAllocatedxLockYears.toString(),
       tokensAllocated: unscale(tdaoInfo.getUserAllocation.tokensAllocated),

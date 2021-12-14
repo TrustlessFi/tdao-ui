@@ -67,7 +67,7 @@ const ClaimUnderlyingTokens = () => {
         options={TokenAllocationOptions}
         initialValue={TokenAllocationOptions.ClaimTokens}
         navigation={{
-          [TokenAllocationOptions.LockTokens]: `/positions/new/tcp`
+          [TokenAllocationOptions.LockTokens]: '/positions/allocate/lock/tcp'
         }}
         width={300}
         label="Allocation options"

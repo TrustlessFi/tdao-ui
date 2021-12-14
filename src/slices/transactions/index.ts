@@ -14,7 +14,7 @@ import { ethers, ContractTransaction, BigNumber } from 'ethers'
 import { ProtocolContract, TDaoRootContract } from '../contracts'
 import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 
-import { Market, Rewards, TcpGovernorAlpha, TDao } from '@trustlessfi/typechain'
+import { Market, Rewards, TcpGovernorAlpha, TDao, TcpAllocation } from '@trustlessfi/typechain'
 import getContract, { getMulticallContract } from '../../utils/getContract'
 import { scale, SLIPPAGE_TOLERANCE, timeMS } from '../../utils'
 import { UIID } from '../../constants'
@@ -40,6 +40,7 @@ export enum TransactionType {
   UpdateTDaoPositionLockDuration,
   DeleteTDaoPosition,
   ClaimAllTDaoPositionRewards,
+  CreateTDaoAllocationPosition,
   CreateTDaoPosition,
 }
 
@@ -169,6 +170,14 @@ export interface txClaimAllTDaoPositionRewards {
   positionIDs: string[]
 }
 
+export interface txCreateTDaoAllocationPosition {
+  type: TransactionType.CreateTDaoAllocationPosition
+  tcpAllocation: string
+  userAddress: string
+  count: number
+  lockDurationMonths: number
+}
+
 export interface txCreateTDaoPosition {
   type: TransactionType.CreateTDaoPosition
   tdao: string
@@ -196,6 +205,7 @@ export type TransactionArgs =
   txUpdateTDaoPositionLockDuration |
   txDeleteTDaoPosition |
   txClaimAllTDaoPositionRewards |
+  txCreateTDaoAllocationPosition |
   txCreateTDaoPosition
 
 export interface TransactionData {
@@ -252,8 +262,11 @@ export const getTxLongName = (args: TransactionArgs) => {
       return `Delete position ${args.positionID}`
     case TransactionType.ClaimAllTDaoPositionRewards:
       return `Claim Rewards for TDao positions ${args.positionIDs.join(', ')}`
+    case TransactionType.CreateTDaoAllocationPosition:
+      return `Create TDao allocation position with ${args.count} Tcp`
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position with ${args.count} ${args.tokenSymbol}`
+
     default:
       assertUnreachable(type)
   }
@@ -292,6 +305,8 @@ export const getTxShortName = (type: TransactionType) => {
       return 'Delete Position'
     case TransactionType.ClaimAllTDaoPositionRewards:
       return `Claim Rewards for TDao positions`
+    case TransactionType.CreateTDaoAllocationPosition:
+      return `Create TDao allocation position`
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position`
     default:
@@ -330,6 +345,10 @@ const executeTransaction = async (
   const getTDao = (address: string) =>
     getContract(address, TDaoRootContract.TDao)
       .connect(provider.getSigner()) as TDao
+
+  const getTcpAllocation = (address: string) =>
+    getContract(address, ProtocolContract.TcpAllocation)
+      .connect(provider.getSigner()) as TcpAllocation
 
   const type = args.type
 
@@ -441,6 +460,13 @@ const executeTransaction = async (
 
     case TransactionType.ClaimAllTDaoPositionRewards:
       return await getTDao(args.tdao).getRewards(args.positionIDs)
+
+    case TransactionType.CreateTDaoAllocationPosition:
+      return await getTcpAllocation(args.tcpAllocation).lockTokensIntoDao(
+        args.userAddress,
+        scale(args.count),
+        args.lockDurationMonths,
+      )
 
     case TransactionType.CreateTDaoPosition:
       return await getTDao(args.tdao).lockTokens(
@@ -555,6 +581,9 @@ export const waitForTransaction = createAsyncThunk(
         case TransactionType.UpdateTDaoPositionLockDuration:
         case TransactionType.DeleteTDaoPosition:
         case TransactionType.ClaimAllTDaoPositionRewards:
+          dispatch(clearTDaoPositions())
+          break
+        case TransactionType.CreateTDaoAllocationPosition:
           dispatch(clearTDaoPositions())
           break
         case TransactionType.CreateTDaoPosition:
