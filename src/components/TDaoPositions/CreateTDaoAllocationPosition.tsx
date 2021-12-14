@@ -246,7 +246,7 @@ const CreateTDaoAllocationPosition = () => {
 
   return (
     <>
-      <Breadcrumbs crumbs={[{ text: 'Positions', href: '/positions' }, 'allocate', 'lock', 'tcp' ]} />
+      <Breadcrumbs crumbs={[{ text: 'Positions', href: '/positions' }, 'Allocate', 'Lock', 'Tcp' ]} />
       <TwoColumnDisplay
         columnOne={columnOne}
         columnTwo={columnTwo}
