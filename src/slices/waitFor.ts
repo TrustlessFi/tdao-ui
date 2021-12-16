@@ -2,20 +2,10 @@ import { AppDispatch, store, RootState } from "../app/store"
 import { AsyncThunkAction, AsyncThunk } from "@reduxjs/toolkit"
 import { AppSelector } from "../app/hooks"
 import { getGovernorInfo, governorInfo } from "./governor"
-import { getMarketInfo, marketInfo } from "./market"
-import { getRatesInfo, ratesInfo } from "./rates"
 import { getBalances, balancesInfo } from "./balances"
 import { ChainID } from "@trustlessfi/addresses"
-import { getPoolsMetadata } from "./poolsMetadata"
-import { getLiquidityPositions } from "./liquidityPositions"
 import { getTDaoPositions, tdaoPositionsInfo } from "./tdaoPositions"
-import { getPositions } from "./positions"
 import { getProposals, proposalsInfo } from "./proposals"
-import { getSystemDebtInfo, systemDebtInfo } from "./systemDebt"
-import { getLiquidationsInfo, liquidationsInfo } from "./liquidations"
-import { getRewardsInfo, rewardsInfo } from "./rewards"
-import { getPricesInfo } from "./prices"
-import { getPoolCurrentData } from "./poolCurrentData"
 import { getContracts, ContractsInfo } from "./contracts"
 import { getTDaoInfo, tdaoInfo } from './tdaoInfo'
 import { getTcpAllocationInfo, tcpAllocationInfo } from './tcpAllocation'
@@ -37,11 +27,6 @@ interface fetchNodeTypes {
   balances: balancesInfo
   tdaoInfo: tdaoInfo
   governorInfo: governorInfo
-  liquidationsInfo: liquidationsInfo
-  rewardsInfo: rewardsInfo
-  marketInfo: marketInfo
-  ratesInfo: ratesInfo
-  sdi: systemDebtInfo
   contracts: ContractsInfo
   tdaoPositions: tdaoPositionsInfo
   tcpAllocationInfo: tcpAllocationInfo,
@@ -106,35 +91,6 @@ export const waitForGovernorInfo = getWaitFunction(
   ['governor']
 )
 
-export const waitForLiquidationsInfo = getWaitFunction(
-  (state: RootState) => state.liquidations,
-  getLiquidationsInfo,
-  ['trustlessMulticall', 'contracts']
-)
-
-export const waitForRewardsInfo = getWaitFunction(
-  (state: RootState) => state.rewards,
-  getRewardsInfo,
-  ['contracts', 'trustlessMulticall']
-)
-
-export const waitForMarketInfo = getWaitFunction(
-  (state: RootState) => state.market,
-  getMarketInfo,
-  ['contracts', 'trustlessMulticall']
-)
-
-export const waitForRatesInfo = getWaitFunction(
-  (state: RootState) => state.rates,
-  getRatesInfo,
-  ['contracts', 'trustlessMulticall'],
-)
-
-export const waitForSDI = getWaitFunction(
-  (state: RootState) => state.systemDebt,
-  getSystemDebtInfo,
-  ['contracts'],
-)
 export const waitForContracts = getWaitFunction(
   (state: RootState) => state.contracts,
   getContracts,
@@ -186,11 +142,6 @@ const fetchNodesImpl: {[key in FetchNode]: (selector: AppSelector, _dispatch: Ap
   balances: waitForBalances,
   tdaoInfo: waitForTDaoInfo,
   governorInfo: waitForGovernorInfo,
-  liquidationsInfo: waitForLiquidationsInfo,
-  rewardsInfo: waitForRewardsInfo,
-  marketInfo: waitForMarketInfo,
-  ratesInfo: waitForRatesInfo,
-  sdi: waitForSDI,
   contracts: waitForContracts,
   tdaoPositions: waitForTDaoPositions,
   tcpAllocationInfo: waitForTcpAllocationInfo,

@@ -2,7 +2,6 @@ import { BigNumber, BigNumberish, utils } from "ethers"
 import { ChainID } from '@trustlessfi/addresses'
 import JSBI from "jsbi"
 import { TickMath } from '@uniswap/v3-sdk'
-import { poolMetadata } from '../slices/poolsMetadata'
 
 export const zeroAddress = '0x0000000000000000000000000000000000000000'
 
@@ -353,17 +352,6 @@ export const displaySymbol = (value?: string) => {
   }
 
   return value.toLowerCase() === 'weth' ? 'Eth' : upperCaseWord(value)
-}
-
-export const getPoolName = (pool?: poolMetadata | null) => {
-  if(!pool) {
-    return '-'
-  }
-
-  const token0Symbol = displaySymbol(pool.token0.symbol)
-  const token1Symbol = displaySymbol(pool.token1.symbol)
-
-  return `${token0Symbol}:${token1Symbol}`
 }
 
 export const maxLiquidityForAmount0 = (sqrtRatioAX96: BigNumber, sqrtRatioBX96: BigNumber, amount0: BigNumber) => {
