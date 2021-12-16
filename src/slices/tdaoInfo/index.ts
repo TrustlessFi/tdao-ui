@@ -98,8 +98,6 @@ export const getTDaoInfo = createAsyncThunk(
       },
     )
 
-    console.log({tokenInfo})
-
     return {
       lastPeriodGlobalInflationUpdated: tdaoInfo.lastPeriodGlobalInflationUpdated,
       minMonths: 6,

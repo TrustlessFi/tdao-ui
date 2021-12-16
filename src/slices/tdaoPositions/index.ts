@@ -45,8 +45,6 @@ export const getTDaoPositions = createAsyncThunk(
     const tdaoPostionNFT = getContract(args.contracts[TDaoContract.TDaoPositionNFT], TDaoContract.TDaoPositionNFT) as TDaoPositionNFT
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
-      console.log("getTDaoPositions", {args})
-
     // fetch the positions
     const positionIDs = (await tdaoPostionNFT.positionIDs(args.userAddress)).map(id => id.toString())
 
@@ -74,10 +72,6 @@ export const getTDaoPositions = createAsyncThunk(
       ),
     })
 
-    console.log("tdao positions", {positions})
-
-
-
     const result = Object.fromEntries(positionIDs.map(id => {
       const position = positions[id]
 
@@ -85,8 +79,6 @@ export const getTDaoPositions = createAsyncThunk(
       const lastPeriodPositionUpdated = position.lastPeriodUpdated.toNumber()
 
       const tokenRewardsStatus = args.tdaoInfo.underlyingProtocolTokens[position.tokenID].rs
-
-      console.log({tdaoInfo: args.tdaoInfo, tokenRewardsStatus, approximateRewards, lastPeriodPositionUpdated,position})
 
       if (lastPeriodPositionUpdated < args.tdaoInfo.lastPeriodGlobalInflationUpdated)   {
         let avgDebtPerPeriod =

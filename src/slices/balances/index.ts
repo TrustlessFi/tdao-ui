@@ -71,8 +71,6 @@ export const getBalances = createAsyncThunk(
     const tokenContract = new Contract(zeroAddress, erc20Artifact.abi, provider) as ERC20
     const userAddress = args.userAddress
 
-    console.log({args})
-
     const tokenAddresses = [args.contracts.TDaoToken]
     Object.values(args.tdaoInfo.underlyingProtocolTokens).map(token => {
       if (!tokenAddresses.includes(token.address)) tokenAddresses.push(token.address)
@@ -165,7 +163,6 @@ export const getBalances = createAsyncThunk(
       decimals: 18,
     }
 
-        console.log({tokenMetadataMap, tokenAddresses})
     return {
       userEthBalance: unscale(userEthBalance.getEthBalance),
       tokens: Object.fromEntries(tokenAddresses.map(address => {
