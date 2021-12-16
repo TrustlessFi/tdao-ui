@@ -1,6 +1,5 @@
 import { useState } from "react"
 import LargeText from '../utils/LargeText'
-import Bold from '../utils/Bold'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import {
   waitForBalances,
@@ -14,13 +13,10 @@ import { TransactionType } from '../../slices/transactions'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import TwoColumnDisplay from '../utils/TwoColumnDisplay'
 import {
-  waitForTDaoPositions,
   waitForTDaoInfo,
   waitForTcpAllocationInfo,
 } from '../../slices/waitFor'
 import {
-  TextAreaSkeleton,
-  Button,
   NumberInput,
   Dropdown,
   OnChangeData,
@@ -29,9 +25,9 @@ import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { TokenAllocationOptions, getMultiplierForMonths } from './'
 import {
-  invert, onNumChange, last, range, notNullNumber, notNullString, bnf, mnt,
+  invert, onNumChange, last, range, notNullString, bnf, mnt,
   years, scale, unscale, getDateTimeStringMS,
-  days, monthsToDays, timeS, getDateStringMS,
+  days, monthsToDays, getDateStringMS,
 } from '../../utils'
 import ParagraphDivider from '../utils/ParagraphDivider'
 
@@ -141,7 +137,7 @@ const CreateTDaoAllocationPosition = () => {
     },
     noop: {
       message: 'Must lock Tcp',
-      failing: isNaN(count) || count == 0,
+      failing: isNaN(count) || count === 0,
       silent: true,
     },
     lockDurationTooShort: {

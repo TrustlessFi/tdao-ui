@@ -5,8 +5,6 @@ import {
   waitForTDaoInfo,
 } from '../../slices/waitFor'
 import {
-  TextAreaSkeleton,
-  Button,
   Dropdown,
   OnChangeData,
 } from 'carbon-components-react'
@@ -17,7 +15,7 @@ import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { PositionUpdateOptions, getMultiplierForMonths } from './'
-import { days, monthsToDays, timeS, getDateStringMS, invert, roundToXDecimals, last } from '../../utils'
+import { days, monthsToDays, timeS, getDateStringMS, invert, last } from '../../utils'
 import TwoColumnDisplay from '../utils/TwoColumnDisplay'
 import LargeText from '../utils/LargeText'
 import ParagraphDivider from '../utils/ParagraphDivider'

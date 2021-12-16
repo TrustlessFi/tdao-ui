@@ -1,5 +1,5 @@
 import { AppDispatch, store, RootState } from "../app/store"
-import { AsyncThunkAction, AsyncThunk } from "@reduxjs/toolkit"
+import { AsyncThunk } from "@reduxjs/toolkit"
 import { AppSelector } from "../app/hooks"
 import { getGovernorInfo, governorInfo } from "./governor"
 import { getBalances, balancesInfo } from "./balances"

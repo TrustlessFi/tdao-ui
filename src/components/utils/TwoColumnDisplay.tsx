@@ -1,5 +1,5 @@
 import { ReactNode } from "react"
-import Breadcrumbs, { BreadcrumbItem } from '../library/Breadcrumbs'
+import Breadcrumbs, { BreadcrumbItemType } from '../library/Breadcrumbs'
 import RelativeLoading from '../library/RelativeLoading'
 import { Row, Col } from 'react-flexbox-grid'
 import useWindowWidth  from '../../hooks/useWindowWidth'
@@ -13,7 +13,7 @@ const TwoColumnDisplay = ({
   columnOne: ReactNode
   columnTwo: ReactNode
   loading: boolean
-  crumbs?:  BreadcrumbItem[]
+  crumbs?:  BreadcrumbItemType[]
 }) => {
   const isSmallViewport = useWindowWidth()
 

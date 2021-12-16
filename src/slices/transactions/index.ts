@@ -1,4 +1,3 @@
-import { Contract } from 'ethers'
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit'
 import { getLocalStorage, assertUnreachable } from '../../utils'
 import { waitingForMetamask, metamaskComplete } from '../wallet'
@@ -8,18 +7,14 @@ import { clearBalances } from '../balances'
 import { clearTcpAllocationInfo } from '../tcpAllocation'
 import { clearProposals } from '../proposals'
 import { clearTDaoPositions } from '../tdaoPositions'
-import { ethers, ContractTransaction, BigNumber } from 'ethers'
+import { ethers, ContractTransaction } from 'ethers'
 import { ProtocolContract, TDaoRootContract } from '../contracts'
-import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 
-import { Market, Rewards, TcpGovernorAlpha, TDao, TcpAllocation } from '@trustlessfi/typechain'
-import getContract, { getMulticallContract } from '../../utils/getContract'
-import { scale, SLIPPAGE_TOLERANCE, timeMS } from '../../utils'
-import { UIID } from '../../constants'
-import { getDefaultTransactionTimeout, mnt, parseMetamaskError, extractRevertReasonString } from '../../utils'
-import { zeroAddress, bnf, uint256Max } from '../../utils/'
+import { TcpGovernorAlpha, TDao, TcpAllocation } from '@trustlessfi/typechain'
+import getContract from '../../utils/getContract'
+import { scale, timeMS } from '../../utils'
+import { parseMetamaskError, extractRevertReasonString } from '../../utils'
 import { ChainID } from '@trustlessfi/addresses'
-import { ERC20 } from '@trustlessfi/typechain'
 import { numDisplay } from '../../utils'
 
 export enum TransactionType {
@@ -154,27 +149,10 @@ export const getTxShortName = (type: TransactionType) => {
 
 export const getTxErrorName = (type: TransactionType) => getTxShortName(type) + ' Failed'
 
-const getDeadline = async (chainID: ChainID, multicallAddress: string) => {
-  const trustlessMulticall = getMulticallContract(multicallAddress)
-  const transactionTimeout = getDefaultTransactionTimeout(chainID)
-
-  const blockTime = await trustlessMulticall.getCurrentBlockTimestamp()
-
-  return BigNumber.from(blockTime).add(transactionTimeout)
-}
-
 const executeTransaction = async (
   args: TransactionArgs,
   provider: ethers.providers.Web3Provider,
 ): Promise<ContractTransaction> => {
-  const getMarket = (address: string) =>
-    getContract(address, ProtocolContract.Market)
-      .connect(provider.getSigner()) as Market
-
-  const getRewards = (address: string) =>
-    getContract(address, ProtocolContract.Rewards)
-      .connect(provider.getSigner()) as Rewards
-
   const getTcpGovernorAlpha = (address: string) =>
     getContract(address, ProtocolContract.TcpGovernorAlpha)
       .connect(provider.getSigner()) as TcpGovernorAlpha
@@ -188,9 +166,6 @@ const executeTransaction = async (
       .connect(provider.getSigner()) as TcpAllocation
 
   const type = args.type
-
-  let deadline
-  let rewards
 
   switch(type) {
     case TransactionType.VoteProposal:

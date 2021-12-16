@@ -4,7 +4,7 @@ import { waitForTDaoPositions, waitForTcpAllocationInfo } from '../../slices/wai
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import { TransactionType } from '../../slices/transactions'
-import { Button, InlineLoading } from 'carbon-components-react'
+import { Button } from 'carbon-components-react'
 import { numDisplay } from '../../utils'
 
 const ExistingTDaoPositions = () => {

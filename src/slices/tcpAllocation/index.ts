@@ -1,4 +1,3 @@
-import { Contract } from 'ethers'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
 import { getGenericReducerBuilder } from '../'
@@ -8,16 +7,14 @@ import {
   executeMulticalls,
   rc,
   getMulticall,
-  contractFunctionSelector,
-  getDuplicateContractMulticall,
   getDuplicateFuncMulticall
 } from '@trustlessfi/multicall'
-import { zeroAddress, unscale } from '../../utils'
+import { unscale } from '../../utils'
 import { PromiseType } from '@trustlessfi/utils'
 
 
 import { TDao, TcpAllocation } from '@trustlessfi/typechain'
-import { TDaoRootContract, ProtocolContract } from '../contracts'
+import { ProtocolContract } from '../contracts'
 
 export interface tcpAllocationInfo {
   restrictedToUnlockDuration: boolean

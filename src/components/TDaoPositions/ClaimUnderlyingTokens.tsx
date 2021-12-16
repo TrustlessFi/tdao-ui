@@ -1,35 +1,24 @@
 import { useState } from "react"
 import LargeText from '../utils/LargeText'
-import Bold from '../utils/Bold'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import {
   waitForBalances,
-  waitForContracts,
 } from '../../slices/waitFor'
-import { numDisplay }  from '../../utils/'
-import PositionMetadata2 from '../library/PositionMetadata2'
 import SpacedList from '../library/SpacedList'
-import PositionNumberInput from '../library/PositionNumberInput'
-import ErrorMessage, { reason } from '../library/ErrorMessage'
 import { TransactionType } from '../../slices/transactions'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import TwoColumnDisplay from '../utils/TwoColumnDisplay'
-import { useParams } from 'react-router';
 import {
-  waitForTDaoPositions,
   waitForTDaoInfo,
 } from '../../slices/waitFor'
 import {
-  TextAreaSkeleton,
-  Button,
   Dropdown,
   OnChangeData,
 } from 'carbon-components-react'
-import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { TokenAllocationOptions } from './'
-import { days, monthsToDays, timeS, getDateStringMS, invert, roundToXDecimals, last, range, notNullString } from '../../utils'
+import { invert, last, range, notNullString } from '../../utils'
 import ParagraphDivider from '../utils/ParagraphDivider'
 
 const ClaimUnderlyingTokens = () => {
@@ -41,7 +30,6 @@ const ClaimUnderlyingTokens = () => {
   const tdao = selector(state => state.chainID.tdao)
 
   const [ newDurationMonths, setNewDurationMonths ] = useState(48)
-  const [ count, setCount ] = useState(0)
 
   const dataNull =
     balances === null ||

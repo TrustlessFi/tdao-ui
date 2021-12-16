@@ -1,6 +1,3 @@
-import { CSSProperties, ReactNode } from "react"
-import { Tile } from "carbon-components-react"
-import ErrorBoundary from './ErrorBoundary'
 import LargeText from '../utils/LargeText'
 import Center from '../library/Center'
 import { numDisplay } from '../../utils'

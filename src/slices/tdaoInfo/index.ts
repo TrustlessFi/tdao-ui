@@ -1,5 +1,5 @@
 import { Contract } from 'ethers'
-import { createAsyncThunk, createSlice, AsyncThunk } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
 import { getGenericReducerBuilder } from '../'
 import getContract, { getMulticallContract } from '../../utils/getContract'

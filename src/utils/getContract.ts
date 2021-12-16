@@ -33,7 +33,6 @@ import {
   TDao,
   TDaoToken,
   TDaoPositionNFT,
-  TDaoPositionNFTDescriptor,
   TDaoGovernorAlpha,
   TDaoTimelock,
   TDaoVotingRewardsSafe,
@@ -68,7 +67,7 @@ import tDaoArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDao.s
 
 import tDaoTokenArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoToken.sol/TDaoToken.json"
 import tDaoPositionNFTArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoPositionNFT.sol/TDaoPositionNFT.json"
-import tDaoPositionNFTDescriptorArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoPositionNFTDescriptor.sol/TDaoPositionNFTDescriptor.json"
+// import tDaoPositionNFTDescriptorArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoPositionNFTDescriptor.sol/TDaoPositionNFTDescriptor.json"
 import tDaoGovernorAlphaArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoGovernorAlpha.sol/TDaoGovernorAlpha.json"
 import tDaoTimelockArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoTimelock.sol/TDaoTimelock.json"
 import tDaoVotingRewardsSafeArtifact from "@trustlessfi/artifacts/dist/contracts/core/TDao/TDaoTimelock.sol/TDaoTimelock.json"
