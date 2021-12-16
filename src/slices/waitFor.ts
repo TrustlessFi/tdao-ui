@@ -46,11 +46,9 @@ const getWaitFunction = <
   ) => (selector: AppSelector, dispatch: AppDispatch) => {
     const state = selector(stateSelector)
 
-    let inputArgs = {}
-    dependencies.map((fetchNode) => {
-      const fetchedNode = { [fetchNode]: (() => fetchNodesImpl)()[fetchNode](selector, dispatch) }
-      inputArgs = { ...inputArgs, ...fetchedNode }
-    })
+    const inputArgs = Object.fromEntries(dependencies.map(fetchNode =>
+      [fetchNode, (() => fetchNodesImpl)()[fetchNode](selector, dispatch)]
+    ))
 
     if (Object.values(inputArgs).includes(null)) return null
 
