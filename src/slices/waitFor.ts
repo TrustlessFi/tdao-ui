@@ -1,118 +1,102 @@
 import { AppDispatch, store, RootState } from "../app/store"
-import { AsyncThunkAction } from "@reduxjs/toolkit"
+import { AsyncThunkAction, AsyncThunk } from "@reduxjs/toolkit"
 import { AppSelector } from "../app/hooks"
-import { getGovernorInfo } from "./governor"
-import { getMarketInfo } from "./market"
-import { getRatesInfo } from "./rates"
+import { getGovernorInfo, governorInfo } from "./governor"
+import { getMarketInfo, marketInfo } from "./market"
+import { getRatesInfo, ratesInfo } from "./rates"
 import { getBalances } from "./balances"
-import { getPoolsMetadata } from "./poolsMetadata"
+import { ChainID } from "@trustlessfi/addresses"
+import { getPoolsMetadata, poolMetadata } from "./poolsMetadata"
 import { getLiquidityPositions } from "./liquidityPositions"
 import { getTDaoPositions } from "./tdaoPositions"
 import { getPositions } from "./positions"
 import { getProposals } from "./proposals"
-import { getSystemDebtInfo } from "./systemDebt"
-import { getLiquidationsInfo } from "./liquidations"
-import { getRewardsInfo } from "./rewards"
+import { getSystemDebtInfo, systemDebtInfo } from "./systemDebt"
+import { getLiquidationsInfo, liquidationsInfo } from "./liquidations"
+import { getRewardsInfo, rewardsInfo } from "./rewards"
 import { getPricesInfo } from "./prices"
 import { getPoolCurrentData } from "./poolCurrentData"
-import { getContracts } from "./contracts"
-import { getTDaoInfo } from './tdaoInfo'
+import { getContracts, ContractsInfo } from "./contracts"
+import { getTDaoInfo, tdaoInfo } from './tdaoInfo'
 import { getTcpAllocationInfo } from './tcpAllocation'
-
 import { sliceState } from "./"
 import { assertUnreachable } from "../utils/index"
 
 import { getGenesisPositions, getGenesisAllocations } from "./genesis"
 
-enum FetchNode {
-  ChainID,
-  Governor,
-  TDao,
-  TrustlessMulticall,
-  ProtocolDataAggregator,
 
-  TDaoInfo,
+const getStateSelector = <T>(selectorFunc: (state: RootState) => T) =>
+  (selector: AppSelector, _dispatch: AppDispatch) => selector(selectorFunc)
 
-  GovernorInfo,
-  LiquidationsInfo,
-  RewardsInfo,
-  MarketInfo,
-  RatesInfo,
-  PoolsMetadata,
-  SDI,
-  UserAddress,
-  Contracts,
-  GenesisAllocation,
+export interface fetchNodeTypes {
+  ChainID: ChainID
+  Governor: string
+  TDao: string
+  GenesisAllocation: string
+  TrustlessMulticall: string
+  ProtocolDataAggregator: string
+  UserAddress: string
+  TDaoInfo: tdaoInfo
+  GovernorInfo: governorInfo
+  LiquidationsInfo: liquidationsInfo
+  RewardsInfo: rewardsInfo
+  MarketInfo: marketInfo
+  RatesInfo: ratesInfo
+  SDI: systemDebtInfo
+  Contracts: ContractsInfo
 }
 
-const getNodeFetch = (
-  fetchNode: FetchNode,
-  selector: AppSelector,
-  dispatch: AppDispatch
-) => {
-  switch (fetchNode) {
-    case FetchNode.ChainID:
-      return { chainID: selector(state => state.chainID.chainID) }
-    case FetchNode.Governor:
-      return { governor: selector(state => state.chainID.governor) }
-    case FetchNode.TDao:
-      return { tdao: selector(state => state.chainID.tdao) }
-    case FetchNode.TDaoInfo:
-      return { tdaoInfo: waitForTDaoInfo(selector, dispatch) }
-    case FetchNode.GenesisAllocation:
-      return {
-        genesisAllocation: selector(state => state.chainID.genesisAllocation),
-      }
-    case FetchNode.TrustlessMulticall:
-      return {
-        trustlessMulticall: selector(
-          state => state.chainID.trustlessMulticall
-        ),
-      }
-    case FetchNode.ProtocolDataAggregator:
-      return {
-        protocolDataAggregator: selector(
-          state => state.chainID.protocolDataAggregator
-        ),
-      }
+export type FetchNode = keyof fetchNodeTypes
+// export type FetchNode = keyof ReturnType<typeof getFetchNodes>
 
-    case FetchNode.GovernorInfo:
-      return { governorInfo: waitForGovernor(selector, dispatch) }
-    case FetchNode.LiquidationsInfo:
-      return { liquidationsInfo: waitForLiquidations(selector, dispatch) }
-    case FetchNode.RewardsInfo:
-      return { rewardsInfo: waitForRewards(selector, dispatch) }
-    case FetchNode.MarketInfo:
-      return { marketInfo: waitForMarket(selector, dispatch) }
-    case FetchNode.RatesInfo:
-      return { ratesInfo: waitForRates(selector, dispatch) }
-    case FetchNode.PoolsMetadata:
-      return { poolsMetadata: waitForPoolsMetadata(selector, dispatch) }
-    case FetchNode.SDI:
-      return { sdi: waitForSDI(selector, dispatch) }
-    case FetchNode.UserAddress:
-      return { userAddress: selector(state => state.wallet.address) }
-    case FetchNode.Contracts:
-      return { contracts: waitForContracts(selector, dispatch) }
+// export type argsList = {[key in FetchNode]?: fetchNodeTypes[key] }
 
-    default:
-      assertUnreachable(fetchNode)
-  }
-}
+export type fetchDependencyList = {[key in FetchNode]?: boolean}
 
-const getWaitFunction =
-  <Args extends {}, Value, AdditionalData extends {}>(
+export type argsList = Partial<fetchNodeTypes>
+
+const getFetchNodes: () => {[key in FetchNode]: (selector: AppSelector, _dispatch: AppDispatch) => fetchNodeTypes[key] | null} = () => ({
+  ChainID: getStateSelector(state => state.chainID.chainID),
+  Governor: getStateSelector(state => state.chainID.governor),
+  TDao: getStateSelector(state => state.chainID.tdao),
+  GenesisAllocation: getStateSelector(state => state.chainID.genesisAllocation),
+  TrustlessMulticall: getStateSelector(state => state.chainID.trustlessMulticall),
+  ProtocolDataAggregator: getStateSelector(state => state.chainID.protocolDataAggregator),
+  UserAddress: getStateSelector(state => state.wallet.address),
+  TDaoInfo: getWaitFunction(
+    (state: RootState) => state.tdaoInfo,
+    getTDaoInfo,
+    ['TDao', 'TrustlessMulticall'],
+  ),
+  GovernorInfo: getWaitFunction((state: RootState) => state.governor, getGovernorInfo),
+  LiquidationsInfo: getWaitFunction((state: RootState) => state.liquidations, getLiquidationsInfo),
+  RewardsInfo: getWaitFunction((state: RootState) => state.rewards, getRewardsInfo),
+  MarketInfo: getWaitFunction((state: RootState) => state.market, getMarketInfo),
+  RatesInfo: getWaitFunction((state: RootState) => state.rates, getRatesInfo),
+  SDI: getWaitFunction((state: RootState) => state.systemDebt, getSystemDebtInfo),
+  Contracts: getWaitFunction((state: RootState) => state.contracts, getContracts),
+})
+
+const test1: fetchDependencyList = {}
+// const test1: fetchDependencyList = {TDao: true, TrustlessMulticall: true}
+
+const derp = typeof test1
+
+const getWaitFunction = <
+    Dependency extends keyof fetchNodeTypes,
+    Args extends Pick<fetchNodeTypes, Dependency>,
+    Value
+  >(
     stateSelector: (state: RootState) => sliceState<Value>,
-    thunk: (args: Args) => AsyncThunkAction<Value | null, Args, {}>,
-    fetchNodes: FetchNode[],
-    additionalData?: AdditionalData
+    thunk: AsyncThunk<Value, Args, {}>,
+    dependencies: Dependency[]
   ) =>
   (selector: AppSelector, dispatch: AppDispatch) => {
     const state = selector(stateSelector)
 
-    let inputArgs = additionalData === undefined ? {} : { ...additionalData }
-    fetchNodes.map((fetchNode) => {
-      const fetchedNode = getNodeFetch(fetchNode, selector, dispatch)
+    let inputArgs = {}
+    dependencies.map((fetchNode) => {
+      const fetchedNode = { [fetchNode]: getFetchNodes()[fetchNode](selector, dispatch) }
       inputArgs = { ...inputArgs, ...fetchedNode }
     })
 
