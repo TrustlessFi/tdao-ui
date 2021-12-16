@@ -1,6 +1,6 @@
 import { useHistory } from 'react-router-dom'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import { waitForTDaoPositions, waitForTcpAllocationInfo, waitForBalances } from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import { TransactionType } from '../../slices/transactions'

@@ -14,8 +14,8 @@ export type ratesInfo = {
 }
 
 export type ratesArgs = {
-  contracts: ContractsInfo
-  trustlessMulticall: string
+  Contracts: ContractsInfo
+  TrustlessMulticall: string
 }
 
 export interface RatesState extends sliceState<ratesInfo> {}
@@ -23,8 +23,8 @@ export interface RatesState extends sliceState<ratesInfo> {}
 export const getRatesInfo = createAsyncThunk(
   'rates/getRatesInfo',
   async (args: ratesArgs): Promise<ratesInfo> => {
-    const rates = getContract(args.contracts[ProtocolContract.Rates], ProtocolContract.Rates) as Rates
-    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
+    const rates = getContract(args.Contracts[ProtocolContract.Rates], ProtocolContract.Rates) as Rates
+    const trustlessMulticall = getMulticallContract(args.TrustlessMulticall)
 
     const result = (await executeMulticall(
       trustlessMulticall,

@@ -15,8 +15,6 @@ import { zeroAddress } from '../../utils'
 import getProvider from '../../utils/getProvider';
 import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import { PromiseType } from '@trustlessfi/utils'
-import { FetchNode, fetchNodeTypes } from '../waitFor'
-
 
 import { TDao } from '@trustlessfi/typechain'
 import { TDaoRootContract } from '../contracts'
@@ -47,19 +45,6 @@ export interface tdaoInfo {
 }
 
 export interface TDaoInfoState extends sliceState<tdaoInfo> {}
-
-type dep<Dep extends keyof fetchNodeTypes> = Dep
-
-/*
-export const getTDaoInfo:
-{
-  dependencies: dep<'TDao' | 'TrustlessMulticall'>,
-  actual: AsyncThunk<tdaoInfo, Pick<fetchNodeTypes, dep<'TDao' | 'TrustlessMulticall'>>, {}>
-} = {
-  dependencies: 'TDao',
-  actual: createAsyncThunk(
-  'tdaoInfo/getTdaoInfo',
-*/
 
 export const getTDaoInfo = createAsyncThunk(
   'tdaoInfo/getTDaoInfo',

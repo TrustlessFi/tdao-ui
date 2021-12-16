@@ -8,7 +8,6 @@ import { RootContract } from '../contracts/';
 import getContract from '../../utils/getContract'
 
 export type governorArgs = {
-  chainID: ChainID
   Governor: string
 }
 

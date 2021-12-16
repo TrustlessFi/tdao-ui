@@ -67,7 +67,7 @@ const ProposalsContainer: FunctionComponent = () => {
   const [ statusSortOption, setStatusSortOption ] = useState<SortOption>(SortOption.IDDescending);
 
   const proposalsState = waitForProposals(useAppSelector, dispatch);
-  
+
   const [ quorum, setQuorum ] = useState<number>(0);
   const [ displayedProposals, setDisplayedProposals ] = useState<IProposal[]>([]);
 
@@ -173,7 +173,7 @@ const ProposalsContainer: FunctionComponent = () => {
       <Center> There are no governance proposals at this time </Center>
     );
   }
-  
+
   return (
     <>
       <ProposalsHeader
