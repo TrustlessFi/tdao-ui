@@ -4,10 +4,6 @@ import Bold from '../utils/Bold'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import {
   waitForBalances,
-  waitForMarket,
-  waitForRates,
-  waitForPrices,
-  waitForLiquidations,
   waitForContracts,
 } from '../../slices/waitFor'
 import { numDisplay }  from '../../utils/'

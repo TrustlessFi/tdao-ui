@@ -6,11 +6,6 @@ import { ProtocolContract, ContractsInfo } from '../contracts'
 import { getLocalStorage, mnt } from '../../utils'
 import { executeMulticall, rc } from '@trustlessfi/multicall'
 
-export interface marketArgs {
-  contracts: ContractsInfo
-  trustlessMulticall: string
-}
-
 export type marketInfo = {
   lastPeriodGlobalInterestAccrued: number,
   collateralizationRequirement: number,
@@ -26,7 +21,7 @@ export interface MarketState extends sliceState<marketInfo> {}
 
 export const getMarketInfo = createAsyncThunk(
   'market/getMarketInfo',
-  async (args: marketArgs): Promise<marketInfo> => {
+  async (args: { contracts: ContractsInfo, trustlessMulticall: string }): Promise<marketInfo> => {
     const market = getContract(args.contracts[ProtocolContract.Market], ProtocolContract.Market) as Market
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 

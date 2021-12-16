@@ -4,18 +4,15 @@ import { initialState, getGenericReducerBuilder } from '../'
 import { tdaoInfo } from '../tdaoInfo'
 import { unscale, uint255Max, zeroAddress } from '../../utils'
 import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
-import { ProtocolContract, TDaoRootContract, ContractsInfo } from '../contracts'
-import { getMulticallContract, contract } from '../../utils/getContract'
+import { TDaoRootContract, ContractsInfo } from '../contracts'
+import { getMulticallContract} from '../../utils/getContract'
 import {
   executeMulticalls,
   rc,
   getCustomMulticall,
   getFullSelector,
   getMulticall,
-  getDuplicateContractMulticall,
-  contractFunctionSelector
 } from '@trustlessfi/multicall'
-import { poolsMetadata } from '../poolsMetadata'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import getProvider from '../../utils/getProvider'
 import { ERC20 } from '@trustlessfi/typechain'
@@ -72,6 +69,7 @@ export const getBalances = createAsyncThunk(
     const provider = getProvider()
     const multicall = getMulticallContract(args.trustlessMulticall)
     const tokenContract = new Contract(zeroAddress, erc20Artifact.abi, provider) as ERC20
+    const userAddress = args.userAddress
 
     console.log({args})
 
@@ -95,13 +93,13 @@ export const getBalances = createAsyncThunk(
         userBalance: getCustomMulticall(
           tokenContract,
           Object.fromEntries(
-            tokenAddresses.map(address => [getFullSelector(tokenContract, address, 'balanceOf', [args.userAddress]), rc.BigNumber]
+            tokenAddresses.map(address => [getFullSelector(tokenContract, address, 'balanceOf', [userAddress]), rc.BigNumber]
           )
         )),
         tdaoApprovals: getCustomMulticall(
           tokenContract,
           Object.fromEntries(
-            tokenAddresses.map(address => [getFullSelector(tokenContract, address, 'allowance', [args.userAddress, args.tdao]), rc.BigNumber]
+            tokenAddresses.map(address => [getFullSelector(tokenContract, address, 'allowance', [userAddress, args.tdao]), rc.BigNumber]
           )
         )),
         /*
@@ -131,7 +129,7 @@ export const getBalances = createAsyncThunk(
 
     const getApprovalFor = (pc: TDaoRootContract.TDao, tokenAddress: string) => {
       const value =
-        tdaoApprovals[getFullSelector(tokenContract, tokenAddress, 'allowance', [args.userAddress, args.tdao])]
+        tdaoApprovals[getFullSelector(tokenContract, tokenAddress, 'allowance', [userAddress, args.tdao])]
 
       return {
         allowance: value.toString(),
@@ -180,7 +178,7 @@ export const getBalances = createAsyncThunk(
             symbol: tokenMetadataMap[address].symbol,
             decimals,
           },
-          userBalance: unscale(userBalance[getFullSelector(tokenContract, address, 'balanceOf', [args.userAddress])], decimals),
+          userBalance: unscale(userBalance[getFullSelector(tokenContract, address, 'balanceOf', [userAddress])], decimals),
           approval: {
             [TDaoRootContract.TDao]: getApprovalFor(TDaoRootContract.TDao, address),
           },

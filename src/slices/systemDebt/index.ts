@@ -14,15 +14,11 @@ export type systemDebtInfo = {
   debtExchangeRate: number
 }
 
-export type systemDebtArgs = {
-  contracts: ContractsInfo
-}
-
 export interface SystemDebtState extends sliceState<systemDebtInfo> {}
 
 export const getSystemDebtInfo = createAsyncThunk(
   'systemDebt/getSystemDebtInfo',
-  async (args: systemDebtArgs) => {
+  async (args: { contracts: ContractsInfo }) => {
     const accounting = getContract(args.contracts[ProtocolContract.Accounting], ProtocolContract.Accounting) as Accounting
 
     const sdi = await accounting.getSystemDebtInfo()

@@ -1,6 +1,6 @@
 import { useHistory } from 'react-router-dom'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import { waitForTDaoPositions, waitForTcpAllocationInfo, waitForBalances } from '../../slices/waitFor'
+import { waitForTDaoPositions, waitForTcpAllocationInfo } from '../../slices/waitFor'
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import { TransactionType } from '../../slices/transactions'
@@ -13,7 +13,6 @@ const ExistingTDaoPositions = () => {
 
   // const userAddress = selector((state) => state.wallet.address)
 
-  // const tdao = selector((state) => state.chainID.tdao)
   // const mc = selector((state) => state.chainID.trustlessMulticall)
   // const contracts = waitForContracts(selector, dispatch)
       // return { userAddress:  }
