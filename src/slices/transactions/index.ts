@@ -264,9 +264,9 @@ export const getTxLongName = (args: TransactionArgs) => {
     case TransactionType.ClaimAllTDaoPositionRewards:
       return `Claim Rewards for TDao positions ${args.positionIDs.join(', ')}`
     case TransactionType.CreateTDaoAllocationPosition:
-      return `Create TDao allocation position with ${args.count} Tcp`
+      return `Create TDao allocation position with ${numDisplay(args.count)} Tcp`
     case TransactionType.CreateTDaoPosition:
-      return `Create TDao position with ${args.count} ${args.tokenSymbol}`
+      return `Create TDao position with ${numDisplay(args.count)} ${args.tokenSymbol}`
 
     default:
       assertUnreachable(type)
