@@ -14,8 +14,8 @@ export type rewardsInfo = {
 }
 
 export type rewardsArgs = {
-  Contracts: ContractsInfo,
-  TrustlessMulticall: string,
+  contracts: ContractsInfo,
+  trustlessMulticall: string,
 }
 
 export interface RewardsState extends sliceState<rewardsInfo> {}
@@ -23,8 +23,8 @@ export interface RewardsState extends sliceState<rewardsInfo> {}
 export const getRewardsInfo = createAsyncThunk(
   'rewards/getRewardsInfo',
   async (args: rewardsArgs): Promise<rewardsInfo> => {
-    const rewards = getContract(args.Contracts[ProtocolContract.Rewards], ProtocolContract.Rewards) as Rewards
-    const trustlessMulticall = getMulticallContract(args.TrustlessMulticall)
+    const rewards = getContract(args.contracts[ProtocolContract.Rewards], ProtocolContract.Rewards) as Rewards
+    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
     const { rewardsInfo } = await executeMulticalls(
       trustlessMulticall,

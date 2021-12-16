@@ -48,9 +48,9 @@ export interface TDaoInfoState extends sliceState<tdaoInfo> {}
 
 export const getTDaoInfo = createAsyncThunk(
   'tdaoInfo/getTDaoInfo',
-  async (args: { TDao: string, TrustlessMulticall: string }): Promise<tdaoInfo> => {
-    const tdao = getContract(args.TDao, TDaoRootContract.TDao) as TDao
-    const trustlessMulticall = getMulticallContract(args.TrustlessMulticall)
+  async (args: { tdao: string, trustlessMulticall: string }): Promise<tdaoInfo> => {
+    const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
+    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
     const provider = getProvider()
 
     const { tdaoInfo } = await executeMulticalls(trustlessMulticall, {

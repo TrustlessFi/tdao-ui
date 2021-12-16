@@ -14,8 +14,8 @@ export type liquidationsInfo = {
 }
 
 export type liquidationsArgs = {
-  Contracts: ContractsInfo,
-  TrustlessMulticall: string,
+  contracts: ContractsInfo,
+  trustlessMulticall: string,
 }
 
 export interface LiquidationsState extends sliceState<liquidationsInfo> {}
@@ -23,8 +23,8 @@ export interface LiquidationsState extends sliceState<liquidationsInfo> {}
 export const getLiquidationsInfo = createAsyncThunk(
   'liquidations/getLiquidationsInfo',
   async (args: liquidationsArgs): Promise<liquidationsInfo> => {
-    const liquidations = getContract(args.Contracts[ProtocolContract.Liquidations], ProtocolContract.Liquidations) as Liquidations
-    const trustlessMulticall = getMulticallContract(args.TrustlessMulticall)
+    const liquidations = getContract(args.contracts[ProtocolContract.Liquidations], ProtocolContract.Liquidations) as Liquidations
+    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
     const { liquidationsInfo } = await executeMulticalls(
       trustlessMulticall,

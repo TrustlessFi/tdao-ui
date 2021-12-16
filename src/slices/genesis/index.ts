@@ -20,7 +20,7 @@ import {
 } from "./api"
 import getProvider from "../../utils/getProvider";
 
-interface GenesisPositions {
+export interface GenesisPositions {
   debt: DebtPosition[]
   liquidity: LiquidityPosition[]
 }
@@ -35,14 +35,9 @@ const initialState: GenesisState = {
   allocations: baseInitialState as sliceState<Allocations>,
 }
 
-export interface getGenesisPositionsArgs {
-  contracts: ContractsInfo
-  trustlessMulticall: string
-}
-
 export const getGenesisPositions = createAsyncThunk(
   "genesis/getGenesisPositions",
-  async (args: getGenesisPositionsArgs) => {
+  async (args: { contracts: ContractsInfo, trustlessMulticall: string }): Promise<GenesisPositions> => {
     const accounting = getContract(
       args.contracts.Accounting,
       ProtocolContract.Accounting
@@ -73,7 +68,7 @@ export const getGenesisPositions = createAsyncThunk(
 
 export const getGenesisAllocations = createAsyncThunk(
   "genesis/getGenesisAllocations",
-  async (_: {}) => {
+  async (_: {}): Promise<Allocations> => {
     return fetchAllocations()
   }
 )
@@ -84,7 +79,7 @@ interface claimAllocationsArgs {
 }
 export const waitForGenesisClaimAllocations = createAsyncThunk(
   "genesis/claimAllocations",
-  async (opts: claimAllocationsArgs, {dispatch}) => {
+  async (opts: claimAllocationsArgs) => {
     const { allocations } = opts
 
     const provider = getProvider();

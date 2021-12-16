@@ -48,17 +48,17 @@ export enum TDaoRootContract {
 }
 
 export interface contractsArgs {
-  Governor: string
-  TDao: string
-  TrustlessMulticall: string
+  governor: string
+  tdao: string
+  trustlessMulticall: string
 }
 
 export const getContracts = createAsyncThunk(
   "contracts/getContracts",
   async (args: contractsArgs): Promise<ContractsInfo> => {
-    const trustlessMulticall = getMulticallContract(args.TrustlessMulticall)
-    const governor = getContract(args.Governor, RootContract.Governor) as Governor
-    const tdao = getContract(args.TDao, TDaoRootContract.TDao) as TDao
+    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
+    const governor = getContract(args.governor, RootContract.Governor) as Governor
+    const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
 
     const { tcpContracts, tdaoContracts } = await executeMulticalls(
       trustlessMulticall,
