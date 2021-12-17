@@ -5,12 +5,12 @@ import getProvider from '../../utils/getProvider'
 import { addNotification } from '../notifications'
 import { clearBalances } from '../balances'
 import { clearTcpAllocationInfo } from '../tcpAllocation'
-import { clearProposals } from '../proposals'
+import { clearTcpProposals } from '../proposals/tcpProposals'
 import { clearTDaoPositions } from '../tdaoPositions'
 import { ethers, ContractTransaction } from 'ethers'
 import { ProtocolContract, TDaoRootContract } from '../contracts'
 
-import { TcpGovernorAlpha, TDao, TcpAllocation } from '@trustlessfi/typechain'
+import { TcpGovernorAlpha, TDao, TcpAllocation, Tcp } from '@trustlessfi/typechain'
 import getContract from '../../utils/getContract'
 import { scale, timeMS } from '../../utils'
 import { parseMetamaskError, extractRevertReasonString } from '../../utils'
@@ -18,25 +18,20 @@ import { ChainID } from '@trustlessfi/addresses'
 import { numDisplay } from '../../utils'
 
 export enum TransactionType {
-  VoteProposal,
   UpdateTDaoPositionLockDuration,
   DeleteTDaoPosition,
   ClaimAllTDaoPositionRewards,
   CreateTDaoAllocationPosition,
   CreateTDaoPosition,
+
+  VoteTcpProposal,
+  SelfDelegateTcp,
 }
 
 export enum TransactionStatus {
   Pending,
   Success,
   Failure,
-}
-
-export interface txVoteProposal {
-  type: TransactionType.VoteProposal
-  TcpGovernorAlpha: string
-  proposalID: number
-  support: boolean
 }
 
 export interface txUpdateTDaoPositionLockDuration {
@@ -77,13 +72,28 @@ export interface txCreateTDaoPosition {
   tokenSymbol: string
 }
 
+export interface txVoteTcpProposal {
+  type: TransactionType.VoteTcpProposal
+  TcpGovernorAlpha: string
+  proposalID: number
+  support: boolean
+}
+
+
+export interface txSelfDelegateTcp {
+  type: TransactionType.SelfDelegateTcp
+  tcp: string
+  userAddress: string
+}
+
 export type TransactionArgs =
-  txVoteProposal |
+  txVoteTcpProposal |
   txUpdateTDaoPositionLockDuration |
   txDeleteTDaoPosition |
   txClaimAllTDaoPositionRewards |
   txCreateTDaoAllocationPosition |
-  txCreateTDaoPosition
+  txCreateTDaoPosition |
+  txSelfDelegateTcp
 
 export interface TransactionData {
   args: TransactionArgs
@@ -108,8 +118,6 @@ export type TransactionState = {[key in string]: TransactionInfo}
 export const getTxLongName = (args: TransactionArgs) => {
   const type = args.type
   switch(type) {
-    case TransactionType.VoteProposal:
-      return 'Vote Proposal ' + args.proposalID
     case TransactionType.UpdateTDaoPositionLockDuration:
       return `Increase position ${args.positionID} lock duration to ${args.durationMonths} months`
     case TransactionType.DeleteTDaoPosition:
@@ -120,6 +128,10 @@ export const getTxLongName = (args: TransactionArgs) => {
       return `Create TDao allocation position with ${numDisplay(args.count)} Tcp`
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position with ${numDisplay(args.count)} ${args.tokenSymbol}`
+    case TransactionType.VoteTcpProposal:
+      return 'Vote Proposal ' + args.proposalID
+    case TransactionType.SelfDelegateTcp:
+      return `Self delegate Tcp`
 
     default:
       assertUnreachable(type)
@@ -129,8 +141,6 @@ export const getTxLongName = (args: TransactionArgs) => {
 
 export const getTxShortName = (type: TransactionType) => {
   switch(type) {
-    case TransactionType.VoteProposal:
-      return 'Vote Proposal'
     case TransactionType.UpdateTDaoPositionLockDuration:
       return 'Increase Position Lock Duration'
     case TransactionType.DeleteTDaoPosition:
@@ -141,6 +151,10 @@ export const getTxShortName = (type: TransactionType) => {
       return `Create TDao allocation position`
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position`
+    case TransactionType.VoteTcpProposal:
+      return 'Vote Proposal'
+    case TransactionType.SelfDelegateTcp:
+      return `Self delegate Tcp`
     default:
       assertUnreachable(type)
   }
@@ -165,14 +179,13 @@ const executeTransaction = async (
     getContract(address, ProtocolContract.TcpAllocation)
       .connect(provider.getSigner()) as TcpAllocation
 
+  const getTcp = (address: string) =>
+    getContract(address, ProtocolContract.Tcp)
+      .connect(provider.getSigner()) as Tcp
+
   const type = args.type
 
   switch(type) {
-    case TransactionType.VoteProposal:
-      return await getTcpGovernorAlpha(args.TcpGovernorAlpha).castVote(
-        args.proposalID,
-        args.support
-      )
 
     case TransactionType.UpdateTDaoPositionLockDuration:
       return await getTDao(args.tdao).increaseLockDuration(args.positionID, args.durationMonths)
@@ -197,6 +210,15 @@ const executeTransaction = async (
         args.lockDurationMonths,
         args.userAddress
       )
+
+    case TransactionType.VoteTcpProposal:
+      return await getTcpGovernorAlpha(args.TcpGovernorAlpha).castVote(
+        args.proposalID,
+        args.support
+      )
+
+    case TransactionType.SelfDelegateTcp:
+      return await getTcp(args.tcp).delegate(args.userAddress)
 
     default:
       assertUnreachable(type)
@@ -270,9 +292,6 @@ export const waitForTransaction = createAsyncThunk(
       const type = args.type
 
       switch (type) {
-        case TransactionType.VoteProposal:
-          dispatch(clearProposals())
-          break
         case TransactionType.UpdateTDaoPositionLockDuration:
         case TransactionType.DeleteTDaoPosition:
         case TransactionType.ClaimAllTDaoPositionRewards:
@@ -285,6 +304,12 @@ export const waitForTransaction = createAsyncThunk(
         case TransactionType.CreateTDaoPosition:
           dispatch(clearBalances())
           dispatch(clearTDaoPositions())
+          break
+        case TransactionType.VoteTcpProposal:
+          dispatch(clearTcpProposals())
+          break
+        case TransactionType.SelfDelegateTcp:
+          // TODO
           break
       default:
         assertUnreachable(type)

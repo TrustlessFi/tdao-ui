@@ -4,8 +4,9 @@ import { AppSelector } from "../app/hooks"
 import { getGovernorInfo, governorInfo } from "./governor"
 import { getBalances, balancesInfo } from "./balances"
 import { ChainID } from "@trustlessfi/addresses"
-import { getTDaoPositions, tdaoPositionsInfo } from "./tdaoPositions"
-import { getProposals, proposalsInfo } from "./proposals"
+import { getTDaoPositions, tdaoPositionsInfo } from './tdaoPositions'
+import { proposalsInfo } from './proposals/'
+import { getTcpProposals } from "./proposals/tcpProposals"
 import { getContracts, ContractsInfo } from "./contracts"
 import { getTDaoInfo, tdaoInfo } from './tdaoInfo'
 import { getTcpAllocationInfo, tcpAllocationInfo } from './tcpAllocation'
@@ -32,7 +33,7 @@ interface fetchNodeTypes {
   tcpAllocationInfo: tcpAllocationInfo,
   genesisPositions: GenesisPositions,
   genesisAllocations: Allocations,
-  proposals: proposalsInfo,
+  tcpProposals: proposalsInfo,
 }
 
 const getWaitFunction = <
@@ -119,9 +120,9 @@ export const waitForGenesisAllocations = getWaitFunction(
   []
 )
 
-export const waitForProposals = getWaitFunction(
-  (state: RootState) => state.proposals,
-  getProposals,
+export const waitForTcpProposals = getWaitFunction(
+  (state: RootState) => state.tcpProposals,
+  getTcpProposals,
   ['contracts', 'userAddress']
 )
 
@@ -145,7 +146,7 @@ const fetchNodesImpl: {[key in FetchNode]: (selector: AppSelector, _dispatch: Ap
   tcpAllocationInfo: waitForTcpAllocationInfo,
   genesisPositions: waitForGenesisPositions,
   genesisAllocations: waitForGenesisAllocations,
-  proposals: waitForProposals,
+  tcpProposals: waitForTcpProposals,
 }
 
 

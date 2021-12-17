@@ -3,6 +3,7 @@
 
 import { ContractInterface, Contract } from "ethers"
 import { Web3Provider } from "@ethersproject/providers"
+import { abi, contractArtifact } from './'
 
 import getProvider from "./getProvider"
 import { ProtocolContract, RootContract, TDaoRootContract, TDaoContract } from "../slices/contracts"
@@ -74,10 +75,7 @@ import tDaoVotingRewardsSafeArtifact from "@trustlessfi/artifacts/dist/contracts
 
 import { assertUnreachable } from "@trustlessfi/utils"
 
-type abi = { [key in string]: any }[]
-type contractAbi = { abi: abi }
-
-const artifactLookup: (() => { [key in ProtocolContract | RootContract | TDaoContract | TDaoRootContract]: contractAbi }) = () => ({
+const artifactLookup: (() => { [key in ProtocolContract | RootContract | TDaoContract | TDaoRootContract]: contractArtifact }) = () => ({
   [ProtocolContract.Accounting]: accountingArtifact,
   [ProtocolContract.Auctions]: auctionsArtifact,
   [ProtocolContract.EnforcedDecentralization]: enforcedDecentralizationArtifact,

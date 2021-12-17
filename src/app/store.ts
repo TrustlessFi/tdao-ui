@@ -1,17 +1,17 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit'
 
-import balancesReducer from "../slices/balances"
-import chainIDReducer from "../slices/chainID"
-import contractsReducer from "../slices/contracts"
-import genesisReducer from "../slices/genesis"
-import governorReducer from "../slices/governor"
-import notificationsReducer from "../slices/notifications"
-import proposalsReducer from "../slices/proposals"
-import tcpAllocationInfoReducer from "../slices/tcpAllocation"
-import tdaoInfoReducer from "../slices/tdaoInfo"
-import tdaoPositionsReducer from "../slices/tdaoPositions"
-import transactionsReducer from "../slices/transactions"
-import walletReducer from "../slices/wallet"
+import balancesReducer from '../slices/balances'
+import chainIDReducer from '../slices/chainID'
+import contractsReducer from '../slices/contracts'
+import genesisReducer from '../slices/genesis'
+import governorReducer from '../slices/governor'
+import notificationsReducer from '../slices/notifications'
+import tcpProposalsReducer from '../slices/proposals/tcpProposals'
+import tcpAllocationInfoReducer from '../slices/tcpAllocation'
+import tdaoInfoReducer from '../slices/tdaoInfo'
+import tdaoPositionsReducer from '../slices/tdaoPositions'
+import transactionsReducer from '../slices/transactions'
+import walletReducer from '../slices/wallet'
 
 export const store = configureStore({
   reducer: {
@@ -21,7 +21,7 @@ export const store = configureStore({
     genesis: genesisReducer,
     governor: governorReducer,
     notifications: notificationsReducer,
-    proposals: proposalsReducer,
+    tcpProposals: tcpProposalsReducer,
     tcpAllocationInfo: tcpAllocationInfoReducer,
     tdaoInfo: tdaoInfoReducer,
     tdaoPositions: tdaoPositionsReducer,

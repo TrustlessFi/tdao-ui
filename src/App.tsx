@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react'
 import PageHeader from './components/PageHeader'
 import Genesis from './components/Genesis'
 import TDaoPositions from './components/TDaoPositions'
+import Governance from './components/Governance'
 import ErrorBoundary from './components/library/ErrorBoundary'
 import { Switch, Route } from 'react-router-dom'
 import { HashRouter as Router } from 'react-router-dom'
@@ -18,23 +19,22 @@ declare global {
   }
 }
 
-
 export enum Tab {
   Genesis = 'Genesis',
   Positions = 'Positions',
+  Tcp = 'Tcp',
   Transactions = 'Transactions',
-  LockTcp = 'LockTcp',
 }
 
 export const tabDisplay: { [key in Tab]?: string } = {
-  [Tab.LockTcp]: 'Lock Tcp',
+  // [Tab.Tcp]: 'Tcp Governance',
 }
 
 const tabToRender: { [key in Tab]: ReactNode } = {
   Genesis: <Genesis />,
   Positions: <TDaoPositions />,
+  Tcp: <Governance />,
   Transactions: <RecentTransactions />,
-  LockTcp: <RecentTransactions />,
 }
 
 function App() {

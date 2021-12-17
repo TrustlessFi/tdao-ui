@@ -11,15 +11,9 @@ const ExistingTDaoPositions = () => {
   const dispatch = useAppDispatch()
   const history = useHistory()
 
-  // const userAddress = selector((state) => state.wallet.address)
-
-  // const mc = selector((state) => state.chainID.trustlessMulticall)
-  // const contracts = waitForContracts(selector, dispatch)
-      // return { userAddress:  }
   const positions = waitForTDaoPositions(selector, dispatch)
   const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
   const tdao = selector((state) => state.chainID.tdao)
-  // const contracts = waitForContracts(selector, dispatch)
 
   if (positions === null) return <>loading existing positions</>
   else {
@@ -68,48 +62,6 @@ const ExistingTDaoPositions = () => {
     )
 
   }
-
-
-
-  /*
-  const positionsIDsWithRewards =
-    positions === null
-    ? []
-    : Object.values(positions).filter(position => position.approximateRewards !== 0).map(position => position.id)
-
-  const rightElement =
-    <>
-      <CreateTransactionButton
-        small
-        style={{marginRight: 8}}
-        title="Claim All Rewards"
-        disabled={positionsIDsWithRewards.length === 0 || contracts === null}
-        showDisabledInsteadOfConnectWallet={true}
-        txArgs={{
-          type: TransactionType.ClaimAllPositionRewards,
-          positionIDs: positionsIDsWithRewards,
-          Market: contracts === null ? '' : contracts.Market,
-        }}
-      />
-      <Button
-        size="small"
-        onClick={() => {
-          dispatch(editorOpened({
-            positionID: 0,
-            creating: true,
-          }))
-          history.push('/positions/new')
-        }}>
-        New Position
-      </Button>
-    </>
-
-  return (
-    <AppTile title="Positions" rightElement={rightElement}>
-      <ExistingPositionsTable />
-    </AppTile>
-  )
-  */
 }
 
 export default ExistingTDaoPositions

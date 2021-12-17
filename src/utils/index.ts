@@ -1,7 +1,12 @@
-import { BigNumber, BigNumberish, utils } from "ethers"
+import { BigNumber, BigNumberish, Contract, utils } from "ethers"
 import { ChainID } from '@trustlessfi/addresses'
 import JSBI from "jsbi"
 import { TickMath } from '@uniswap/v3-sdk'
+import { ERC20, ProtocolToken } from "@trustlessfi/typechain"
+import getProvider from './getProvider'
+
+import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
+import protocolTokenArtifact from '@trustlessfi/artifacts/dist/contracts/core/tokens/ProtocolToken.sol/ProtocolToken.json'
 
 export const zeroAddress = '0x0000000000000000000000000000000000000000'
 
@@ -38,6 +43,15 @@ export const range = (start: number, max: number, delta = 1 ): number[] => {
 }
 
 export const notNullString = (input: null | string): string => input === null ? '' : input
+
+export type abi = { [key in string]: any }[]
+export type contractArtifact = { abi: abi }
+
+export const addressToERC20 = (erc20Address: string): ERC20 =>
+  new Contract(erc20Address, (erc20Artifact as unknown as contractArtifact).abi, getProvider()) as ERC20
+
+export const addressToProtocolToken = (address: string) =>
+  new Contract(address, (protocolTokenArtifact as unknown as contractArtifact).abi, getProvider()) as ProtocolToken
 
 export const notNullNumber = (input?: null | number): number => {
   switch(input) {

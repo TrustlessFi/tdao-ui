@@ -90,7 +90,7 @@ const ProposalVoteModalContent: FunctionComponent<{
       </div>
       <SignatureInfo proposal={proposal} showRaw={showRaw} />
       <div style={{ display: 'flex', marginTop: 16 }} >
-        <Tile style={{ flex: '0 1 50%', marginRight: 8 }} light > 
+        <Tile style={{ flex: '0 1 50%', marginRight: 8 }} light >
           <span style={{ fontSize: 24 }}> Vote Status </span>
           <ProgressBar
             label={`For ${voteForPercentage}%`}
@@ -129,8 +129,8 @@ const ProposalVoteModalContent: FunctionComponent<{
               title="Cast Vote"
               disabled={getIsVotingDisabled(proposal) || voteChoice === VoteChoice.NULL}
               txArgs={{
-                type: TransactionType.VoteProposal,
-                TcpGovernorAlpha: contracts!.TcpGovernorAlpha,
+                type: TransactionType.VoteTcpProposal,
+                TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
                 proposalID: p.id,
                 support: voteChoice === VoteChoice.YES,
               }}
@@ -150,11 +150,11 @@ export const ProposalVoteModal: FunctionComponent<{
   onRequestClose: (event: SyntheticEvent) => void,
   quorum: number,
 }> = ({ proposal, open, onRequestClose, quorum }) => {
-  
+
     if (!open) return null
 
     const { proposal: p } = proposal
-  
+
     return (
       <Modal
         open={open}
