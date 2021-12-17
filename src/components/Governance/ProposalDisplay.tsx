@@ -68,8 +68,7 @@ const ProposalDisplay: FunctionComponent = () => {
   const forVotes = p === null ? 0 : p.proposal.forVotes
   const againstVotes = p === null ? 0 : p.proposal.againstVotes
   const totalVotes = p === null ? 0 : forVotes + againstVotes
-  const voteForPercentage = Math.floor(p === null || totalVotes === 0 ? 0 : (p.proposal.forVotes / totalVotes) * 100)
-  const voteAgainstPercentage = Math.floor(p === null || totalVotes === 0 ? 0 : (p.proposal.againstVotes / totalVotes) * 100)
+  const voteForPercentage = numDisplay(Math.floor(p === null || totalVotes === 0 ? 0 : (p.proposal.forVotes / totalVotes) * 100))
   const quorum = tcpProposals === null ? 0 : tcpProposals.quorum
 
   const handleVoteChange = (newSelection: RadioButtonValue): void => setVoteChoice(newSelection as Vote)
@@ -96,19 +95,13 @@ const ProposalDisplay: FunctionComponent = () => {
             label={`For ${voteForPercentage}%`}
             amount={forVotes}
             max={totalVotes}
-            rightLabel={`${forVotes} / ${totalVotes}`}
-          />
-          <ProgressBar
-            label={`Against ${voteAgainstPercentage}%`}
-            amount={againstVotes}
-            max={totalVotes}
-            rightLabel={`${againstVotes} / ${totalVotes}`}
+            rightLabel={`${numDisplay(forVotes)} / ${numDisplay(totalVotes)}`}
           />
           <ProgressBar
             label={p !== null && p.proposal.forVotes > quorum ? 'Quorum Reached' : 'Quorum Not Reached'}
             amount={forVotes}
             max={quorum}
-            rightLabel={`${p === null ? '-' : p.proposal.forVotes} / ${numDisplay(quorum)}`}
+            rightLabel={`${p === null ? '-' : numDisplay(p.proposal.forVotes)} / ${numDisplay(quorum)}`}
           />
         </Tile>
         <Tile style={{ flex: '0 1 50%', marginLeft: 8 }} light >
