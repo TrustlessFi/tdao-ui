@@ -129,7 +129,7 @@ export const getTxLongName = (args: TransactionArgs) => {
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position with ${numDisplay(args.count)} ${args.tokenSymbol}`
     case TransactionType.VoteTcpProposal:
-      return 'Vote Proposal ' + args.proposalID
+      return `Vote on ${args.support ? 'Yes' : 'No'} Tcp Proposal ${args.proposalID}`
     case TransactionType.SelfDelegateTcp:
       return `Self delegate Tcp`
 
@@ -152,7 +152,7 @@ export const getTxShortName = (type: TransactionType) => {
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position`
     case TransactionType.VoteTcpProposal:
-      return 'Vote Proposal'
+      return 'Vote on Tcp Proposal'
     case TransactionType.SelfDelegateTcp:
       return `Self delegate Tcp`
     default:
