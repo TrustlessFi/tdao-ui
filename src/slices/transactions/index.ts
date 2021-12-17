@@ -129,9 +129,9 @@ export const getTxLongName = (args: TransactionArgs) => {
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position with ${numDisplay(args.count)} ${args.tokenSymbol}`
     case TransactionType.VoteTcpProposal:
-      return `Vote on ${args.support ? 'Yes' : 'No'} Tcp Proposal ${args.proposalID}`
+      return `Vote on ${args.support ? 'Yes' : 'No'} Tcp proposal ${args.proposalID}`
     case TransactionType.SelfDelegateTcp:
-      return `Self delegate Tcp`
+      return `Self delegate Tcp votes`
 
     default:
       assertUnreachable(type)
@@ -152,9 +152,9 @@ export const getTxShortName = (type: TransactionType) => {
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position`
     case TransactionType.VoteTcpProposal:
-      return 'Vote on Tcp Proposal'
+      return 'Vote on Tcp proposal'
     case TransactionType.SelfDelegateTcp:
-      return `Self delegate Tcp`
+      return `Self delegate Tcp votes`
     default:
       assertUnreachable(type)
   }
