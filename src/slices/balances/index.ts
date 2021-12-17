@@ -2,7 +2,7 @@ import { sliceState } from '../'
 import { Contract } from 'ethers'
 import { initialState, getGenericReducerBuilder } from '../'
 import { tdaoInfo } from '../tdaoInfo'
-import { unscale, uint255Max, zeroAddress } from '../../utils'
+import { unscale, uint255Max, zeroAddress, unique } from '../../utils'
 import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import { TDaoRootContract, ContractsInfo } from '../contracts'
 import { getMulticallContract} from '../../utils/getContract'
@@ -71,10 +71,10 @@ export const getBalances = createAsyncThunk(
     const tokenContract = new Contract(zeroAddress, erc20Artifact.abi, provider) as ERC20
     const userAddress = args.userAddress
 
-    const tokenAddresses = [args.contracts.TDaoToken]
-    Object.values(args.tdaoInfo.underlyingProtocolTokens).map(token => {
-      if (!tokenAddresses.includes(token.address)) tokenAddresses.push(token.address)
-    })
+    const tokenAddresses = unique(
+      Object.values(args.tdaoInfo.underlyingProtocolTokens)
+        .map(token => token.address)
+          .concat([args.contracts.TDaoToken]))
 
     const {
       userEthBalance,
@@ -142,15 +142,18 @@ export const getBalances = createAsyncThunk(
       decimals: number
     }
 
-    const tokenMetadataMap: {[key in string]: poolTokensMetadata} = {}
-
-    Object.values(args.tdaoInfo.underlyingProtocolTokens).map(token => {
-      tokenMetadataMap[token.address] = {
-        name: token.name,
-        symbol: token.symbol,
-        decimals: token.decimals,
-      }
-    })
+    const tokenMetadataMap: {[key in string]: poolTokensMetadata} =
+      Object.fromEntries(Object.values(args.tdaoInfo.underlyingProtocolTokens).map(token =>
+        [
+          token.address,
+          {
+            name: token.name,
+            symbol: token.symbol,
+            decimals: token.decimals,
+          }
+        ]
+      )
+    )
 
     tokenMetadataMap[args.contracts.TDaoToken] = {
       name: 'TDao Token',
