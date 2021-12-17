@@ -1,6 +1,6 @@
 import { useParams } from 'react-router';
-import { Checkbox, Modal, RadioButtonGroup, RadioButton, Tile, RadioButtonValue } from 'carbon-components-react'
-import { FunctionComponent, SyntheticEvent, useState } from 'react'
+import { RadioButtonGroup, RadioButton, Tile, RadioButtonValue } from 'carbon-components-react'
+import { FunctionComponent, useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 import { waitForTcpProposals } from '../../slices/waitFor'
 import { Proposal, ProposalState } from '../../slices/proposals'
@@ -10,7 +10,7 @@ import { numDisplay } from '../../utils'
 import ProgressBar from '../library/ProgressBar'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import { InlineAppTag, ProposalDescription } from './GovernanceSubcomponents'
-import { SignatureInfo } from './SignatureInfo'
+import ProposalActions from './ProposalActions'
 import Breadcrumbs from '../library/Breadcrumbs'
 
 enum Vote {
@@ -18,7 +18,6 @@ enum Vote {
   NO = 'NO',
   NO_VOTE = 'NO_VOTE',
 }
-
 
 const getUserVoteStatusDisplay = (proposal: Proposal): string => {
   const { proposal: p } = proposal
@@ -60,15 +59,17 @@ const ProposalDisplay: FunctionComponent = () => {
     ? (proposal.receipt.support ? Vote.YES : Vote.NO)
     : Vote.NO_VOTE
 
-
-  const initialVote = p === null ? Vote.NO_VOTE : getVote(p)
   const [ voteChoice, setVoteChoice ] = useState<Vote>(Vote.NO_VOTE)
+
+  useEffect(() => {
+    if (p !== null) setVoteChoice(getVote(p))
+  }, [p])
 
   const forVotes = p === null ? 0 : p.proposal.forVotes
   const againstVotes = p === null ? 0 : p.proposal.againstVotes
-  const totalVotes = forVotes + againstVotes
-  const voteForPercentage = Math.round(p === null ? 0 : p.proposal.forVotes / totalVotes * 100)
-  const voteAgainstPercentage = Math.round(p === null ? 0 : p.proposal.againstVotes / totalVotes * 100)
+  const totalVotes = p === null ? 0 : forVotes + againstVotes
+  const voteForPercentage = Math.floor(p === null || totalVotes === 0 ? 0 : (p.proposal.forVotes / totalVotes) * 100)
+  const voteAgainstPercentage = Math.floor(p === null || totalVotes === 0 ? 0 : (p.proposal.againstVotes / totalVotes) * 100)
   const quorum = tcpProposals === null ? 0 : tcpProposals.quorum
 
   const handleVoteChange = (newSelection: RadioButtonValue): void => setVoteChoice(newSelection as Vote)
@@ -86,7 +87,7 @@ const ProposalDisplay: FunctionComponent = () => {
       {
         p === null
         ? null
-        : <SignatureInfo proposal={p} showRaw={true} />
+        : <ProposalActions proposal={p} showRaw={false} />
       }
       <div style={{ display: 'flex', marginTop: 16 }} >
         <Tile style={{ flex: '0 1 50%', marginRight: 8 }} light >
@@ -107,7 +108,7 @@ const ProposalDisplay: FunctionComponent = () => {
             label={p !== null && p.proposal.forVotes > quorum ? 'Quorum Reached' : 'Quorum Not Reached'}
             amount={forVotes}
             max={quorum}
-            rightLabel={`${p === null ? '-' : p.proposal.forVotes} / ${quorum}`}
+            rightLabel={`${p === null ? '-' : p.proposal.forVotes} / ${numDisplay(quorum)}`}
           />
         </Tile>
         <Tile style={{ flex: '0 1 50%', marginLeft: 8 }} light >
@@ -140,7 +141,6 @@ const ProposalDisplay: FunctionComponent = () => {
       </div>
     </div>
   )
-
 }
 
 export default ProposalDisplay

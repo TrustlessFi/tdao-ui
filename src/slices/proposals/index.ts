@@ -77,12 +77,13 @@ export const fetchProposals = async (
 ): Promise<proposalsInfo> => {
   const votingTokenAddress = await governorAlpha.votingToken()
   const votingToken = addressToProtocolToken(votingTokenAddress)
-  const decimals = await votingToken.decimals()
   const haveUserAddress = userAddress !== zeroAddress
 
-  const [rawProposalData, quorumVotes] = await Promise.all([
+  // TODO multicall
+  const [rawProposalData, quorumVotes, decimals] = await Promise.all([
     governorAlpha.getAllProposals(userAddress),
     governorAlpha.quorumVotes(),
+    votingToken.decimals(),
   ])
 
   console.log({rawProposalData})
@@ -94,13 +95,11 @@ export const fetchProposals = async (
 
   const votingPower =
     haveUserAddress
-    ? await Promise.all(rawProposals.map(async (proposal, index) => {
-        // can't vote anyways if the proposal is in pending state
-        if (states[index] === 0) return 0
-
-        const votingPower = await votingToken.getPriorVotes(userAddress, proposal.startBlock)
-        return unscale(votingPower)
-      }))
+    ? await Promise.all(rawProposals.map(async (proposal, index) =>
+        states[index] === 0
+        ? 0
+        : unscale(await votingToken.getPriorVotes(userAddress, proposal.startBlock))
+      ))
     : new Array(rawProposals.length).fill(0)
 
   return {

@@ -1,9 +1,7 @@
 import { Switch, Route } from 'react-router-dom'
-import React, { FunctionComponent } from 'react'
-import AppTile from '../library/AppTile'
+import { FunctionComponent } from 'react'
 import ProposalsList from './ProposalsList'
 import ProposalDisplay from './ProposalDisplay'
-import VoteDelegationPanel from './VoteDelegationPanel'
 
 const Governance: FunctionComponent = () => {
   return (
