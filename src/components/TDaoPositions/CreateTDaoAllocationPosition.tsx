@@ -72,7 +72,6 @@ const CreateTDaoAllocationPosition = () => {
       ? 0
       : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated
 
-
   const timeNow = tcpAllocationInfo === null ? 0 : tcpAllocationInfo.blockTime
 
   const newUnlockTime = timeNow + days(monthsToDays(lockDurationMonths))

@@ -10,16 +10,17 @@ import { numDisplay } from '../../utils'
 import ProgressBar from '../library/ProgressBar'
 import LargeText from '../utils/LargeText'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
-import { InlineAppTag, ProposalDescription } from './GovernanceSubcomponents'
+import { InlineAppTag } from './GovernanceSubcomponents'
 import ProposalActions from './ProposalActions'
 import Breadcrumbs from '../library/Breadcrumbs'
 import TwoColumnDisplay from '../utils/TwoColumnDisplay'
 import SpacedList from '../library/SpacedList'
+import InputPicker from '../library/InputPicker'
 
 enum Vote {
+  '-' = '-',
   YES = 'YES',
   NO = 'NO',
-  NO_VOTE = 'NO_VOTE',
 }
 
 const getUserVoteStatusDisplay = (proposal: Proposal): string => {
@@ -28,17 +29,19 @@ const getUserVoteStatusDisplay = (proposal: Proposal): string => {
   const hasNoVotingPower = proposal.votingPower === 0
   const proposalActive = p.state === ProposalState.Active
 
-  if (hasVoted) {
-    return 'You have already cast a vote.'
-  }
-  if (proposalActive) {
-    if (hasNoVotingPower) {
-      return 'You did not have any delegated votes when this proposal was introduced and therefore cannot vote.'
-    } else {
-      return `Your vote has a weight of ${numDisplay(proposal.votingPower)} CNP.`
-    }
-  }
-  return 'You cannot vote as this proposal is not active.'
+  return (
+    hasVoted
+    ? ''
+    : (
+        proposalActive
+        ? (
+            hasNoVotingPower
+            ? 'You must self delegate to vote in the next proposal.'
+            : `You are voting with ${numDisplay(proposal.votingPower)} Tcp.`
+          )
+        : 'You cannot vote as this proposal is not active.'
+    )
+  )
 }
 
 const getIsVotingDisabled = (proposal: Proposal): boolean => {
@@ -62,17 +65,17 @@ const ProposalDisplay: FunctionComponent = () => {
   const getVote = (proposal: Proposal): Vote =>
     proposal.receipt.hasVoted
     ? (proposal.receipt.support ? Vote.YES : Vote.NO)
-    : Vote.NO_VOTE
+    : Vote['-']
 
-  const [ voteChoice, setVoteChoice ] = useState<Vote>(Vote.NO_VOTE)
+  const [ voteChoice, setVoteChoice ] = useState<Vote>(Vote['-'])
 
   useEffect(() => { if (p !== null) setVoteChoice(getVote(p)) }, [p])
 
 
-  const forVotes = p === null ? 0 : p.proposal.forVotes
-  const againstVotes = p === null ? 0 : p.proposal.againstVotes
+  const forVotes = p === null ? 0 : (p.proposal.forVotes + (voteChoice === Vote.YES ? p.votingPower : 0))
+  const againstVotes = p === null ? 0 :  (p.proposal.againstVotes + (voteChoice === Vote.NO ? p.votingPower : 0))
   const totalVotes = p === null ? 0 : forVotes + againstVotes
-  const voteForPercentage = numDisplay(Math.floor(p === null || totalVotes === 0 ? 0 : (p.proposal.forVotes / totalVotes) * 100))
+  const voteForPercentage = numDisplay(Math.floor(p === null || totalVotes === 0 ? 0 : (forVotes / totalVotes) * 100))
   const quorum = tcpProposals === null ? 0 : tcpProposals.quorum
 
   const handleVoteChange = (newSelection: RadioButtonValue): void => setVoteChoice(newSelection as Vote)
@@ -80,9 +83,7 @@ const ProposalDisplay: FunctionComponent = () => {
   const infoColumnOne =
     <SpacedList>
       <>
-        <LargeText>
-          {p === null ? '-' : p.proposal.title}
-        </LargeText>
+        <LargeText>{p === null ? '-' : p.proposal.title}</LargeText>
         <InlineAppTag proposalState={p === null ? ProposalState.Pending : p.proposal.state} />
       </>
       {
@@ -111,48 +112,42 @@ const ProposalDisplay: FunctionComponent = () => {
     </>
 
   const voteColumnOne =
-    <>
-      <span style={{ fontSize: 24 }}> Vote </span>
+    <SpacedList>
+      <LargeText>Your Vote</LargeText>
       <div>{p === null ? '-' : getUserVoteStatusDisplay(p)}</div>
-      <div style={{ margin: '16px 0', display: 'flex', alignItems: 'center', flexDirection: 'column'}}>
-        <RadioButtonGroup
-          name='proposal-vote'
-          legendText='Do you support this proposal?'
+        <InputPicker
+          options={Vote}
           onChange={handleVoteChange}
-          valueSelected={voteChoice}
-          disabled={p === null ? true : getIsVotingDisabled(p)}
-        >
-          <RadioButton labelText='Yes' value={Vote.YES} id='proposal-vote-yes' />
-          <RadioButton labelText='No' value={Vote.NO} id='proposal-vote-no' />
-        </RadioButtonGroup>
+          initialValue={Vote['-']}
+          label="Allocation options"
+          style={{}}
+        />
         <CreateTransactionButton
           title='Cast Vote'
-          disabled={p === null ? true : getIsVotingDisabled(p) || voteChoice === Vote.NO_VOTE}
+          disabled={p === null ? true : getIsVotingDisabled(p) || voteChoice === Vote['-']}
           txArgs={{
             type: TransactionType.VoteTcpProposal,
             TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
             proposalID: p === null ? 0 : p.proposal.id,
             support: voteChoice === Vote.YES,
           }}
-          style={{ marginTop: 8, width: '50%' }}
         />
-      </div>
-    </>
+    </SpacedList>
 
   const voteColumnTwo =
     <>
-      <span style={{ fontSize: 24 }}> Vote Status </span>
+      <LargeText>Vote Status</LargeText>
       <ProgressBar
-        label={`For ${voteForPercentage}%`}
+        label={`Yes: ${voteForPercentage}%`}
         amount={forVotes}
         max={totalVotes}
         rightLabel={`${numDisplay(forVotes)} / ${numDisplay(totalVotes)}`}
       />
       <ProgressBar
-        label={p !== null && p.proposal.forVotes > quorum ? 'Quorum Reached' : 'Quorum Not Reached'}
+        label={p !== null && forVotes > quorum ? 'Quorum Reached' : 'Quorum Not Reached'}
         amount={forVotes}
         max={quorum}
-        rightLabel={`${p === null ? '-' : numDisplay(p.proposal.forVotes)} / ${numDisplay(quorum)}`}
+        rightLabel={`${p === null ? '-' : numDisplay(forVotes)} / ${numDisplay(quorum)}`}
       />
     </>
 

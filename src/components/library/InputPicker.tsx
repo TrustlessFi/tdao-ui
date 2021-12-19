@@ -13,11 +13,13 @@ const InputPicker = <
   initialValue,
   style,
   navigation,
+  onChange,
   label,
   width,
 }:{
   options: { [key in T]: TEnumValue }
-  navigation: {[key in TEnumValue]?: string}
+  onChange?: (changedTo: TEnumValue) => void
+  navigation?: {[key in TEnumValue]?: string}
   initialValue: TEnumValue,
   style?: CSSProperties,
   label: string
@@ -35,15 +37,19 @@ const InputPicker = <
         items={Object.values(options)}
         onChange={(data: OnChangeData<TEnumValue>) => {
           const newSelectedItem = data.selectedItem
-          if (newSelectedItem === null || newSelectedItem === undefined) throw new Error('InputPicker: Unknown value')
-          const currentSelectedItem = selectedItem
-          setSelectedItem(newSelectedItem)
-          const nav = navigation[newSelectedItem]
-          if (
-            newSelectedItem !== initialValue
-            && currentSelectedItem !== newSelectedItem
-            && nav !== undefined) {
-            history.push(nav)
+          if (newSelectedItem === null || newSelectedItem === undefined) return
+          else if (onChange !== undefined) {
+            onChange(newSelectedItem)
+          } else if (navigation !== undefined) {
+            const currentSelectedItem = selectedItem
+            setSelectedItem(newSelectedItem)
+            const nav = navigation[newSelectedItem]
+            if (
+              newSelectedItem !== initialValue
+              && currentSelectedItem !== newSelectedItem
+              && nav !== undefined) {
+              history.push(nav)
+            }
           }
         }}
         size="lg"
