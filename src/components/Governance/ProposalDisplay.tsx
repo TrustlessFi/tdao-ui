@@ -76,11 +76,11 @@ const ProposalDisplay: FunctionComponent = () => {
 
   return (
     <div>
-      <Breadcrumbs crumbs={[{ text: 'Tcp', href: '/tcp' }, 'proposal', proposalID.toString()]} />
-      <div style={{ marginTop: 16}}>
+      <Breadcrumbs crumbs={[{ text: 'Tcp', href: '/tcp' }, 'Proposal', proposalID.toString()]} />
+      <div style={{ marginTop: 32}}>
         <div>
           <LargeText>
-            {p === null ? '-' : p.proposal.title}
+            {p === null ? '-' : `Tcp Proposal ${p.proposal.id}: ${p.proposal.title}`}
           </LargeText>
           <InlineAppTag proposalState={p === null ? ProposalState.Pending : p.proposal.state} />
         </div>
