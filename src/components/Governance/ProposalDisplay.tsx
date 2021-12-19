@@ -1,7 +1,8 @@
+import { Row, Col } from 'react-flexbox-grid'
 import { useParams } from 'react-router';
 import { RadioButtonGroup, RadioButton, Tile, RadioButtonValue } from 'carbon-components-react'
 import { FunctionComponent, useState, useEffect } from 'react'
-import { useAppDispatch, useAppSelector } from '../../app/hooks'
+import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { waitForTcpProposals } from '../../slices/waitFor'
 import { Proposal, ProposalState } from '../../slices/proposals'
 import { TransactionType } from '../../slices/transactions'
@@ -16,6 +17,9 @@ import Breadcrumbs from '../library/Breadcrumbs'
 import TwoColumnDisplay from '../utils/TwoColumnDisplay'
 import SpacedList from '../library/SpacedList'
 import InputPicker from '../library/InputPicker'
+import { Launch16 } from '@carbon/icons-react';
+import { abbreviateAddress } from '../../utils'
+import { getEtherscanAddressLink } from '../utils/ExplorerLink'
 
 enum Vote {
   '-' = '-',
@@ -52,13 +56,16 @@ const getIsVotingDisabled = (proposal: Proposal): boolean => {
 
 const ProposalDisplay: FunctionComponent = () => {
   const dispatch = useAppDispatch()
-  const contracts = waitForContracts(useAppSelector, dispatch)
   const params: { proposalID: string } = useParams()
 
   const proposalID = Number(params.proposalID)
-  const tcpProposals = waitForTcpProposals(useAppSelector, dispatch)
+  const contracts = waitForContracts(selector, dispatch)
+  const tcpProposals = waitForTcpProposals(selector, dispatch)
+  const chainID = selector(state => state.chainID.chainID)
 
-  const dataNull = tcpProposals === null
+  const dataNull =
+    tcpProposals === null ||
+    contracts === null
 
   const p = tcpProposals === null ? null : tcpProposals.proposals[proposalID]
 
@@ -71,7 +78,6 @@ const ProposalDisplay: FunctionComponent = () => {
 
   useEffect(() => { if (p !== null) setVoteChoice(getVote(p)) }, [p])
 
-
   const forVotes = p === null ? 0 : (p.proposal.forVotes + (voteChoice === Vote.YES ? p.votingPower : 0))
   const againstVotes = p === null ? 0 :  (p.proposal.againstVotes + (voteChoice === Vote.NO ? p.votingPower : 0))
   const totalVotes = p === null ? 0 : forVotes + againstVotes
@@ -81,7 +87,7 @@ const ProposalDisplay: FunctionComponent = () => {
   const handleVoteChange = (newSelection: RadioButtonValue): void => setVoteChoice(newSelection as Vote)
 
   const infoColumnOne =
-    <SpacedList>
+    <SpacedList spacing={16}>
       <>
         <LargeText>{p === null ? '-' : p.proposal.title}</LargeText>
         <InlineAppTag proposalState={p === null ? ProposalState.Pending : p.proposal.state} />
@@ -89,16 +95,30 @@ const ProposalDisplay: FunctionComponent = () => {
       {
         p === null
         ? '-'
-        : <a
+        :  <a
             href={`https://gateway.ipfs.io/ipfs/${p.proposal.ipfsHash}`}
             target='_blank'
             rel='noopener noreferrer'
             style={{}}>
-            View full dscription
+            Full description
+            <Launch16 />
           </a>
       }
       {/* TODO: Add ability to copy proposer's address */}
-      <div style={{ marginTop: 16}}> Created by: {p === null ? '-' : p.proposal.proposer}</div>
+      <>
+        Created by{' '}
+        {
+          p === null || chainID === null ? '-' :
+          <a
+            href={getEtherscanAddressLink(p.proposal.proposer, chainID)}
+            target='_blank'
+            rel='noopener noreferrer'
+            style={{}}>
+            {abbreviateAddress(p.proposal.proposer)}
+            <Launch16 />
+          </a>
+        }
+      </>
     </SpacedList>
 
   const infoColumnTwo =
@@ -124,7 +144,7 @@ const ProposalDisplay: FunctionComponent = () => {
         />
         <CreateTransactionButton
           title='Cast Vote'
-          disabled={p === null ? true : getIsVotingDisabled(p) || voteChoice === Vote['-']}
+          disabled={p === null || contracts === null ? true : getIsVotingDisabled(p) || voteChoice === Vote['-']}
           txArgs={{
             type: TransactionType.VoteTcpProposal,
             TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
