@@ -23,8 +23,8 @@ import { getEtherscanAddressLink } from '../utils/ExplorerLink'
 
 enum Vote {
   '-' = '-',
-  YES = 'YES',
-  NO = 'NO',
+  Yes = 'Yes',
+  No = 'No',
 }
 
 const getUserVoteStatusDisplay = (proposal: Proposal): string => {
@@ -71,15 +71,15 @@ const ProposalDisplay: FunctionComponent = () => {
 
   const getVote = (proposal: Proposal): Vote =>
     proposal.receipt.hasVoted
-    ? (proposal.receipt.support ? Vote.YES : Vote.NO)
+    ? (proposal.receipt.support ? Vote.Yes : Vote.No)
     : Vote['-']
 
   const [ voteChoice, setVoteChoice ] = useState<Vote>(Vote['-'])
 
   useEffect(() => { if (p !== null) setVoteChoice(getVote(p)) }, [p])
 
-  const forVotes = p === null ? 0 : (p.proposal.forVotes + (voteChoice === Vote.YES ? p.votingPower : 0))
-  const againstVotes = p === null ? 0 :  (p.proposal.againstVotes + (voteChoice === Vote.NO ? p.votingPower : 0))
+  const forVotes = p === null ? 0 : (p.proposal.forVotes + (voteChoice === Vote.Yes ? p.votingPower : 0))
+  const againstVotes = p === null ? 0 :  (p.proposal.againstVotes + (voteChoice === Vote.No ? p.votingPower : 0))
   const totalVotes = p === null ? 0 : forVotes + againstVotes
   const voteForPercentage = numDisplay(Math.floor(p === null || totalVotes === 0 ? 0 : (forVotes / totalVotes) * 100))
   const quorum = tcpProposals === null ? 0 : tcpProposals.quorum
@@ -149,14 +149,14 @@ const ProposalDisplay: FunctionComponent = () => {
             type: TransactionType.VoteTcpProposal,
             TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
             proposalID: p === null ? 0 : p.proposal.id,
-            support: voteChoice === Vote.YES,
+            support: voteChoice === Vote.Yes,
           }}
         />
     </SpacedList>
 
   const voteColumnTwo =
-    <>
-      <LargeText>Vote Status</LargeText>
+    <SpacedList>
+      <LargeText>Updated Vote Count: </LargeText>
       <ProgressBar
         label={`Yes: ${voteForPercentage}%`}
         amount={forVotes}
@@ -169,7 +169,7 @@ const ProposalDisplay: FunctionComponent = () => {
         max={quorum}
         rightLabel={`${p === null ? '-' : numDisplay(forVotes)} / ${numDisplay(quorum)}`}
       />
-    </>
+    </SpacedList>
 
   return (
     <>

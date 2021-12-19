@@ -7,7 +7,6 @@ interface ProgressBarProps {
   rightLabel?: string
 }
 
-// Carbon doesn't have one of these yet AFAICT
 const ProgressBar: FunctionComponent<ProgressBarProps> = ({ label, amount, max, rightLabel }) => {
   const ratio = Math.round(amount / max * 100)
   return (
@@ -20,5 +19,5 @@ const ProgressBar: FunctionComponent<ProgressBarProps> = ({ label, amount, max, 
     </div>
   )
 }
-  
+
 export default ProgressBar
