@@ -1,3 +1,4 @@
+import { Row, Col } from 'react-flexbox-grid'
 import { CodeSnippet } from "carbon-components-react"
 import { BigNumber, ethers } from "ethers"
 import { FunctionComponent } from "react"
@@ -45,12 +46,14 @@ const getProposalActionsString = (
 }
 
 const ProposalActionsWrapper: FunctionComponent<{ index: number }> = ({ index, children }) => (
-  <div style={{ display: 'flex', marginTop: 8 }} key={index}>
+  <Row style={{ marginTop: 8 }} key={index} middle="xs">
+    <Col xs={1}>
     {index + 1}:
-    <div style={{ marginLeft: 8 }}>
+    </Col>
+    <Col xs={11}>
       {children}
-    </div>
-  </div>
+    </Col>
+  </Row>
 )
 
 const ProposalActions: FunctionComponent<{
@@ -63,7 +66,7 @@ const ProposalActions: FunctionComponent<{
 
   const { proposal: p } = proposal
   return (
-    <>
+    <Col>
       {p.targets.map((_, index) => {
         return showRaw ? (
           <ProposalActionsWrapper index={index} key={`${p.targets[index]}-${index}`}>
@@ -79,7 +82,7 @@ const ProposalActions: FunctionComponent<{
           </ProposalActionsWrapper>
           )
       })}
-    </>
+    </Col>
   )
 }
 

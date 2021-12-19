@@ -13,6 +13,7 @@ import CreateTransactionButton from '../utils/CreateTransactionButton'
 import { InlineAppTag, ProposalDescription } from './GovernanceSubcomponents'
 import ProposalActions from './ProposalActions'
 import Breadcrumbs from '../library/Breadcrumbs'
+import TwoColumnDisplay from '../utils/TwoColumnDisplay'
 
 enum Vote {
   YES = 'YES',
@@ -53,6 +54,8 @@ const ProposalDisplay: FunctionComponent = () => {
   const proposalID = Number(params.proposalID)
   const tcpProposals = waitForTcpProposals(useAppSelector, dispatch)
 
+  const dataNull = tcpProposals === null
+
   const p = tcpProposals === null ? null : tcpProposals.proposals[proposalID]
 
   const getVote = (proposal: Proposal): Vote =>
@@ -62,9 +65,8 @@ const ProposalDisplay: FunctionComponent = () => {
 
   const [ voteChoice, setVoteChoice ] = useState<Vote>(Vote.NO_VOTE)
 
-  useEffect(() => {
-    if (p !== null) setVoteChoice(getVote(p))
-  }, [p])
+  useEffect(() => { if (p !== null) setVoteChoice(getVote(p)) }, [p])
+
 
   const forVotes = p === null ? 0 : p.proposal.forVotes
   const againstVotes = p === null ? 0 : p.proposal.againstVotes
@@ -74,81 +76,99 @@ const ProposalDisplay: FunctionComponent = () => {
 
   const handleVoteChange = (newSelection: RadioButtonValue): void => setVoteChoice(newSelection as Vote)
 
-  return (
-    <div>
-      <Breadcrumbs crumbs={[{ text: 'Tcp', href: '/tcp' }, 'Proposal', proposalID.toString()]} />
-      <div style={{ marginTop: 32}}>
-        <div>
-          <LargeText>
-            {p === null ? '-' : `Tcp Proposal ${p.proposal.id}: ${p.proposal.title}`}
-          </LargeText>
-          <InlineAppTag proposalState={p === null ? ProposalState.Pending : p.proposal.state} />
-        </div>
-        {
-          p === null
-          ? '-'
-          : <a
-              href={`https://gateway.ipfs.io/ipfs/${p.proposal.ipfsHash}`}
-              target='_blank'
-              rel='noopener noreferrer'
-              style={{}}>
-              View full dscription
-            </a>
-        }
+  const infoColumnOne =
+    <>
+      <div>
+        <LargeText>
+          {p === null ? '-' : `Tcp Proposal ${p.proposal.id}: ${p.proposal.title}`}
+        </LargeText>
+        <InlineAppTag proposalState={p === null ? ProposalState.Pending : p.proposal.state} />
       </div>
+      {
+        p === null
+        ? '-'
+        : <a
+            href={`https://gateway.ipfs.io/ipfs/${p.proposal.ipfsHash}`}
+            target='_blank'
+            rel='noopener noreferrer'
+            style={{}}>
+            View full dscription
+          </a>
+      }
       {/* TODO: Add ability to copy proposer's address */}
       <div style={{ marginTop: 16}}> Created by: {p === null ? '-' : p.proposal.proposer}</div>
-      <div style={{ fontSize: 18, marginTop: 16 }} > Operations: </div>
+    </>
+
+  const infoColumnTwo =
+    <>
+      <LargeText>Operations:</LargeText>
       {
         p === null
         ? null
         : <ProposalActions proposal={p} showRaw={false} />
       }
-      <div style={{ display: 'flex', marginTop: 16 }} >
-        <Tile style={{ flex: '0 1 50%', marginRight: 8 }} light >
-          <span style={{ fontSize: 24 }}> Vote Status </span>
-          <ProgressBar
-            label={`For ${voteForPercentage}%`}
-            amount={forVotes}
-            max={totalVotes}
-            rightLabel={`${numDisplay(forVotes)} / ${numDisplay(totalVotes)}`}
-          />
-          <ProgressBar
-            label={p !== null && p.proposal.forVotes > quorum ? 'Quorum Reached' : 'Quorum Not Reached'}
-            amount={forVotes}
-            max={quorum}
-            rightLabel={`${p === null ? '-' : numDisplay(p.proposal.forVotes)} / ${numDisplay(quorum)}`}
-          />
-        </Tile>
-        <Tile style={{ flex: '0 1 50%', marginLeft: 8 }} light >
-          <span style={{ fontSize: 24 }}> Vote </span>
-          <div>{p === null ? '-' : getUserVoteStatusDisplay(p)}</div>
-          <div style={{ margin: '16px 0', display: 'flex', alignItems: 'center', flexDirection: 'column'}}>
-            <RadioButtonGroup
-              name='proposal-vote'
-              legendText='Do you support this proposal?'
-              onChange={handleVoteChange}
-              valueSelected={voteChoice}
-              disabled={p === null ? true : getIsVotingDisabled(p)}
-            >
-              <RadioButton labelText='Yes' value={Vote.YES} id='proposal-vote-yes' />
-              <RadioButton labelText='No' value={Vote.NO} id='proposal-vote-no' />
-            </RadioButtonGroup>
-            <CreateTransactionButton
-              title='Cast Vote'
-              disabled={p === null ? true : getIsVotingDisabled(p) || voteChoice === Vote.NO_VOTE}
-              txArgs={{
-                type: TransactionType.VoteTcpProposal,
-                TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
-                proposalID: p === null ? 0 : p.proposal.id,
-                support: voteChoice === Vote.YES,
-              }}
-              style={{ marginTop: 8, width: '50%' }}
-            />
-          </div>
-        </Tile>
+    </>
+
+  const voteColumnOne =
+    <>
+      <span style={{ fontSize: 24 }}> Vote </span>
+      <div>{p === null ? '-' : getUserVoteStatusDisplay(p)}</div>
+      <div style={{ margin: '16px 0', display: 'flex', alignItems: 'center', flexDirection: 'column'}}>
+        <RadioButtonGroup
+          name='proposal-vote'
+          legendText='Do you support this proposal?'
+          onChange={handleVoteChange}
+          valueSelected={voteChoice}
+          disabled={p === null ? true : getIsVotingDisabled(p)}
+        >
+          <RadioButton labelText='Yes' value={Vote.YES} id='proposal-vote-yes' />
+          <RadioButton labelText='No' value={Vote.NO} id='proposal-vote-no' />
+        </RadioButtonGroup>
+        <CreateTransactionButton
+          title='Cast Vote'
+          disabled={p === null ? true : getIsVotingDisabled(p) || voteChoice === Vote.NO_VOTE}
+          txArgs={{
+            type: TransactionType.VoteTcpProposal,
+            TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
+            proposalID: p === null ? 0 : p.proposal.id,
+            support: voteChoice === Vote.YES,
+          }}
+          style={{ marginTop: 8, width: '50%' }}
+        />
       </div>
-    </div>
+    </>
+
+  const voteColumnTwo =
+    <>
+      <span style={{ fontSize: 24 }}> Vote Status </span>
+      <ProgressBar
+        label={`For ${voteForPercentage}%`}
+        amount={forVotes}
+        max={totalVotes}
+        rightLabel={`${numDisplay(forVotes)} / ${numDisplay(totalVotes)}`}
+      />
+      <ProgressBar
+        label={p !== null && p.proposal.forVotes > quorum ? 'Quorum Reached' : 'Quorum Not Reached'}
+        amount={forVotes}
+        max={quorum}
+        rightLabel={`${p === null ? '-' : numDisplay(p.proposal.forVotes)} / ${numDisplay(quorum)}`}
+      />
+    </>
+
+  return (
+    <>
+      <Breadcrumbs crumbs={[{ text: 'Tcp', href: '/tcp' }, 'Proposal', proposalID.toString()]} />
+      <TwoColumnDisplay
+        columnOne={infoColumnOne}
+        columnTwo={infoColumnTwo}
+        loading={dataNull}
+      />
+      <TwoColumnDisplay
+        columnOne={voteColumnOne}
+        columnTwo={voteColumnTwo}
+        loading={dataNull}
+      />
+    </>
   )
 }
 
