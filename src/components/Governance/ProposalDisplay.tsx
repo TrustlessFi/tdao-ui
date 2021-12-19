@@ -8,6 +8,7 @@ import { TransactionType } from '../../slices/transactions'
 import { waitForContracts } from '../../slices/waitFor'
 import { numDisplay } from '../../utils'
 import ProgressBar from '../library/ProgressBar'
+import LargeText from '../utils/LargeText'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
 import { InlineAppTag, ProposalDescription } from './GovernanceSubcomponents'
 import ProposalActions from './ProposalActions'
@@ -77,8 +78,23 @@ const ProposalDisplay: FunctionComponent = () => {
     <div>
       <Breadcrumbs crumbs={[{ text: 'Tcp', href: '/tcp' }, 'proposal', proposalID.toString()]} />
       <div style={{ marginTop: 16}}>
-        <ProposalDescription ipfsHash={p === null ? '' : p.proposal.ipfsHash} fontSize={24} />
-        <InlineAppTag proposalState={p === null ? ProposalState.Pending : p.proposal.state} />
+        <div>
+          <LargeText>
+            {p === null ? '-' : p.proposal.title}
+          </LargeText>
+          <InlineAppTag proposalState={p === null ? ProposalState.Pending : p.proposal.state} />
+        </div>
+        {
+          p === null
+          ? '-'
+          : <a
+              href={`https://gateway.ipfs.io/ipfs/${p.proposal.ipfsHash}`}
+              target='_blank'
+              rel='noopener noreferrer'
+              style={{}}>
+              View full dscription
+            </a>
+        }
       </div>
       {/* TODO: Add ability to copy proposer's address */}
       <div style={{ marginTop: 16}}> Created by: {p === null ? '-' : p.proposal.proposer}</div>

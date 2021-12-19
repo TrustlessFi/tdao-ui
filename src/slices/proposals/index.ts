@@ -35,6 +35,7 @@ export const proposalStateIDToState = (id: number) => {
 export interface Proposal {
   proposal: {
     id: number
+    title: string
     ipfsHash: string
     proposer: string
     eta: number
@@ -110,6 +111,7 @@ export const fetchProposals = async (
         {
           proposal: {
             id: rawProposal.id,
+            title: rawProposal.title,
             ipfsHash: rawProposal.ipfsHash,
             proposer: rawProposal.proposer,
             eta: rawProposal.eta,

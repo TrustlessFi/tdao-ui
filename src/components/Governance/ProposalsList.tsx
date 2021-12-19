@@ -69,7 +69,7 @@ const ProposalsList: FunctionComponent = () => {
               style={{ display: 'flex', justifyContent: 'space-between' }}
               onClick={() => history.push(`/tcp/proposal/${p.proposal.id}`)}>
               <div>
-                <span> Proposal {p.proposal.id}: <ProposalDescription ipfsHash={p.proposal.ipfsHash} />. {p.proposal.ipfsHash} </span>
+                Proposal {p.proposal.id}: {p.proposal.title}
                 <InlineAppTag proposalState={p.proposal.state} />
               </div>
               <div style={{ width: '25%', display: 'flex', flexDirection: 'column' }}>
