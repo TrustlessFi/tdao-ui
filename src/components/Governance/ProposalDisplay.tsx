@@ -14,6 +14,7 @@ import { InlineAppTag, ProposalDescription } from './GovernanceSubcomponents'
 import ProposalActions from './ProposalActions'
 import Breadcrumbs from '../library/Breadcrumbs'
 import TwoColumnDisplay from '../utils/TwoColumnDisplay'
+import SpacedList from '../library/SpacedList'
 
 enum Vote {
   YES = 'YES',
@@ -77,13 +78,13 @@ const ProposalDisplay: FunctionComponent = () => {
   const handleVoteChange = (newSelection: RadioButtonValue): void => setVoteChoice(newSelection as Vote)
 
   const infoColumnOne =
-    <>
-      <div>
+    <SpacedList>
+      <>
         <LargeText>
-          {p === null ? '-' : `Tcp Proposal ${p.proposal.id}: ${p.proposal.title}`}
+          {p === null ? '-' : p.proposal.title}
         </LargeText>
         <InlineAppTag proposalState={p === null ? ProposalState.Pending : p.proposal.state} />
-      </div>
+      </>
       {
         p === null
         ? '-'
@@ -97,7 +98,7 @@ const ProposalDisplay: FunctionComponent = () => {
       }
       {/* TODO: Add ability to copy proposer's address */}
       <div style={{ marginTop: 16}}> Created by: {p === null ? '-' : p.proposal.proposer}</div>
-    </>
+    </SpacedList>
 
   const infoColumnTwo =
     <>
@@ -159,11 +160,14 @@ const ProposalDisplay: FunctionComponent = () => {
     <>
       <Breadcrumbs crumbs={[{ text: 'Tcp', href: '/tcp' }, 'Proposal', proposalID.toString()]} />
       <TwoColumnDisplay
+        style={{marginTop: 32}}
         columnOne={infoColumnOne}
         columnTwo={infoColumnTwo}
         loading={dataNull}
+        verticalAlignMiddle={false}
       />
       <TwoColumnDisplay
+        style={{marginTop: 32}}
         columnOne={voteColumnOne}
         columnTwo={voteColumnTwo}
         loading={dataNull}

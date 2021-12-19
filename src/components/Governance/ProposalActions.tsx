@@ -47,10 +47,10 @@ const getProposalActionsString = (
 
 const ProposalActionsWrapper: FunctionComponent<{ index: number }> = ({ index, children }) => (
   <Row style={{ marginTop: 8 }} key={index} middle="xs">
-    <Col xs={1}>
+    <Col>
     {index + 1}:
     </Col>
-    <Col xs={11}>
+    <Col style={{marginLeft: 8}} xs={11}>
       {children}
     </Col>
   </Row>
