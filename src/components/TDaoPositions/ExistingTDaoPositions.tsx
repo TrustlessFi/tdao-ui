@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { waitForTDaoPositions, waitForTcpAllocationInfo } from '../../slices/waitFor'
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import CreateTransactionButton from '../utils/CreateTransactionButton'
+import RelativeLoading from '../library/RelativeLoading'
 import { TransactionType } from '../../slices/transactions'
 import { Button } from 'carbon-components-react'
 import { numDisplay } from '../../utils'
@@ -15,13 +16,12 @@ const ExistingTDaoPositions = () => {
   const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
   const tdao = selector((state) => state.chainID.tdao)
 
-  if (positions === null) return <>loading existing positions</>
-  else {
-    if (Object.values(positions).length === 0) return <>No Positions</>
-    const positionsIDsWithRewards: string[] = []
+  const positionsIDsWithRewards: string[] = []
 
-    const positionDisplay =
-      Object.values(positions).map((position, index) => {
+  const positionDisplay =
+    positions === null
+    ? null
+    : Object.values(positions).map((position, index) => {
         if (position.approximateRewards > 0) positionsIDsWithRewards.push(position.nftTokenID)
         return (
           <TDaoPositionDisplay
@@ -32,36 +32,35 @@ const ExistingTDaoPositions = () => {
         )
       })
 
-    const tokensToBeAllocated =
-      tcpAllocationInfo === null
-      ? null
-      : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated
+  const tokensToBeAllocated =
+    tcpAllocationInfo === null
+    ? null
+    : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated
 
-    return (
-      <>
-        <div style={{marginBottom: 16}}>
-          <CreateTransactionButton
-            style={{marginRight: 16}}
-            disabled={tcpAllocationInfo === null || tdao == null || positionsIDsWithRewards.length === 0}
-            title="Claim all TDao Rewards"
-            txArgs={{
-              type: TransactionType.ClaimAllTDaoPositionRewards,
-              tdao: tdao === null ? '' : tdao,
-              positionIDs: positionsIDsWithRewards,
-            }}
-          />
-          <Button
-            disabled={tokensToBeAllocated === null || tokensToBeAllocated === 0}
-            onClick={() => history.push(`/positions/allocate/lock/tcp`)}
-            style={{marginBottom: 16}}>
-            Earn TDao with {tokensToBeAllocated === null ? '-' : numDisplay(tokensToBeAllocated)} TCP
-          </Button>
-        </div>
-        {positionDisplay}
-      </>
-    )
-
-  }
+  return (
+    <>
+      <div style={{marginBottom: 16, position: 'relative'}}>
+        <RelativeLoading show={positions === null || tcpAllocationInfo === null || tdao === null} />
+        <CreateTransactionButton
+          style={{marginRight: 16}}
+          disabled={tcpAllocationInfo === null || tdao == null || positionsIDsWithRewards.length === 0}
+          title="Claim all TDao Rewards"
+          txArgs={{
+            type: TransactionType.ClaimAllTDaoPositionRewards,
+            tdao: tdao === null ? '' : tdao,
+            positionIDs: positionsIDsWithRewards,
+          }}
+        />
+        <Button
+          disabled={tokensToBeAllocated === null || tokensToBeAllocated === 0}
+          onClick={() => history.push(`/positions/allocate/lock/tcp`)}
+          style={{marginBottom: 16}}>
+          Earn TDao with {tokensToBeAllocated === null ? '-' : numDisplay(tokensToBeAllocated)} TCP
+        </Button>
+      </div>
+      {positionDisplay}
+    </>
+  )
 }
 
 export default ExistingTDaoPositions
