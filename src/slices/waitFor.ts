@@ -123,7 +123,7 @@ export const waitForGenesisAllocations = getWaitFunction(
 export const waitForTcpProposals = getWaitFunction(
   (state: RootState) => state.tcpProposals,
   getTcpProposals,
-  ['contracts', 'userAddress']
+  ['contracts', 'userAddress', 'trustlessMulticall']
 )
 
 const getStateSelector = <T>(selectorFunc: (state: RootState) => T) =>

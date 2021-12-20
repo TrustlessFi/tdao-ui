@@ -1,7 +1,13 @@
 import { sliceState } from '../'
 import { ContractsInfo } from '../contracts'
-import { GovernorAlpha } from '@trustlessfi/typechain'
-import { unscale, zeroAddress, enforce, addressToProtocolToken } from "../../utils"
+import { GovernorAlpha, ProtocolToken } from '@trustlessfi/typechain'
+import { unscale, enforce, PromiseType } from "../../utils"
+import { getMulticallContract} from '../../utils/getContract'
+import {
+  executeMulticalls,
+  rc,
+  oneContractManyFunctionMC,
+} from '@trustlessfi/multicall'
 
 export enum ProposalState {
   Pending = 'Pending',
@@ -53,11 +59,10 @@ export interface Proposal {
   receipt: {
     hasVoted: boolean
     support: boolean
+    rewardReceived: boolean
     votes: number
   },
   votingPower: number
-  voting: boolean
-  voted: boolean
 }
 
 export interface proposalsInfo {
@@ -68,6 +73,7 @@ export interface proposalsInfo {
 export type proposalsArgs = {
   contracts: ContractsInfo
   userAddress: string
+  trustlessMulticall: string,
 }
 
 export interface ProposalsState extends sliceState<proposalsInfo> {}
@@ -75,65 +81,97 @@ export interface ProposalsState extends sliceState<proposalsInfo> {}
 export const fetchProposals = async (
   userAddress: string,
   governorAlpha: GovernorAlpha,
+  votingToken: ProtocolToken,
+  trustlessMulticall: string
 ): Promise<proposalsInfo> => {
-  const votingTokenAddress = await governorAlpha.votingToken()
-  const votingToken = addressToProtocolToken(votingTokenAddress)
-  const haveUserAddress = userAddress !== zeroAddress
+  const multicall = getMulticallContract(trustlessMulticall)
 
-  // TODO multicall
-  const [rawProposalData, quorumVotes, decimals] = await Promise.all([
-    governorAlpha.getAllProposals(userAddress),
-    governorAlpha.quorumVotes(),
-    votingToken.decimals(),
-  ])
+  const result = await governorAlpha.getProposalInfo(1, userAddress)
+  console.log({result})
 
-  const rawProposals = rawProposalData._proposals
-  const states = rawProposalData._proposalStates
-  const receipts = rawProposalData._receipts
-  const quorum = quorumVotes
+  const { proposals, votingTokenDecimals, } = await executeMulticalls(
+    multicall,
+    {
+      proposals: oneContractManyFunctionMC(
+        governorAlpha,
+        {
+          getProposalInfo: (result: any) => result as PromiseType<ReturnType<GovernorAlpha['getProposalInfo']>>,
+          quorumVotes: rc.BigNumber,
+        },
+        { getProposalInfo: [1, userAddress] },
+      ),
+      votingTokenDecimals: oneContractManyFunctionMC(votingToken, { decimals: rc.Number }),
+    }
+  )
 
-  const votingPower =
-    haveUserAddress
-    ? await Promise.all(rawProposals.map(async (proposal, index) =>
-        states[index] === 0
-        ? 0
-        : unscale(await votingToken.getPriorVotes(userAddress, proposal.startBlock))
-      ))
-    : new Array(rawProposals.length).fill(0)
+  console.log({proposals})
+
+  const decimals = votingTokenDecimals.decimals
+  const proposal = proposals.getProposalInfo
 
   return {
-    quorum: unscale(quorum, decimals),
-    proposals: Object.fromEntries(rawProposals.map((rawProposal, index) =>
-      [
-        rawProposal.id,
+    quorum: unscale(proposals.quorumVotes, decimals),
+    proposals: {1:
         {
           proposal: {
-            id: rawProposal.id,
-            title: rawProposal.title,
-            ipfsHash: rawProposal.ipfsHash,
-            proposer: rawProposal.proposer,
-            eta: rawProposal.eta,
-            targets: rawProposal.targets,
-            signatures: rawProposal.signatures,
-            calldatas: rawProposal.calldatas,
-            startBlock: rawProposal.startBlock,
-            endBlock: rawProposal.endBlock,
-            forVotes: unscale(rawProposal.forVotes, decimals),
-            againstVotes: unscale(rawProposal.againstVotes, decimals),
-            canceled: rawProposal.canceled,
-            executed: rawProposal.executed,
-            state: proposalStateIDToState(states[index]),
+            id: proposal.id,
+            title: proposal.title,
+            ipfsHash: proposal.ipfsHash,
+            proposer: proposal.proposer,
+            eta: proposal.eta,
+            targets: proposal.targets,
+            signatures: proposal.signatures,
+            calldatas: proposal.calldatas,
+            startBlock: proposal.startBlock,
+            endBlock: proposal.endBlock,
+            forVotes: unscale(proposal.forVotes, decimals),
+            againstVotes: unscale(proposal.againstVotes, decimals),
+            canceled: proposal.canceled,
+            executed: proposal.executed,
+            state: proposalStateIDToState(proposal.state),
           },
           receipt: {
-            hasVoted: receipts[index].hasVoted,
-            support: receipts[index].support,
-            votes: unscale(receipts[index].votes, decimals),
+            hasVoted: proposal.hasVoted,
+            support: proposal.support,
+            rewardReceived: proposal.rewardReceived,
+            votes: unscale(proposal.votes, decimals),
           },
-          voting: false,
-          voted: false,
-          votingPower: votingPower[index],
+          votingPower: unscale(proposal.votingPower, decimals),
+        }
+
+    }
+    /*
+    proposals: Object.fromEntries(proposals.getProposalInfo.map(proposal =>
+      [
+        proposal.id,
+        {
+          proposal: {
+            id: proposal.id,
+            title: proposal.title,
+            ipfsHash: proposal.ipfsHash,
+            proposer: proposal.proposer,
+            eta: proposal.eta,
+            targets: proposal.targets,
+            signatures: proposal.signatures,
+            calldatas: proposal.calldatas,
+            startBlock: proposal.startBlock,
+            endBlock: proposal.endBlock,
+            forVotes: unscale(proposal.forVotes, decimals),
+            againstVotes: unscale(proposal.againstVotes, decimals),
+            canceled: proposal.canceled,
+            executed: proposal.executed,
+            state: proposalStateIDToState(proposal.state),
+          },
+          receipt: {
+            hasVoted: proposal.hasVoted,
+            support: proposal.support,
+            rewardReceived: proposal.rewardReceived,
+            votes: unscale(proposal.votes, decimals),
+          },
+          votingPower: unscale(proposal.votingPower, decimals),
         }
       ]
     ))
+    */
   }
 }
