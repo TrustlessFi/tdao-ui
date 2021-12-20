@@ -8,7 +8,7 @@ import {
 } from 'carbon-components-react'
 
 type row = {
-  key: string | number
+  key?: string | number
   onClick?: () => any
   data: { [key in string]: any }
 }
@@ -35,9 +35,9 @@ const SimpleTable = ({rows}: {rows: row[]}) => rows.length === 0 ? null : (
       </TableRow>
     </TableHead>
     <TableBody>
-      {rows.map((row) => (
-        <TableRow key={row.key} onClick={row.onClick} style={{cursor: 'pointer'}}>
-          {Object.values(row.data).map((value, index) => <TableCell key={row.key.toString() + index.toString()}>{value}</TableCell>)}
+      {rows.map((row, i0) => (
+        <TableRow key={row.key ? row.key : i0} onClick={row.onClick} style={{cursor: 'pointer'}}>
+          {Object.values(row.data).map((value, i1) => <TableCell key={(row.key ? row.key : i0) + i1.toString()}>{value}</TableCell>)}
         </TableRow>
       ))}
     </TableBody>
