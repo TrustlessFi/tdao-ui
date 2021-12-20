@@ -6,7 +6,7 @@ import {
   waitForContracts,
 } from '../../slices/waitFor'
 import { numDisplay }  from '../../utils/'
-import PositionMetadata2 from '../library/PositionMetadata2'
+import PositionMetadata from '../library/PositionMetadata'
 import SpacedList from '../library/SpacedList'
 import ErrorMessage, { reason } from '../library/ErrorMessage'
 import { TransactionType } from '../../slices/transactions'
@@ -213,7 +213,7 @@ const CreateTDaoAllocationPosition = () => {
         value={isNaN(count) ? "" : count }
         style={{}}
       />
-      <PositionMetadata2 items={metadataItems} />
+      <PositionMetadata items={metadataItems} />
       <CreateTransactionButton
         style={{}}
         disabled={isFailing}
