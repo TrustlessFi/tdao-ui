@@ -5,7 +5,7 @@ import { ContractsInfo } from '../contracts'
 import { getGenericReducerBuilder } from '../'
 import { tdaoInfo } from '../tdaoInfo'
 import getContract, { getMulticallContract } from '../../utils/getContract'
-import { getDuplicateFuncMulticall, executeMulticalls, rc } from '@trustlessfi/multicall'
+import { oneContractOneFunctionMC, idToIdAndArg, executeMulticalls, rc } from '@trustlessfi/multicall'
 import { PromiseType } from '@trustlessfi/utils'
 import { unscale, bnf } from '../../utils'
 
@@ -48,28 +48,17 @@ export const getTDaoPositions = createAsyncThunk(
     // fetch the positions
     const positionIDs = (await tdaoPostionNFT.positionIDs(args.userAddress)).map(id => id.toString())
 
-    const getSVGId = (id: string) => id + 'svg'
-    const getCanBeUnlockedId = (id: string) => id + 'canBeUnlocked'
+    const positionArgs = idToIdAndArg(positionIDs)
 
     const { positions, tokenSVGs, canBeUnlocked } = await executeMulticalls(trustlessMulticall, {
-      positions: getDuplicateFuncMulticall(
+      positions: oneContractOneFunctionMC(
         tdao,
         'getPosition',
         (result: any) => result as PromiseType<ReturnType<TDao['getPosition']>>,
-        Object.fromEntries(positionIDs.map(positionID => [positionID, [positionID]]))
+        positionArgs,
       ),
-      tokenSVGs: getDuplicateFuncMulticall(
-        tdaoPostionNFT,
-        'tokenURI',
-        rc.String,
-        Object.fromEntries(positionIDs.map(positionID => [getSVGId(positionID), [positionID]]))
-      ),
-      canBeUnlocked: getDuplicateFuncMulticall(
-        tdao,
-        'positionIsAbleToBeUnlocked',
-        rc.Boolean,
-        Object.fromEntries(positionIDs.map(positionID => [getCanBeUnlockedId(positionID), [positionID]]))
-      ),
+      tokenSVGs: oneContractOneFunctionMC(tdaoPostionNFT, 'tokenURI', rc.String, positionArgs),
+      canBeUnlocked: oneContractOneFunctionMC(tdao, 'positionIsAbleToBeUnlocked', rc.Boolean, positionArgs)
     })
 
     const result = Object.fromEntries(positionIDs.map(id => {
@@ -106,8 +95,8 @@ export const getTDaoPositions = createAsyncThunk(
         endPeriod: positions[id].endPeriod.toNumber(),
         durationMonths: positions[id].durationMonths.toNumber(),
         underlyingTokenID: positions[id].tokenID,
-        canBeUnlocked: canBeUnlocked[getCanBeUnlockedId(id)],
-        svg: tokenSVGs[getSVGId(id)]
+        canBeUnlocked: canBeUnlocked[id],
+        svg: tokenSVGs[id]
       }]
     }))
 

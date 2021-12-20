@@ -6,12 +6,13 @@ import getContract, { getMulticallContract } from '../../utils/getContract'
 import {
   executeMulticalls,
   rc,
-  getMulticall,
-  contractFunctionSelector,
-  getDuplicateContractMulticall,
-  getDuplicateFuncMulticall
+  idToIdAndArg,
+  idToIdAndNoArg,
+  oneContractOneFunctionMC,
+  oneContractManyFunctionMC,
+  manyContractOneFunctionMC,
 } from '@trustlessfi/multicall'
-import { zeroAddress } from '../../utils'
+import { zeroAddress, addressToERC20 } from '../../utils'
 import getProvider from '../../utils/getProvider';
 import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import { PromiseType } from '@trustlessfi/utils'
@@ -51,10 +52,9 @@ export const getTDaoInfo = createAsyncThunk(
   async (args: { tdao: string, trustlessMulticall: string }): Promise<tdaoInfo> => {
     const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
-    const provider = getProvider()
 
     const { tdaoInfo } = await executeMulticalls(trustlessMulticall, {
-      tdaoInfo: getMulticall(
+      tdaoInfo: oneContractManyFunctionMC(
         tdao,
         {
           lastPeriodGlobalInflationUpdated: rc.BigNumberToNumber,
@@ -68,32 +68,29 @@ export const getTDaoInfo = createAsyncThunk(
       ),
     })
 
-    const tokenContract = new Contract(zeroAddress, erc20Artifact.abi, provider)
+    const tokenContract = addressToERC20(zeroAddress)
 
-    const tokens = tdaoInfo.allTokens
+    const tokenAddresses = tdaoInfo.allTokens
 
-    const getRewardsStatusID = (id: number) => id + 'rewardsStatus'
+    const rewardsStatusArgs = Object.fromEntries(tokenAddresses.map((address, tokenID) => [address, [tokenID]]))
 
-    const tokenInfo = await executeMulticalls(
+    const { name, symbol, decimals } = await executeMulticalls(
       trustlessMulticall,
       {
-        symbol: getDuplicateContractMulticall(
-          tokenContract,
-          Object.fromEntries(tokens.map(address => [contractFunctionSelector(address as string, 'symbol'), rc.String])),
-        ),
-        name: getDuplicateContractMulticall(
-          tokenContract,
-          Object.fromEntries(tokens.map(address => [contractFunctionSelector(address as string, 'name'), rc.String])),
-        ),
-        decimals: getDuplicateContractMulticall(
-          tokenContract,
-          Object.fromEntries(tokens.map(address => [contractFunctionSelector(address as string, 'decimals'), rc.Number])),
-        ),
-        rewardsStatus: getDuplicateFuncMulticall(
+        name: manyContractOneFunctionMC(tokenContract, tokenAddresses, 'name', rc.String, ),
+        symbol: manyContractOneFunctionMC(tokenContract, tokenAddresses, 'symbol', rc.String),
+        decimals: manyContractOneFunctionMC(tokenContract, tokenAddresses, 'decimals', rc.Number),
+      },
+    )
+
+    const { rewardsStatus } = await executeMulticalls(
+      trustlessMulticall,
+      {
+        rewardsStatus: oneContractOneFunctionMC(
           tdao,
           'getRewardsStatus',
           (result: any) => result as PromiseType<ReturnType<TDao['getRewardsStatus']>>,
-          Object.fromEntries(tokens.map((_address, id) => [getRewardsStatusID(id), [id]]))
+          rewardsStatusArgs,
         ),
       },
     )
@@ -109,18 +106,16 @@ export const getTDaoInfo = createAsyncThunk(
       firstPeriod: tdaoInfo.firstPeriod,
       currentPeriod: tdaoInfo.currentPeriod,
       underlyingProtocolTokens:
-        Object.fromEntries(tokens.map((address, tokenID) => {
+        Object.fromEntries(tokenAddresses.map((address, tokenID) => {
           return [tokenID, {
             tokenID,
             address,
-            symbol: tokenInfo.symbol[contractFunctionSelector(address, 'symbol')],
-            name: tokenInfo.name[contractFunctionSelector(address, 'name')],
-            decimals: tokenInfo.decimals[contractFunctionSelector(address, 'decimals')],
+            symbol: symbol[address],
+            name: name[address],
+            decimals: decimals[address],
             rs: {
-              cumulativeVirtualCount:
-                tokenInfo.rewardsStatus[getRewardsStatusID(tokenID)].cumulativeVirtualCount.toString(),
-              totalRewards:
-                tokenInfo.rewardsStatus[getRewardsStatusID(tokenID)].totalRewards.toString(),
+              cumulativeVirtualCount: rewardsStatus[address].cumulativeVirtualCount.toString(),
+              totalRewards: rewardsStatus[address].cumulativeVirtualCount.toString(),
             }
           }]
         }))

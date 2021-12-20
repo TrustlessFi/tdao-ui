@@ -6,8 +6,7 @@ import { ContractsInfo } from '../contracts/'
 import {
   executeMulticalls,
   rc,
-  getMulticall,
-  getDuplicateFuncMulticall
+  oneContractManyFunctionMC,
 } from '@trustlessfi/multicall'
 import { unscale } from '../../utils'
 import { PromiseType } from '@trustlessfi/utils'
@@ -39,14 +38,11 @@ export interface TcpAllocationInfoState extends sliceState<tcpAllocationInfo> {}
 export const getTcpAllocationInfo = createAsyncThunk(
   'tcpAllocation/getTcpAllocationInfo',
   async (args: tcpAllocationInfoArgs): Promise<tcpAllocationInfo> => {
-    console.log('tcpAllocation/getTcpAllocationInfo', {args})
     const tcpAllocation = getContract(args.contracts.TcpAllocation, ProtocolContract.TcpAllocation) as TDao
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
-    console.log("here 1")
-
-    const { tdaoInfo, lockPosition, blockTime } = await executeMulticalls(trustlessMulticall, {
-      tdaoInfo: getMulticall(
+    const { tdaoInfo, blockTime } = await executeMulticalls(trustlessMulticall, {
+      tdaoInfo: oneContractManyFunctionMC(
         tcpAllocation,
         {
           restrictedToUnlockDuration: rc.Boolean,
@@ -60,22 +56,11 @@ export const getTcpAllocationInfo = createAsyncThunk(
           getUserAllocation: [args.userAddress],
         }
       ),
-      blockTime: getMulticall(
+      blockTime: oneContractManyFunctionMC(
         trustlessMulticall,
-        {
-          getCurrentBlockTimestamp: rc.BigNumberToNumber,
-        },
-      ),
-      lockPosition: getDuplicateFuncMulticall(
-        tcpAllocation,
-        'getUserAllocation',
-        (result: any) => result as PromiseType<ReturnType<TcpAllocation['getUserAllocation']>>,
-        { lockPosition: [args.userAddress]}
+        { getCurrentBlockTimestamp: rc.BigNumberToNumber },
       ),
     })
-
-    console.log({tdaoInfo, lockPosition})
-    console.log("here 2")
 
     return {
       restrictedToUnlockDuration: tdaoInfo.restrictedToUnlockDuration,

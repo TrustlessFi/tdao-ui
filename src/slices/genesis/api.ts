@@ -8,7 +8,8 @@ import {
 } from "@trustlessfi/typechain"
 import {
   executeMulticalls,
-  getDuplicateFuncMulticall,
+  oneContractOneFunctionMC,
+  idToIdAndArg,
 } from "@trustlessfi/multicall"
 
 // DEBT
@@ -36,14 +37,11 @@ async function _fetchBaseDebtPositions({
   // fetch all positions via multicall
   const { accounting, trustlessMulticall } = contracts
   const data = await executeMulticalls(trustlessMulticall, {
-    positions: getDuplicateFuncMulticall(
+    positions: oneContractOneFunctionMC(
       accounting,
-      "getPosition",
-      (result: any) =>
-        result as PromiseType<ReturnType<Accounting["getPosition"]>>,
-      Object.fromEntries(
-        positionIDs.map((positionID) => [positionID.toString(), [positionID]])
-      )
+      'getPosition',
+      (result: any) => result as PromiseType<ReturnType<Accounting['getPosition']>>,
+      idToIdAndArg(positionIDs.map(id => id.toString())),
     ),
   })
 
@@ -82,14 +80,11 @@ async function _fetchBaseDebtPositionOwners({
   // fetch all position owners via multicall
   const { trustlessMulticall, huePositionNFT } = contracts
   const { owners } = await executeMulticalls(trustlessMulticall, {
-    owners: getDuplicateFuncMulticall(
+    owners: oneContractOneFunctionMC(
       huePositionNFT,
-      "ownerOf",
-      (result: any) =>
-        result as PromiseType<ReturnType<HuePositionNFT["ownerOf"]>>,
-      Object.fromEntries(
-        positions.map((position, index) => [index, [position.id]])
-      )
+      'ownerOf',
+      (result: any) => result as PromiseType<ReturnType<HuePositionNFT['ownerOf']>>,
+      Object.fromEntries(positions.map((position, index) => [index, [position.id]]))
     ),
   })
 
@@ -188,16 +183,11 @@ async function _fetchLiquidityPositionIDsFromOwnerIDs({
   // fetch liquidity position ids via multicall
   const { trustlessMulticall, accounting } = contracts
   const { positions } = await executeMulticalls(trustlessMulticall, {
-    positions: getDuplicateFuncMulticall(
+    positions: oneContractOneFunctionMC(
       accounting,
-      "getPoolPositionNftIdsByOwner",
-      (result: any) =>
-        result as PromiseType<
-          ReturnType<Accounting["getPoolPositionNftIdsByOwner"]>
-        >,
-      Object.fromEntries(
-        ownerIDs.map((ownerID) => [ownerID.toString(), [ownerID]])
-      )
+      'getPoolPositionNftIdsByOwner',
+      (result: any) => result as PromiseType<ReturnType<Accounting["getPoolPositionNftIdsByOwner"]>>,
+      idToIdAndArg(ownerIDs),
     ),
   })
   // flatten ownerID -> [...positionID] map to a list of position IDs.
@@ -220,14 +210,11 @@ async function _fetchLiquidityPositions({
   // fetch liquidity positions via multicall
   const { trustlessMulticall, accounting } = contracts
   const data = await executeMulticalls(trustlessMulticall, {
-    positions: getDuplicateFuncMulticall(
+    positions: oneContractOneFunctionMC(
       accounting,
-      "getPoolPosition",
-      (result: any) =>
-        result as PromiseType<ReturnType<Accounting["getPoolPosition"]>>,
-      Object.fromEntries(
-        positionIDs.map((positionID) => [positionID.toString(), [positionID]])
-      )
+      'getPoolPosition',
+      (result: any) => result as PromiseType<ReturnType<Accounting['getPoolPosition']>>,
+      idToIdAndArg(positionIDs.map(id => id.toString())),
     ),
   })
 

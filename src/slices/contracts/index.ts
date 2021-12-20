@@ -4,7 +4,7 @@ import { Governor, TDao } from "@trustlessfi/typechain"
 import { getLocalStorage } from "../../utils"
 import { getGenericReducerBuilder } from "../index"
 import { getMulticallContract } from "../../utils/getContract"
-import { executeMulticalls, getMulticall, rc } from "@trustlessfi/multicall"
+import { executeMulticalls, rc, oneContractManyFunctionMC } from "@trustlessfi/multicall"
 import getContract from "../../utils/getContract"
 
 // TODO add TCP Allocation
@@ -63,7 +63,7 @@ export const getContracts = createAsyncThunk(
     const { tcpContracts, tdaoContracts } = await executeMulticalls(
       trustlessMulticall,
       {
-        tcpContracts: getMulticall(
+        tcpContracts: oneContractManyFunctionMC(
           governor,
           {
             accounting: rc.String,
@@ -85,7 +85,7 @@ export const getContracts = createAsyncThunk(
             tcpAllocation: rc.String,
           }
         ),
-        tdaoContracts: getMulticall(
+        tdaoContracts: oneContractManyFunctionMC(
           tdao,
           {
             timelock: rc.String,

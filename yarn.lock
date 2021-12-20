@@ -3076,13 +3076,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trustlessfi/multicall@npm:^0.4.6":
-  version: 0.4.6
-  resolution: "@trustlessfi/multicall@npm:0.4.6"
+"@trustlessfi/multicall@npm:^0.4.16":
+  version: 0.4.16
+  resolution: "@trustlessfi/multicall@npm:0.4.16"
   dependencies:
-    "@trustlessfi/utils": ^0.2.1
+    "@trustlessfi/utils": ^0.2.9
     ethers: ^5.4.7
-  checksum: 2671a5c7ebc195df2ea5702cc64ae11877ce83a874a74051a131c6ab51f9897edc2f94742317dc53783f52da88a2cc8402244c4eee2799648c91c5aed3c90381
+  checksum: dc90a2ecb9bddb2edfc9eb2740618ff20707e7dd1c81577a8c5bfc9f99a044a9aa3b287ba8140f32f97464941cc9eaf6e4a23dc4e2304ed8994a62fb3fbf0aa6
   languageName: node
   linkType: hard
 
@@ -3097,21 +3097,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trustlessfi/utils@npm:^0.2.1":
-  version: 0.2.4
-  resolution: "@trustlessfi/utils@npm:0.2.4"
-  dependencies:
-    ethers: ^5.4.7
-  checksum: 5b56810d037ff89cc08f2f82ed0ed34556d1e11c36d5bc70711685601f70accd1771ead96d6d8e1971ebb9fc25a2641ff8dfe87651ceb905ffcea9ba3b6922ed
-  languageName: node
-  linkType: hard
-
 "@trustlessfi/utils@npm:^0.2.8":
   version: 0.2.8
   resolution: "@trustlessfi/utils@npm:0.2.8"
   dependencies:
     ethers: ^5.4.7
   checksum: fac5ee784ebb3f81e565c821da2da278a18947f49fa6bb6d37e07cf0d6e85891317913bf63f33dbb6cecb68b1cb7d5bbbdbfd3c406e289683b738316147b9fdc
+  languageName: node
+  linkType: hard
+
+"@trustlessfi/utils@npm:^0.2.9":
+  version: 0.2.9
+  resolution: "@trustlessfi/utils@npm:0.2.9"
+  dependencies:
+    ethers: ^5.4.7
+  checksum: 1e1fd6408b28c41d9d29f826e2418307f6d08a47380a77a1bc61554893115fb427e7759c47d5921dbcfccab9ed2c646a59c0028ff85ea5052230d1e4f9f2e44c
   languageName: node
   linkType: hard
 
@@ -18999,7 +18999,7 @@ resolve@^2.0.0-next.3:
     "@testing-library/user-event": ^13.5.0
     "@trustlessfi/addresses": ^0.4.14
     "@trustlessfi/artifacts": ^0.1.9
-    "@trustlessfi/multicall": ^0.4.6
+    "@trustlessfi/multicall": ^0.4.16
     "@trustlessfi/typechain": ^0.6.15
     "@types/carbon-components": ^10.27.1
     "@types/carbon-components-react": ^7.46.1

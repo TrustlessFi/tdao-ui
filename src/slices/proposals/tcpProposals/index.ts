@@ -9,16 +9,10 @@ import { ProtocolContract } from '../../contracts/'
 export const getTcpProposals = createAsyncThunk(
   'tcpProposals/getProposals',
   async (args: proposalsArgs): Promise<proposalsInfo> =>  {
-    console.log("inside ", 'tcpProposals/getProposals', args)
-    const govAlpha = getContract(
-      args.contracts.TcpGovernorAlpha,
-      ProtocolContract.TcpGovernorAlpha
-    ) as TcpGovernorAlpha
-    console.log("here 1")
 
-    const result =  await fetchProposals(args.userAddress, govAlpha)
-    console.log("here 2")
-    return result
+    const govAlpha = getContract(args.contracts.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha ) as TcpGovernorAlpha
+
+    return await fetchProposals(args.userAddress, govAlpha)
   }
 )
 

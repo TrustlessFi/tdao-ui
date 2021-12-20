@@ -39,8 +39,6 @@ const ProposalsList: FunctionComponent = () => {
     )
   }
 
-  console.log({tcpProposals})
-
   if (Object.values(tcpProposals.proposals).length === 0) {
     return (
       <Center>There are no Tcp governance proposals.</Center>

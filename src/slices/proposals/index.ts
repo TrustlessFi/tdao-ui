@@ -87,8 +87,6 @@ export const fetchProposals = async (
     votingToken.decimals(),
   ])
 
-  console.log({rawProposalData})
-
   const rawProposals = rawProposalData._proposals
   const states = rawProposalData._proposalStates
   const receipts = rawProposalData._receipts

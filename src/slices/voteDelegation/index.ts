@@ -1,4 +1,5 @@
 import { Contract } from 'ethers'
+import { ContractsInfo } from '../contracts'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
 import { getGenericReducerBuilder } from '../'
@@ -6,135 +7,71 @@ import getContract, { getMulticallContract } from '../../utils/getContract'
 import {
   executeMulticalls,
   rc,
-  getMulticall,
-  contractFunctionSelector,
-  getDuplicateContractMulticall,
-  getDuplicateFuncMulticall
+  manyContractOneFunctionMC,
+  oneContractManyFunctionMC,
+  idToIdAndArg,
 } from '@trustlessfi/multicall'
 import { zeroAddress } from '../../utils'
 import getProvider from '../../utils/getProvider';
-import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
-import { PromiseType } from '@trustlessfi/utils'
+import protocolTokenArtifact from '@trustlessfi/artifacts/dist/contracts/core/tokens/ProtocolToken.sol/ProtocolToken.json'
+import { tdaoInfo } from '../tdaoInfo'
 
-import { TDao } from '@trustlessfi/typechain'
+import { ProtocolToken } from '@trustlessfi/typechain'
 import { TDaoRootContract } from '../contracts'
 
-export interface tdaoInfo {
-  lastPeriodGlobalInflationUpdated: number
-  minMonths: number
-  maxMonths: number
-  monthIncrements: number
-  countUnderlyingProtocolTokens: number
-  startPeriod: number
-  periodLength: number
-  firstPeriod: number
-  currentPeriod: number
-  underlyingProtocolTokens: {
-    [key in number]: {
-      tokenID: number
-      address: string
-      name: string
-      symbol: string
-      decimals: number
-      rs: {
-        cumulativeVirtualCount: string
-        totalRewards: string
-      }
-    }
-  }
+export type voteDelegationInfo = {
+  tdao: string
+  underlyingTokens: {[key in string]: string}
 }
 
-export interface TDaoInfoState extends sliceState<tdaoInfo> {}
+export interface voteDelegationState extends sliceState<voteDelegationInfo> {}
 
-export const getTDaoInfo = createAsyncThunk(
-  'tdaoInfo/getTDaoInfo',
-  async (args: { tdao: string, trustlessMulticall: string }): Promise<tdaoInfo> => {
-    const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
-    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
+interface voteDelegationArgs {
+  userAddress: string,
+  trustlessMulticall: string
+  tdao: string
+  contracts: ContractsInfo
+  tdaoInfo: tdaoInfo
+}
+
+export const getVoteDelegation = createAsyncThunk(
+  'voteDelegation/getVoteDelegation',
+  async (args: voteDelegationArgs): Promise<voteDelegationInfo> => {
     const provider = getProvider()
+    const tdao = getContract(args.tdao, TDaoRootContract.TDao) as ProtocolToken
+    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
-    const { tdaoInfo } = await executeMulticalls(trustlessMulticall, {
-      tdaoInfo: getMulticall(
-        tdao,
-        {
-          lastPeriodGlobalInflationUpdated: rc.BigNumberToNumber,
-          countUnderlyingProtocolTokens: rc.BigNumberToNumber,
-          startPeriod: rc.BigNumberToNumber,
-          periodLength: rc.BigNumberToNumber,
-          firstPeriod: rc.BigNumberToNumber,
-          currentPeriod: rc.BigNumberToNumber,
-          allTokens: (result: any) => result as PromiseType<ReturnType<TDao['allTokens']>>,
-        }
+    const protocolTokenContract = new Contract(zeroAddress, protocolTokenArtifact.abi, provider) as ProtocolToken
+
+    const { tdaoDelegate, underlyingTokenDelegates } = await executeMulticalls(trustlessMulticall, {
+      tdaoDelegate: oneContractManyFunctionMC(tdao,
+        { delegates: rc.String },
+        { delegates: [args.userAddress]}
       ),
+      underlyingTokenDelegates: manyContractOneFunctionMC(
+        protocolTokenContract,
+        idToIdAndArg(Object.values(args.tdaoInfo.underlyingProtocolTokens).map(token => token.address)),
+        'delegates',
+        rc.String,
+      )
     })
 
-    const tokenContract = new Contract(zeroAddress, erc20Artifact.abi, provider)
-
-    const tokens = tdaoInfo.allTokens
-
-    const getRewardsStatusID = (id: number) => id + 'rewardsStatus'
-
-    const tokenInfo = await executeMulticalls(
-      trustlessMulticall,
-      {
-        symbol: getDuplicateContractMulticall(
-          tokenContract,
-          Object.fromEntries(tokens.map(address => [contractFunctionSelector(address as string, 'symbol'), rc.String])),
-        ),
-        name: getDuplicateContractMulticall(
-          tokenContract,
-          Object.fromEntries(tokens.map(address => [contractFunctionSelector(address as string, 'name'), rc.String])),
-        ),
-        decimals: getDuplicateContractMulticall(
-          tokenContract,
-          Object.fromEntries(tokens.map(address => [contractFunctionSelector(address as string, 'decimals'), rc.Number])),
-        ),
-        rewardsStatus: getDuplicateFuncMulticall(
-          tdao,
-          'getRewardsStatus',
-          (result: any) => result as PromiseType<ReturnType<TDao['getRewardsStatus']>>,
-          Object.fromEntries(tokens.map((_address, id) => [getRewardsStatusID(id), [id]]))
-        ),
-      },
-    )
-
     return {
-      lastPeriodGlobalInflationUpdated: tdaoInfo.lastPeriodGlobalInflationUpdated,
-      minMonths: 6,
-      maxMonths: 48,
-      monthIncrements: 3,
-      countUnderlyingProtocolTokens: tdaoInfo.countUnderlyingProtocolTokens,
-      startPeriod: tdaoInfo.startPeriod,
-      periodLength: tdaoInfo.periodLength,
-      firstPeriod: tdaoInfo.firstPeriod,
-      currentPeriod: tdaoInfo.currentPeriod,
-      underlyingProtocolTokens:
-        Object.fromEntries(tokens.map((address, tokenID) => {
-          return [tokenID, {
-            tokenID,
-            address,
-            symbol: tokenInfo.symbol[contractFunctionSelector(address, 'symbol')],
-            name: tokenInfo.name[contractFunctionSelector(address, 'name')],
-            decimals: tokenInfo.decimals[contractFunctionSelector(address, 'decimals')],
-            rs: {
-              cumulativeVirtualCount:
-                tokenInfo.rewardsStatus[getRewardsStatusID(tokenID)].cumulativeVirtualCount.toString(),
-              totalRewards:
-                tokenInfo.rewardsStatus[getRewardsStatusID(tokenID)].totalRewards.toString(),
-            }
-          }]
-        }))
+      tdao: tdaoDelegate.delegates,
+      underlyingTokens: underlyingTokenDelegates
     }
   }
 )
 
-export const tdaoInfoSlice = createSlice({
-  name: 'tdaoInfo',
-  initialState: initialState as TDaoInfoState,
+const name = 'voteDelegation'
+
+export const voteDelegationSlice = createSlice({
+  name,
+  initialState: initialState as voteDelegationState,
   reducers: {},
   extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getTDaoInfo)
+    builder = getGenericReducerBuilder(builder, getVoteDelegation)
   },
 })
 
-export default tdaoInfoSlice.reducer
+export default voteDelegationSlice.reducer

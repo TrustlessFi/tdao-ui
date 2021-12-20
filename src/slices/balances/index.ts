@@ -1,5 +1,5 @@
 import { sliceState } from '../'
-import { Contract } from 'ethers'
+import { Contract, BigNumber } from 'ethers'
 import { initialState, getGenericReducerBuilder } from '../'
 import { tdaoInfo } from '../tdaoInfo'
 import { unscale, uint255Max, zeroAddress, unique } from '../../utils'
@@ -9,9 +9,9 @@ import { getMulticallContract} from '../../utils/getContract'
 import {
   executeMulticalls,
   rc,
-  getCustomMulticall,
-  getFullSelector,
-  getMulticall,
+  oneContractManyFunctionMC,
+  manyContractOneFunctionMC,
+  idToIdAndArg,
 } from '@trustlessfi/multicall'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import getProvider from '../../utils/getProvider'
@@ -83,58 +83,31 @@ export const getBalances = createAsyncThunk(
     } = await executeMulticalls(
       multicall,
       {
-        userEthBalance: getMulticall(
+        userEthBalance: oneContractManyFunctionMC(
           multicall,
           { getEthBalance: rc.BigNumber },
           { getEthBalance: [args.userAddress] },
         ),
-        userBalance: getCustomMulticall(
+        userBalance: manyContractOneFunctionMC(
           tokenContract,
-          Object.fromEntries(
-            tokenAddresses.map(address => [getFullSelector(tokenContract, address, 'balanceOf', [userAddress]), rc.BigNumber]
-          )
-        )),
-        tdaoApprovals: getCustomMulticall(
-          tokenContract,
-          Object.fromEntries(
-            tokenAddresses.map(address => [getFullSelector(tokenContract, address, 'allowance', [userAddress, args.tdao]), rc.BigNumber]
-          )
-        )),
-        /*
-        allSymbols: getDuplicateContractMulticall(
-          tokenContract,
-          Object.fromEntries(tokenAddresses.map(address => [contractFunctionSelector(address as string, 'symbol'), rc.String])),
+          idToIdAndArg(tokenAddresses),
+          'balanceOf',
+          rc.BigNumber,
         ),
-        allNames: getDuplicateContractMulticall(
+        tdaoApprovals: manyContractOneFunctionMC(
           tokenContract,
-          Object.fromEntries(tokenAddresses.map(address => [contractFunctionSelector(address as string, 'name'), rc.String])),
+          Object.fromEntries(tokenAddresses.map(address => [address, [userAddress, args.tdao]])),
+          'allowance',
+          rc.BigNumber,
         ),
-        allDecimals: getDuplicateContractMulticall(
-          tokenContract,
-          Object.fromEntries(tokenAddresses.map(address => [contractFunctionSelector(address as string, 'decimals'), rc.Number])),
-        ),
-        */
-        /*
-        accountingBalance: getCustomMulticall(
-          tokenContract,
-          Object.fromEntries(
-            tokenAddresses.map(address => [getFullSelector(tokenContract, address, 'balanceOf', [args.contracts.Accounting]), rc.BigNumber]
-          )
-        ))
-        */
       }
     )
 
-    const getApprovalFor = (pc: TDaoRootContract.TDao, tokenAddress: string) => {
-      const value =
-        tdaoApprovals[getFullSelector(tokenContract, tokenAddress, 'allowance', [userAddress, args.tdao])]
-
-      return {
-        allowance: value.toString(),
-        approving: false,
-        approved: value.gt(uint255Max),
-      }
-    }
+    const getApprovalFor = (value: BigNumber) => ({
+      allowance: value.toString(),
+      approving: false,
+      approved: value.gt(uint255Max),
+    })
 
     type poolTokensMetadata = {
       symbol: string
@@ -178,9 +151,9 @@ export const getBalances = createAsyncThunk(
             symbol: tokenMetadataMap[address].symbol,
             decimals,
           },
-          userBalance: unscale(userBalance[getFullSelector(tokenContract, address, 'balanceOf', [userAddress])], decimals),
+          userBalance: unscale(userBalance[address], decimals),
           approval: {
-            [TDaoRootContract.TDao]: getApprovalFor(TDaoRootContract.TDao, address),
+            [TDaoRootContract.TDao]: getApprovalFor(tdaoApprovals[address]),
           },
           balances: {
           }
