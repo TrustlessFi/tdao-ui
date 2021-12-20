@@ -86,8 +86,8 @@ export const fetchProposals = async (
 ): Promise<proposalsInfo> => {
   const multicall = getMulticallContract(trustlessMulticall)
 
-  const result = await governorAlpha.getProposalInfo(1, userAddress)
-  console.log({result})
+  // const result = await governorAlpha.getProposalsInfo(userAddress)
+  // console.log({result})
 
   const { proposals, votingTokenDecimals, } = await executeMulticalls(
     multicall,
@@ -95,23 +95,22 @@ export const fetchProposals = async (
       proposals: oneContractManyFunctionMC(
         governorAlpha,
         {
-          getProposalInfo: (result: any) => result as PromiseType<ReturnType<GovernorAlpha['getProposalInfo']>>,
+          getProposalsInfo: (result: any) => result as PromiseType<ReturnType<GovernorAlpha['getProposalsInfo']>>,
           quorumVotes: rc.BigNumber,
         },
-        { getProposalInfo: [1, userAddress] },
+        { getProposalsInfo: [userAddress] },
       ),
       votingTokenDecimals: oneContractManyFunctionMC(votingToken, { decimals: rc.Number }),
     }
   )
 
-  console.log({proposals})
-
   const decimals = votingTokenDecimals.decimals
-  const proposal = proposals.getProposalInfo
 
   return {
     quorum: unscale(proposals.quorumVotes, decimals),
-    proposals: {1:
+    proposals: Object.fromEntries(proposals.getProposalsInfo.map(proposal =>
+      [
+        proposal.id,
         {
           proposal: {
             id: proposal.id,
@@ -131,15 +130,16 @@ export const fetchProposals = async (
             state: proposalStateIDToState(proposal.state),
           },
           receipt: {
-            hasVoted: proposal.hasVoted,
-            support: proposal.support,
-            rewardReceived: proposal.rewardReceived,
-            votes: unscale(proposal.votes, decimals),
+            hasVoted: proposal.receipt.hasVoted,
+            support: proposal.receipt.support,
+            rewardReceived: proposal.receipt.rewardReceived,
+            votes: unscale(proposal.receipt.votes, decimals),
           },
           votingPower: unscale(proposal.votingPower, decimals),
-        }
-
-    }
+        },
+      ]
+    ))
+  }
     /*
     proposals: Object.fromEntries(proposals.getProposalInfo.map(proposal =>
       [
@@ -173,5 +173,4 @@ export const fetchProposals = async (
       ]
     ))
     */
-  }
 }
