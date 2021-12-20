@@ -1,4 +1,3 @@
-import { Contract } from 'ethers'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
 import { getGenericReducerBuilder } from '../'
@@ -6,15 +5,11 @@ import getContract, { getMulticallContract } from '../../utils/getContract'
 import {
   executeMulticalls,
   rc,
-  idToIdAndArg,
-  idToIdAndNoArg,
   oneContractOneFunctionMC,
   oneContractManyFunctionMC,
   manyContractOneFunctionMC,
 } from '@trustlessfi/multicall'
 import { zeroAddress, addressToERC20 } from '../../utils'
-import getProvider from '../../utils/getProvider';
-import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
 import { PromiseType } from '@trustlessfi/utils'
 
 import { TDao } from '@trustlessfi/typechain'
@@ -52,6 +47,7 @@ export const getTDaoInfo = createAsyncThunk(
   async (args: { tdao: string, trustlessMulticall: string }): Promise<tdaoInfo> => {
     const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
+    const tokenContract = addressToERC20(zeroAddress)
 
     const { tdaoInfo } = await executeMulticalls(trustlessMulticall, {
       tdaoInfo: oneContractManyFunctionMC(
@@ -68,16 +64,12 @@ export const getTDaoInfo = createAsyncThunk(
       ),
     })
 
-    const tokenContract = addressToERC20(zeroAddress)
-
     const tokenAddresses = tdaoInfo.allTokens
-
-    const rewardsStatusArgs = Object.fromEntries(tokenAddresses.map((address, tokenID) => [address, [tokenID]]))
 
     const { name, symbol, decimals } = await executeMulticalls(
       trustlessMulticall,
       {
-        name: manyContractOneFunctionMC(tokenContract, tokenAddresses, 'name', rc.String, ),
+        name: manyContractOneFunctionMC(tokenContract, tokenAddresses, 'name', rc.String),
         symbol: manyContractOneFunctionMC(tokenContract, tokenAddresses, 'symbol', rc.String),
         decimals: manyContractOneFunctionMC(tokenContract, tokenAddresses, 'decimals', rc.Number),
       },
@@ -90,7 +82,7 @@ export const getTDaoInfo = createAsyncThunk(
           tdao,
           'getRewardsStatus',
           (result: any) => result as PromiseType<ReturnType<TDao['getRewardsStatus']>>,
-          rewardsStatusArgs,
+          Object.fromEntries(tokenAddresses.map((address, tokenID) => [address, [tokenID]])),
         ),
       },
     )

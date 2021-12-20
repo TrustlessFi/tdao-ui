@@ -1,6 +1,5 @@
-import { Row, Col } from 'react-flexbox-grid'
 import { useParams } from 'react-router';
-import { RadioButtonGroup, RadioButton, Tile, RadioButtonValue } from 'carbon-components-react'
+import { RadioButtonValue } from 'carbon-components-react'
 import { FunctionComponent, useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { waitForTcpProposals } from '../../slices/waitFor'

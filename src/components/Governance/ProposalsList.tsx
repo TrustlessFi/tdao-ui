@@ -14,7 +14,7 @@ import { notNullString } from '../../utils'
 import { FunctionComponent } from 'react'
 import { ClickableTile } from 'carbon-components-react'
 import ProgressBar from '../library/ProgressBar'
-import { InlineAppTag, ProposalDescription } from './GovernanceSubcomponents'
+import { InlineAppTag } from './GovernanceSubcomponents'
 
 const ProposalsList: FunctionComponent = () => {
   const dispatch = useDispatch()
