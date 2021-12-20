@@ -1,4 +1,4 @@
-import LargeText from '../utils/LargeText'
+import LargeText from '../library/LargeText'
 import Center from '../library/Center'
 import { numDisplay } from '../../utils'
 import { TDaoPosition } from '../../slices/tdaoPositions'

@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from 'react'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import AppTile from '../library/AppTile'
-import CreateTransactionButton from '../utils/CreateTransactionButton'
+import CreateTransactionButton from '../library/CreateTransactionButton'
 import { TransactionType } from '../../slices/transactions'
 import { waitForContracts } from '../../slices/waitFor'
 import { notNullString } from '../../utils'

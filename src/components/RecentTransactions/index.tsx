@@ -4,10 +4,10 @@ import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { clearUserTransactions, TransactionStatus, getTxLongName } from '../../slices/transactions'
 import Center from '../library/Center'
 import SimpleTable, { TableHeaderOnly } from '../library/SimpleTable'
-import ConnectWalletButton from '../utils/ConnectWalletButton'
-import { getSortedUserTxs, UserTxSortOption } from '../utils'
+import ConnectWalletButton from '../library/ConnectWalletButton'
+import { getSortedUserTxs, UserTxSortOption } from '../library'
 import { getDateTimeStringMS } from '../../utils'
-import { getEtherscanTxLink, getEtherscanAddressLink } from '../utils/ExplorerLink'
+import { getEtherscanTxLink, getEtherscanAddressLink } from '../library/ExplorerLink'
 import { getChainIDFromState } from '../../slices/chainID'
 
 const txStatusToLoadingStatus: {[key in TransactionStatus]: InlineLoadingStatus} = {

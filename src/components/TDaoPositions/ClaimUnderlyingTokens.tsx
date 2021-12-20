@@ -1,13 +1,13 @@
 import { useState } from "react"
-import LargeText from '../utils/LargeText'
+import LargeText from '../library/LargeText'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import {
   waitForBalances,
 } from '../../slices/waitFor'
 import SpacedList from '../library/SpacedList'
 import { TransactionType } from '../../slices/transactions'
-import CreateTransactionButton from '../utils/CreateTransactionButton'
-import TwoColumnDisplay from '../utils/TwoColumnDisplay'
+import CreateTransactionButton from '../library/CreateTransactionButton'
+import TwoColumnDisplay from '../library/TwoColumnDisplay'
 import {
   waitForTDaoInfo,
 } from '../../slices/waitFor'
@@ -19,7 +19,7 @@ import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { TokenAllocationOptions } from './'
 import { invert, last, range, notNullString } from '../../utils'
-import ParagraphDivider from '../utils/ParagraphDivider'
+import ParagraphDivider from '../library/ParagraphDivider'
 
 const ClaimUnderlyingTokens = () => {
   const dispatch = useAppDispatch()

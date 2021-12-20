@@ -4,15 +4,15 @@ import {
   waitForTDaoInfo,
 } from '../../slices/waitFor'
 import { TransactionType } from '../../slices/transactions'
-import CreateTransactionButton from '../utils/CreateTransactionButton'
+import CreateTransactionButton from '../library/CreateTransactionButton'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { PositionUpdateOptions } from './'
-import TwoColumnDisplay from '../utils/TwoColumnDisplay'
-import LargeText from '../utils/LargeText'
-import ParagraphDivider from '../utils/ParagraphDivider'
+import TwoColumnDisplay from '../library/TwoColumnDisplay'
+import LargeText from '../library/LargeText'
+import ParagraphDivider from '../library/ParagraphDivider'
 
 interface MatchParams {
   positionID: string

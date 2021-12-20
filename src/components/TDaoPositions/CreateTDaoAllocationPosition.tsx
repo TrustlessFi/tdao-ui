@@ -1,5 +1,5 @@
 import { useState } from "react"
-import LargeText from '../utils/LargeText'
+import LargeText from '../library/LargeText'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import {
   waitForBalances,
@@ -10,8 +10,8 @@ import PositionMetadata2 from '../library/PositionMetadata2'
 import SpacedList from '../library/SpacedList'
 import ErrorMessage, { reason } from '../library/ErrorMessage'
 import { TransactionType } from '../../slices/transactions'
-import CreateTransactionButton from '../utils/CreateTransactionButton'
-import TwoColumnDisplay from '../utils/TwoColumnDisplay'
+import CreateTransactionButton from '../library/CreateTransactionButton'
+import TwoColumnDisplay from '../library/TwoColumnDisplay'
 import {
   waitForTDaoInfo,
   waitForTcpAllocationInfo,
@@ -29,7 +29,7 @@ import {
   years, scale, unscale, getDateTimeStringMS,
   days, monthsToDays, getDateStringMS,
 } from '../../utils'
-import ParagraphDivider from '../utils/ParagraphDivider'
+import ParagraphDivider from '../library/ParagraphDivider'
 
 const CreateTDaoAllocationPosition = () => {
   const dispatch = useAppDispatch()

@@ -1,6 +1,6 @@
 import MetaMaskOnboarding from "@metamask/onboarding"
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import { connectWallet } from '../utils/WalletConnection'
+import { connectWallet } from '../library/WalletConnection'
 import { CSSProperties } from 'react'
 import { Button, ButtonKind, ButtonSize } from 'carbon-components-react'
 

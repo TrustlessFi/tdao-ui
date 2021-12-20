@@ -6,7 +6,7 @@ import Governance from './components/Governance'
 import ErrorBoundary from './components/library/ErrorBoundary'
 import { Switch, Route } from 'react-router-dom'
 import { HashRouter as Router } from 'react-router-dom'
-import LocalStorageManager from './components/utils/LocalStorageManager'
+import LocalStorageManager from './components/library/LocalStorageManager'
 import Notifications from './components/Notifications'
 import RecentTransactions from './components/RecentTransactions'
 

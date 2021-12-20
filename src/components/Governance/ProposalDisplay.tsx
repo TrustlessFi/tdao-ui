@@ -8,17 +8,17 @@ import { TransactionType } from '../../slices/transactions'
 import { waitForContracts } from '../../slices/waitFor'
 import { numDisplay } from '../../utils'
 import ProgressBar from '../library/ProgressBar'
-import LargeText from '../utils/LargeText'
-import CreateTransactionButton from '../utils/CreateTransactionButton'
+import LargeText from '../library/LargeText'
+import CreateTransactionButton from '../library/CreateTransactionButton'
 import { InlineAppTag } from './GovernanceSubcomponents'
 import ProposalActions from './ProposalActions'
 import Breadcrumbs from '../library/Breadcrumbs'
-import TwoColumnDisplay from '../utils/TwoColumnDisplay'
+import TwoColumnDisplay from '../library/TwoColumnDisplay'
 import SpacedList from '../library/SpacedList'
 import InputPicker from '../library/InputPicker'
 import { Launch16 } from '@carbon/icons-react';
 import { abbreviateAddress } from '../../utils'
-import { getEtherscanAddressLink } from '../utils/ExplorerLink'
+import { getEtherscanAddressLink } from '../library/ExplorerLink'
 
 enum Vote {
   '-' = '-',
