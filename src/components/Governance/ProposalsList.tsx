@@ -1,6 +1,7 @@
 import { useHistory } from 'react-router-dom'
 import { useAppSelector } from '../../app/hooks'
-import { waitForTcpProposals } from '../../slices/waitFor'
+import { waitForTcpProposals, waitForContracts } from '../../slices/waitFor'
+import { Proposal, ProposalState, isVotingCompleteState } from '../../slices/proposals'
 import AppTile from '../library/AppTile'
 import Center from '../library/Center'
 import { useDispatch } from 'react-redux'
@@ -8,13 +9,10 @@ import { useAppSelector as selector } from '../../app/hooks'
 import CreateTransactionButton from '../library/CreateTransactionButton'
 import ProgressBar from '../library/ProgressBar'
 import { TransactionType } from '../../slices/transactions'
-import { waitForContracts } from '../../slices/waitFor'
-import { notNullString } from '../../utils'
+import { notNullString, numDisplay } from '../../utils'
 import { FunctionComponent } from 'react'
-import { Button } from 'carbon-components-react'
 import SimpleTable, { TableHeaderOnly } from '../library/SimpleTable'
 import ConnectWalletButton from '../library/ConnectWalletButton'
-import { getEtherscanAddressLink } from '../library/ExplorerLink'
 import { InlineAppTag } from './GovernanceSubcomponents'
 
 const ProposalsList: FunctionComponent = () => {
@@ -45,11 +43,32 @@ const ProposalsList: FunctionComponent = () => {
       }}
     />
 
-  const table =
-    userAddress === null || tcpProposals === null || Object.values(tcpProposals.proposals).length === 0
-    ? (
+
+  const tableTitle = `Proposals ${tcpProposals === null ? '' : `(${Object.values(tcpProposals.proposals).length}`})`
+
+  const getVotingRewards = (p: Proposal, inflationPercentage: number) => {
+    const totalVotingRewards = p.proposal.initialSupply * inflationPercentage
+    const totalVotes = p.proposal.forVotes + p.proposal.againstVotes
+    const estimatedRewards = (totalVotingRewards * p.votingPower) / totalVotes
+
+    if (!p.receipt.hasVoted) {
+      return estimatedRewards === 0 || totalVotes === 0
+        ? 'Have not voted'
+        : `Up to ${numDisplay(estimatedRewards)} Tcp after voting`
+    } else if (p.proposal.state === ProposalState.Active) {
+        return `Up to ${numDisplay(estimatedRewards)} Tcp after voting`
+    } else {
+        return p.receipt.rewardReceived
+          ? `0 Tcp`
+          : `${numDisplay(estimatedRewards)} Tcp`
+    }
+  }
+
+  if (userAddress === null || tcpProposals === null || Object.values(tcpProposals.proposals).length === 0) {
+    return (
+      <AppTile title={tableTitle} rightElement={selfDelegateButton}>
         <div style={{position: 'relative'}}>
-          <TableHeaderOnly headers={['ID', 'Title', 'Stage', 'Status', 'Voting Rewards']} />
+          <TableHeaderOnly headers={['ID', 'Title', 'Stage', 'Status', 'Your Vote', 'Voting Rewards']} />
           <Center>
             <div style={{margin: 32}}>
               {userAddress === null
@@ -59,9 +78,19 @@ const ProposalsList: FunctionComponent = () => {
             </div>
           </Center>
         </div>
-      )
-    : <SimpleTable rows={
-        Object.values(tcpProposals.proposals).map(p => ({
+      </AppTile>
+    )
+  }
+
+  const proposalIDsWithRewards: number[] = []
+
+  const rows =
+    Object.values(tcpProposals.proposals).map(p => {
+      if (isVotingCompleteState(p.proposal.state) && !p.receipt.rewardReceived && p.receipt.votes > 0) {
+        proposalIDsWithRewards.push(p.proposal.id)
+      }
+
+      return {
         data: {
           'ID': p.proposal.id,
           'Title': p.proposal.title,
@@ -69,20 +98,33 @@ const ProposalsList: FunctionComponent = () => {
           'Status':
               <div style={{ width: '50%', display: 'flex', flexDirection: 'column' }}>
                 <ProgressBar label="Sentiment" amount={p.proposal.forVotes} max={p.proposal.forVotes + p.proposal.againstVotes} />
-                <ProgressBar label="Quorum Progress" amount={p.proposal.forVotes} max={tcpProposals.quorum} />
+                <ProgressBar label="Quorum" amount={p.proposal.forVotes} max={tcpProposals.quorum} />
               </div>,
-          'Voting Rewards': 'Have not voted.'
+          'Your Vote': p.receipt.hasVoted ? (p.receipt.support ? 'Yes' : 'No') : 'None',
+          'Voting Rewards': getVotingRewards(p, tcpProposals.inflationPercentage)
         },
         onClick: () => history.push(`/tcp/proposal/${p.proposal.id}`),
-      }))
-    } />
+      }
+    }
+  )
 
-  const tableTitle = `Proposals (${tcpProposals === null ? '-' : Object.values(tcpProposals.proposals).length})`
+  const claimAllRewardsButton =
+    <CreateTransactionButton
+      style={{marginTop: 8}}
+      disabled={proposalIDsWithRewards.length === 0}
+      title="Claim voting rewards"
+      size="sm"
+      txArgs={{
+        type: TransactionType.ClaimTcpVotingRewards,
+        governorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
+        proposalIDs: proposalIDsWithRewards,
+      }}
+    />
 
   return (
-    <AppTile title={tableTitle} rightElement={selfDelegateButton}>
-      {table}
-    </AppTile>
+      <AppTile title={tableTitle} rightElement={claimAllRewardsButton}>
+        <SimpleTable rows={rows} />
+      </AppTile>
   )
 }
 

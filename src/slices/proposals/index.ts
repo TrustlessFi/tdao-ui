@@ -1,6 +1,6 @@
 import { sliceState } from '../'
 import { ContractsInfo } from '../contracts'
-import { GovernorAlpha, ProtocolToken } from '@trustlessfi/typechain'
+import { GovernorAlphaWithVotingRewards, ProtocolToken } from '@trustlessfi/typechain'
 import { unscale, enforce, PromiseType } from "../../utils"
 import { getMulticallContract} from '../../utils/getContract'
 import {
@@ -23,11 +23,11 @@ export enum ProposalState {
 export const stateList = [
   ProposalState.Pending,
   ProposalState.Active,
+  ProposalState.Canceled,
   ProposalState.Defeated,
   ProposalState.Succeeded,
   ProposalState.Queued,
   ProposalState.Executed,
-  ProposalState.Canceled,
   ProposalState.Expired,
 ]
 
@@ -37,6 +37,12 @@ export const proposalStateIDToState = (id: number) => {
   enforce(0 <= id && id < stateList.length, 'Invalid state id')
   return stateList[id]
 }
+
+export const isVotingCompleteState = (state: ProposalState) =>
+  state === ProposalState.Succeeded
+  || state === ProposalState.Defeated
+  || state === ProposalState.Queued
+  || state === ProposalState.Executed
 
 export interface Proposal {
   proposal: {
@@ -52,6 +58,7 @@ export interface Proposal {
     endBlock: number
     forVotes: number
     againstVotes: number
+    initialSupply: number
     canceled: boolean
     executed: boolean
     state: ProposalState,
@@ -63,10 +70,12 @@ export interface Proposal {
     votes: number
   },
   votingPower: number
+  votingRewards: number
 }
 
 export interface proposalsInfo {
-  quorum: number,
+  quorum: number
+  inflationPercentage: number
   proposals: {[key in number]: Proposal}
 }
 
@@ -80,14 +89,12 @@ export interface ProposalsState extends sliceState<proposalsInfo> {}
 
 export const fetchProposals = async (
   userAddress: string,
-  governorAlpha: GovernorAlpha,
+  governorAlpha: GovernorAlphaWithVotingRewards,
   votingToken: ProtocolToken,
-  trustlessMulticall: string
+  trustlessMulticall: string,
+  inflationPercentage: number,
 ): Promise<proposalsInfo> => {
   const multicall = getMulticallContract(trustlessMulticall)
-
-  // const result = await governorAlpha.getProposalsInfo(userAddress)
-  // console.log({result})
 
   const { proposals, votingTokenDecimals, } = await executeMulticalls(
     multicall,
@@ -95,7 +102,7 @@ export const fetchProposals = async (
       proposals: oneContractManyFunctionMC(
         governorAlpha,
         {
-          getProposalsInfo: (result: any) => result as PromiseType<ReturnType<GovernorAlpha['getProposalsInfo']>>,
+          getProposalsInfo: (result: any) => result as PromiseType<ReturnType<GovernorAlphaWithVotingRewards['getProposalsInfo']>>,
           quorumVotes: rc.BigNumber,
         },
         { getProposalsInfo: [userAddress] },
@@ -108,25 +115,27 @@ export const fetchProposals = async (
 
   return {
     quorum: unscale(proposals.quorumVotes, decimals),
+    inflationPercentage,
     proposals: Object.fromEntries(proposals.getProposalsInfo.map(proposal =>
       [
         proposal.id,
         {
           proposal: {
-            id: proposal.id,
+            targets: proposal.targets,
+            signatures: proposal.signatures,
+            calldatas: proposal.calldatas,
             title: proposal.title,
             ipfsHash: proposal.ipfsHash,
             proposer: proposal.proposer,
             eta: proposal.eta,
-            targets: proposal.targets,
-            signatures: proposal.signatures,
-            calldatas: proposal.calldatas,
+            id: proposal.id,
             startBlock: proposal.startBlock,
             endBlock: proposal.endBlock,
-            forVotes: unscale(proposal.forVotes, decimals),
-            againstVotes: unscale(proposal.againstVotes, decimals),
             canceled: proposal.canceled,
             executed: proposal.executed,
+            forVotes: unscale(proposal.forVotes, decimals),
+            againstVotes: unscale(proposal.againstVotes, decimals),
+            initialSupply: unscale(proposal.initialSupply, decimals),
             state: proposalStateIDToState(proposal.state),
           },
           receipt: {
@@ -136,41 +145,9 @@ export const fetchProposals = async (
             votes: unscale(proposal.receipt.votes, decimals),
           },
           votingPower: unscale(proposal.votingPower, decimals),
+          votingRewards: unscale(proposal.votingRewards, decimals)
         },
       ]
     ))
   }
-    /*
-    proposals: Object.fromEntries(proposals.getProposalInfo.map(proposal =>
-      [
-        proposal.id,
-        {
-          proposal: {
-            id: proposal.id,
-            title: proposal.title,
-            ipfsHash: proposal.ipfsHash,
-            proposer: proposal.proposer,
-            eta: proposal.eta,
-            targets: proposal.targets,
-            signatures: proposal.signatures,
-            calldatas: proposal.calldatas,
-            startBlock: proposal.startBlock,
-            endBlock: proposal.endBlock,
-            forVotes: unscale(proposal.forVotes, decimals),
-            againstVotes: unscale(proposal.againstVotes, decimals),
-            canceled: proposal.canceled,
-            executed: proposal.executed,
-            state: proposalStateIDToState(proposal.state),
-          },
-          receipt: {
-            hasVoted: proposal.hasVoted,
-            support: proposal.support,
-            rewardReceived: proposal.rewardReceived,
-            votes: unscale(proposal.votes, decimals),
-          },
-          votingPower: unscale(proposal.votingPower, decimals),
-        }
-      ]
-    ))
-    */
 }

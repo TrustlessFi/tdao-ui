@@ -32,8 +32,7 @@ export const AppTag: FunctionComponent<AppTagProps> = ({
     key={name}
     onClick={onClick}
     style={{ marginLeft: 8, outline: 0, opacity: selected ? "100%" : "65%" }}
-    renderIcon={icon ? iconMap[icon] : undefined}
-  >
+    renderIcon={icon ? iconMap[icon] : undefined}>
     {name}
   </Tag>
 );

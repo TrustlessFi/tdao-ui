@@ -10,7 +10,10 @@ import { clearTDaoPositions } from '../tdaoPositions'
 import { ethers, ContractTransaction } from 'ethers'
 import { ProtocolContract, TDaoRootContract } from '../contracts'
 
-import { TcpGovernorAlpha, TDao, TcpAllocation, Tcp } from '@trustlessfi/typechain'
+import {
+  TcpGovernorAlpha, TDao, TcpAllocation, Tcp,
+  GovernorAlphaWithVotingRewards,
+} from '@trustlessfi/typechain'
 import getContract from '../../utils/getContract'
 import { scale, timeMS } from '../../utils'
 import { parseMetamaskError, extractRevertReasonString } from '../../utils'
@@ -25,6 +28,7 @@ export enum TransactionType {
   CreateTDaoPosition,
 
   VoteTcpProposal,
+  ClaimTcpVotingRewards,
   SelfDelegateTcp,
 }
 
@@ -79,6 +83,11 @@ export interface txVoteTcpProposal {
   support: boolean
 }
 
+export interface txClaimVotingRewards {
+  type: TransactionType.ClaimTcpVotingRewards
+  governorAlpha: string
+  proposalIDs: number[]
+}
 
 export interface txSelfDelegateTcp {
   type: TransactionType.SelfDelegateTcp
@@ -88,6 +97,7 @@ export interface txSelfDelegateTcp {
 
 export type TransactionArgs =
   txVoteTcpProposal |
+  txClaimVotingRewards |
   txUpdateTDaoPositionLockDuration |
   txDeleteTDaoPosition |
   txClaimAllTDaoPositionRewards |
@@ -130,6 +140,8 @@ export const getTxLongName = (args: TransactionArgs) => {
       return `Create TDao position with ${numDisplay(args.count)} ${args.tokenSymbol}`
     case TransactionType.VoteTcpProposal:
       return `Vote on ${args.support ? 'Yes' : 'No'} Tcp proposal ${args.proposalID}`
+    case TransactionType.ClaimTcpVotingRewards:
+      return `Claim Tcp voting rewards`
     case TransactionType.SelfDelegateTcp:
       return `Self delegate Tcp votes`
 
@@ -153,6 +165,8 @@ export const getTxShortName = (type: TransactionType) => {
       return `Create TDao position`
     case TransactionType.VoteTcpProposal:
       return 'Vote on Tcp proposal'
+    case TransactionType.ClaimTcpVotingRewards:
+      return `Claim Tcp voting rewards`
     case TransactionType.SelfDelegateTcp:
       return `Self delegate Tcp votes`
     default:
@@ -170,6 +184,10 @@ const executeTransaction = async (
   const getTcpGovernorAlpha = (address: string) =>
     getContract(address, ProtocolContract.TcpGovernorAlpha)
       .connect(provider.getSigner()) as TcpGovernorAlpha
+
+  const getGovernorAlphaWithVotingRewards = (address: string) =>
+    getContract(address, ProtocolContract.TcpGovernorAlpha)
+      .connect(provider.getSigner()) as GovernorAlphaWithVotingRewards
 
   const getTDao = (address: string) =>
     getContract(address, TDaoRootContract.TDao)
@@ -215,6 +233,11 @@ const executeTransaction = async (
       return await getTcpGovernorAlpha(args.TcpGovernorAlpha).castVote(
         args.proposalID,
         args.support
+      )
+
+    case TransactionType.ClaimTcpVotingRewards:
+      return await getGovernorAlphaWithVotingRewards(args.governorAlpha).claimVotingRewards(
+        args.proposalIDs
       )
 
     case TransactionType.SelfDelegateTcp:
@@ -306,6 +329,7 @@ export const waitForTransaction = createAsyncThunk(
           dispatch(clearTDaoPositions())
           break
         case TransactionType.VoteTcpProposal:
+        case TransactionType.ClaimTcpVotingRewards:
           dispatch(clearTcpProposals())
           break
         case TransactionType.SelfDelegateTcp:

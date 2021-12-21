@@ -16,6 +16,7 @@ export const getTcpProposals = createAsyncThunk(
       getContract(args.contracts.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha ) as TcpGovernorAlpha,
       addressToProtocolToken(args.contracts.Tcp),
       args.trustlessMulticall,
+      0.005,
     )
   }
 )

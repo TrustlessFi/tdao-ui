@@ -1,5 +1,7 @@
 import { MouseEvent } from "react"
+import { ChainID } from "@trustlessfi/addresses"
 import { withRouter, useHistory, useLocation } from "react-router"
+import { useAppSelector as selector } from '../../app/hooks'
 import { useState, CSSProperties } from "react"
 import { Row } from "react-flexbox-grid"
 import useWindowWidth from "../../hooks/useWindowWidth"
@@ -23,12 +25,14 @@ import { Tab, tabDisplay } from "../../App"
 
 import Wallet from "./Wallet"
 import NetworkIndicator from "../library/NetworkIndicator"
+import DebugUtils from "../library/DebugUtils"
 
 const logo = require("../../img/tdao_logo_white.svg")
 const logo_name = require("../../img/tdao_logo_name_white.svg")
 
 const PageHeader = () => {
   const [areNavLinksHidden, setAreNavLinksHidden] = useState(false)
+  const chainID = selector(state => state.chainID.chainID)
 
   const isSmallViewport = useWindowWidth(() => {
     const navLinksElement = document.getElementById("headerNavigationLinks")
@@ -96,13 +100,11 @@ const PageHeader = () => {
               areNavLinksHidden
                 ? { marginLeft: 8 }
                 : { marginLeft: 8, display: "none" }
-            }
-          >
+            }>
             <OverflowMenu
               renderIcon={Menu32}
               selectorPrimaryFocus={".selectedOption"}
-              data-floating-menu-container
-            >
+              data-floating-menu-container>
               {tabsAsButtons}
             </OverflowMenu>
           </div>
@@ -111,8 +113,7 @@ const PageHeader = () => {
               style={{
                 marginRight: iconMarginHorizontal,
                 marginLeft: iconMarginHorizontal,
-              }}
-            >
+              }}>
               <Row middle="xs">
                 {isSmallViewport ? (
                   <img
@@ -129,11 +130,11 @@ const PageHeader = () => {
           </HeaderName>
           <HeaderNavigation
             aria-label="Main Site Navigation Links"
-            id="headerNavigationLinks"
-          >
+            id="headerNavigationLinks">
             {tabs}
           </HeaderNavigation>
           <div style={{ marginLeft: "auto", marginRight: 16 }}>
+            {isSmallViewport || chainID !== ChainID.Hardhat ? null : <DebugUtils />}
             {isSmallViewport ? null : <NetworkIndicator />}
             <span style={{ marginLeft: 12 }}>
               <Wallet />
