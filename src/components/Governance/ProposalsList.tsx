@@ -85,7 +85,9 @@ const ProposalsList: FunctionComponent = () => {
   const proposalIDsWithRewards: number[] = []
 
   const rows =
-    Object.values(tcpProposals.proposals).map(p => {
+    Object.values(tcpProposals.proposals)
+    .sort((a, b) => b.proposal.id - a.proposal.id)
+    .map(p => {
       if (isVotingCompleteState(p.proposal.state) && !p.receipt.rewardReceived && p.receipt.votes > 0) {
         proposalIDsWithRewards.push(p.proposal.id)
       }

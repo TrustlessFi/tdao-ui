@@ -154,7 +154,7 @@ const ProposalDisplay: FunctionComponent = () => {
     </SpacedList>
 
   const voteColumnTwo =
-    <SpacedList>
+    <SpacedList spacing={16}>
       <LargeText>Updated Vote Count: </LargeText>
       <ProgressBar
         label={`Yes: ${voteForPercentage}%`}
