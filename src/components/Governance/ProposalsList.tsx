@@ -44,7 +44,7 @@ const ProposalsList: FunctionComponent = () => {
     />
 
 
-  const tableTitle = `Proposals ${tcpProposals === null ? '' : `(${Object.values(tcpProposals.proposals).length}`})`
+  const tableTitle = `Proposals ${tcpProposals === null ? '' : `(${Object.values(tcpProposals.proposals).length})`}`
 
   const getVotingRewards = (p: Proposal, inflationPercentage: number) => {
     const totalVotingRewards = p.proposal.initialSupply * inflationPercentage

@@ -9,6 +9,7 @@ import { onNumChange, seconds, minutes, hours, days, weeks, years }  from '../..
 import { debugProvider, increaseTime, mineBlocks }  from '../../utils/debugUtils'
 import AppTile from '../library/AppTile'
 import SpacedList from '../library/SpacedList'
+import Center from '../library/Center'
 
 enum TimeOption {
   seconds = 'seconds',
@@ -54,53 +55,60 @@ const DebugUtils = () => {
   const modal =
     <Modal
       open={open}
-      modalHeading="Debug Utils"
-      modalLabel='Only available on hardhat'
+      modalHeading="Debug Utils - Only available on hardhat"
       primaryButtonText="Add"
       onRequestClose={() => setOpen(false)}
       secondaryButtonText="Cancel">
       <SpacedList spacing={32}>
         <AppTile title='Increase Time'>
-          <NumberInput
-            hideSteppers
-            id='number_input'
-            min={0}
-            step={1}
-            onChange={onNumChange((value: number) => setTimeCount(value))}
-            value={timeCount}
-          />
-          <Dropdown
-            id="default"
-            label="Dropdown menu options"
-            initialSelectedItem={timeOption}
-            items={Object.values(TimeOption)}
-            onChange={(data: OnChangeData<TimeOption>) => {
-              const newItem = data.selectedItem
-              if (newItem) setTimeOption(newItem)}
-            }
-          />
-          <Button
-            kind='secondary'
-            onClick={() => onIncreaseTimeClicked()}
-            size='lg'>
-            Increase Time
-          </Button>
+          <SpacedList>
+            <NumberInput
+              hideSteppers
+              id='number_input'
+              min={0}
+              step={1}
+              onChange={onNumChange((value: number) => setTimeCount(value))}
+              value={timeCount}
+            />
+            <Dropdown
+              id="default"
+              label="Dropdown menu options"
+              initialSelectedItem={timeOption}
+              items={Object.values(TimeOption)}
+              onChange={(data: OnChangeData<TimeOption>) => {
+                const newItem = data.selectedItem
+                if (newItem) setTimeOption(newItem)}
+              }
+            />
+            <Center>
+              <Button
+                kind='secondary'
+                onClick={() => onIncreaseTimeClicked()}
+                size='sm'>
+                Increase Time
+              </Button>
+            </Center>
+          </SpacedList>
         </AppTile>
         <AppTile title='Mine Blocks'>
-          <NumberInput
-            hideSteppers
-            id='number_input'
-            min={0}
-            step={1}
-            onChange={onNumChange((value: number) => setBlockCount(value))}
-            value={blockCount}
-          />
-          <Button
-            kind='secondary'
-            onClick={() => onMineBlocksClicked()}
-            size='lg'>
-            Mine Blocks
-          </Button>
+          <SpacedList>
+            <NumberInput
+              hideSteppers
+              id='number_input'
+              min={0}
+              step={1}
+              onChange={onNumChange((value: number) => setBlockCount(value))}
+              value={blockCount}
+            />
+            <Center>
+              <Button
+                kind='secondary'
+                onClick={() => onMineBlocksClicked()}
+                size='sm'>
+                Mine Blocks
+              </Button>
+            </Center>
+          </SpacedList>
         </AppTile>
       </SpacedList>
     </Modal>
