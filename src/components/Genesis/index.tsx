@@ -115,7 +115,7 @@ const Genesis: React.FunctionComponent = () => {
 
   return (
     <>
-      <AppTile title="Genesis" className="genesis">
+      <AppTile title="Genesis Eligibility" className="genesis-eligibility">
         <div style={{ display: "flex", marginBottom: "5px" }}>
           <div style={{ flex: 1 }}>
             <TextInput
