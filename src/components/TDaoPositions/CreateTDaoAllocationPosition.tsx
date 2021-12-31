@@ -218,9 +218,10 @@ const CreateTDaoAllocationPosition = () => {
         style={{}}
         disabled={isFailing}
         txArgs={{
-          type: TransactionType.CreateTDaoAllocationPosition,
+          type: TransactionType.CreateTDaoTcpAllocationPosition,
           tcpAllocation: contracts === null ? '' : contracts.TcpAllocation,
           count,
+          decimals: 18,
           lockDurationMonths,
           userAddress: notNullString(userAddress),
         }}

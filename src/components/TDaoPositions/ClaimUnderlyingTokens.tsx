@@ -3,6 +3,8 @@ import LargeText from '../library/LargeText'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import {
   waitForBalances,
+  waitForTcpAllocationInfo,
+  waitForContracts,
 } from '../../slices/waitFor'
 import SpacedList from '../library/SpacedList'
 import { TransactionType } from '../../slices/transactions'
@@ -12,38 +14,33 @@ import {
   waitForTDaoInfo,
 } from '../../slices/waitFor'
 import {
+  NumberInput,
   Dropdown,
   OnChangeData,
 } from 'carbon-components-react'
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { TokenAllocationOptions } from './'
-import { invert, last, range, notNullString } from '../../utils'
+import { invert, last, range, notNullString, onNumChange } from '../../utils'
 import ParagraphDivider from '../library/ParagraphDivider'
 
 const ClaimUnderlyingTokens = () => {
   const dispatch = useAppDispatch()
 
+  const contracts = waitForContracts(selector, dispatch)
   const balances = waitForBalances(selector, dispatch)
-  const tdaoInfo = waitForTDaoInfo(selector, dispatch)
   const userAddress = selector(state => state.wallet.address)
+  const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
   const tdao = selector(state => state.chainID.tdao)
 
-  const [ newDurationMonths, setNewDurationMonths ] = useState(48)
+  const [ count, setCount ] = useState(0)
 
   const dataNull =
     balances === null ||
-    tdaoInfo === null ||
     userAddress === null ||
     tdao === null
 
-  const extensionOptionsMap = Object.fromEntries(
-    (tdaoInfo === null
-      ? [48]
-      : range(tdaoInfo.minMonths, tdaoInfo.maxMonths, tdaoInfo.monthIncrements)
-    ).map(op => [op, op + ' months']))
-
-  const isFailing = true
+  const isFailing = dataNull
 
   const columnOne =
     <SpacedList>
@@ -57,31 +54,27 @@ const ClaimUnderlyingTokens = () => {
         label="Allocation options"
         style={{}}
       />
-      <Dropdown
-        ariaLabel="Dropdown"
-        id="month_selector"
-        items={Object.values(extensionOptionsMap)}
-        onChange={(data: OnChangeData<string>) => {
-          const selectedItem = data.selectedItem
-          if (selectedItem) setNewDurationMonths(parseInt(invert(extensionOptionsMap)[selectedItem]))
-        }}
+      <NumberInput
+        hideSteppers
+        id="Tcp Allocation Count Input"
+        invalidText=""
+        min={0}
+        max={tcpAllocationInfo === null ? 0 : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated}
+        step={1e-3}
         size="lg"
-        initialSelectedItem={last(Object.values(extensionOptionsMap))}
-        label="Month Selector"
-        style={{width: 300, marginTop: 8}}
+        onChange={onNumChange((value: number) => setCount(value))}
+        value={isNaN(count) ? "" : count }
+        style={{}}
       />
       <CreateTransactionButton
         style={{}}
         disabled={isFailing}
         txArgs={{
-          type: TransactionType.CreateTDaoPosition,
-          tdao: notNullString(tdao),
-          tokenID: 0, // TODO make dynamic
-          count: 0,
-          decimals: 0,
-          lockDurationMonths: newDurationMonths,
+          type: TransactionType.ClaimTcpTokenAllocationImmediately,
+          tcpAllocation: contracts === null ? '' : contracts.TcpAllocation,
+          count,
+          decimals: 18,
           userAddress: notNullString(userAddress),
-          tokenSymbol: 'Tcp' // TODO make dynamic
         }}
       />
     </SpacedList>
@@ -95,7 +88,7 @@ const ClaimUnderlyingTokens = () => {
 
   return (
     <>
-      <Breadcrumbs crumbs={[{ text: 'Positions', href: '/positions' }, 'claim', 'tcp' ]} />
+      <Breadcrumbs crumbs={[{ text: 'Positions', href: '/positions' }, 'Claim', 'Tcp' ]} />
       <TwoColumnDisplay
         columnOne={columnOne}
         columnTwo={columnTwo}

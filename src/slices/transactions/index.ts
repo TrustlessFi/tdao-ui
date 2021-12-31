@@ -24,7 +24,8 @@ export enum TransactionType {
   UpdateTDaoPositionLockDuration,
   DeleteTDaoPosition,
   ClaimAllTDaoPositionRewards,
-  CreateTDaoAllocationPosition,
+  CreateTDaoTcpAllocationPosition,
+  ClaimTcpTokenAllocationImmediately,
   CreateTDaoPosition,
 
   VoteTcpProposal,
@@ -57,12 +58,21 @@ export interface txClaimAllTDaoPositionRewards {
   positionIDs: string[]
 }
 
-export interface txCreateTDaoAllocationPosition {
-  type: TransactionType.CreateTDaoAllocationPosition
+export interface txCreateTDaoTcpAllocationPosition {
+  type: TransactionType.CreateTDaoTcpAllocationPosition
   tcpAllocation: string
   userAddress: string
   count: number
+  decimals: number
   lockDurationMonths: number
+}
+
+export interface txClaimTcpTokenAllocationImmediately {
+  type: TransactionType.ClaimTcpTokenAllocationImmediately
+  tcpAllocation: string
+  userAddress: string
+  decimals: number
+  count: number
 }
 
 export interface txCreateTDaoPosition {
@@ -101,7 +111,8 @@ export type TransactionArgs =
   txUpdateTDaoPositionLockDuration |
   txDeleteTDaoPosition |
   txClaimAllTDaoPositionRewards |
-  txCreateTDaoAllocationPosition |
+  txCreateTDaoTcpAllocationPosition |
+  txClaimTcpTokenAllocationImmediately |
   txCreateTDaoPosition |
   txSelfDelegateTcp
 
@@ -134,8 +145,10 @@ export const getTxLongName = (args: TransactionArgs) => {
       return `Delete position ${args.positionID}`
     case TransactionType.ClaimAllTDaoPositionRewards:
       return `Claim Rewards for TDao positions ${args.positionIDs.join(', ')}`
-    case TransactionType.CreateTDaoAllocationPosition:
+    case TransactionType.CreateTDaoTcpAllocationPosition:
       return `Create TDao allocation position with ${numDisplay(args.count)} Tcp`
+    case TransactionType.ClaimTcpTokenAllocationImmediately:
+      return `Claim ${numDisplay(args.count)} Tcp Tokens`
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position with ${numDisplay(args.count)} ${args.tokenSymbol}`
     case TransactionType.VoteTcpProposal:
@@ -159,8 +172,10 @@ export const getTxShortName = (type: TransactionType) => {
       return 'Delete Position'
     case TransactionType.ClaimAllTDaoPositionRewards:
       return `Claim Rewards for TDao positions`
-    case TransactionType.CreateTDaoAllocationPosition:
+    case TransactionType.CreateTDaoTcpAllocationPosition:
       return `Create TDao allocation position`
+    case TransactionType.ClaimTcpTokenAllocationImmediately:
+      return `Claim Tcp Tokens`
     case TransactionType.CreateTDaoPosition:
       return `Create TDao position`
     case TransactionType.VoteTcpProposal:
@@ -214,11 +229,17 @@ const executeTransaction = async (
     case TransactionType.ClaimAllTDaoPositionRewards:
       return await getTDao(args.tdao).getRewards(args.positionIDs)
 
-    case TransactionType.CreateTDaoAllocationPosition:
+    case TransactionType.CreateTDaoTcpAllocationPosition:
       return await getTcpAllocation(args.tcpAllocation).lockTokensIntoDao(
         args.userAddress,
-        scale(args.count),
+        scale(args.count, args.decimals),
         args.lockDurationMonths,
+      )
+
+    case TransactionType.ClaimTcpTokenAllocationImmediately:
+      return await getTcpAllocation(args.tcpAllocation).getTokens(
+        args.userAddress,
+        scale(args.count, args.decimals),
       )
 
     case TransactionType.CreateTDaoPosition:
@@ -320,9 +341,13 @@ export const waitForTransaction = createAsyncThunk(
         case TransactionType.ClaimAllTDaoPositionRewards:
           dispatch(clearTDaoPositions())
           break
-        case TransactionType.CreateTDaoAllocationPosition:
+        case TransactionType.CreateTDaoTcpAllocationPosition:
           dispatch(clearTDaoPositions())
           dispatch(clearTcpAllocationInfo())
+          break
+        case TransactionType.ClaimTcpTokenAllocationImmediately:
+          dispatch(clearTcpAllocationInfo())
+          dispatch(clearBalances())
           break
         case TransactionType.CreateTDaoPosition:
           dispatch(clearBalances())
