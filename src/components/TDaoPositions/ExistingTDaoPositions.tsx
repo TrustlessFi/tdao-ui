@@ -17,7 +17,10 @@ const ExistingTDaoPositions = () => {
   const tdao = selector((state) => state.chainID.tdao)
 
   const positionsIDsWithRewards: string[] = []
-  const totalRewards = positions === null ? 0 : Object.values(positions).map(p => p.approximateRewards).reduce(sum)
+  const totalRewards =
+    positions === null || Object.values(positions).length === 0
+    ? 0 
+    : Object.values(positions).map(p => p.approximateRewards).reduce(sum)
 
   const positionDisplay =
     positions === null
