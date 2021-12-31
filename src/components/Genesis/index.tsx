@@ -1,12 +1,16 @@
+import { Row, Col } from 'react-flexbox-grid'
 import React, { useState } from "react"
 import * as ethers from "ethers"
 import { Button, TextInput, Form, FormGroup } from "carbon-components-react"
-import { CheckmarkFilled20,  ErrorFilled20} from '@carbon/icons-react';
+import { CheckmarkFilled20, CheckmarkFilled16, ErrorFilled16,  ErrorFilled20} from '@carbon/icons-react';
 import { red, green, blue } from '@carbon/colors';
 
 import Text from "../library/Text"
+import LargeText from "../library/LargeText"
 import AppTile from "../library/AppTile"
 import SimpleTable from "../library/SimpleTable"
+import SpacedList, {ListDirection} from "../library/SpacedList"
+import ConnectWalletButton from '../library/ConnectWalletButton'
 import { unscale, unique } from "../../utils"
 
 import { useAppSelector as selector, useAppDispatch } from "../../app/hooks"
@@ -58,25 +62,12 @@ const Genesis: React.FunctionComponent = () => {
     })
   )
 
-  const userDebtEligible = userAddress === null ? false : debtOwners.includes(userAddress)
-  const userLiquidityEligible = userAddress === null ? false : liquidityOwners.includes(userAddress)
-
-  const userAndEligibleOwners =
-    userAddress === null
-    ? eligibleOwners
-    : (debtOwners.includes(userAddress)
-      ? eligibleOwners
-      : [{address: userAddress, debt: false, liquidity: false}].concat(eligibleOwners)
-    )
-
-
-
-  const booleanIcon = (value: boolean) =>
+  const booleanIcon = (value: boolean, small = false) =>
     value
-    ? <CheckmarkFilled20 color={green[50]} />
-    : <ErrorFilled20 color={red[50]}/>
+    ? (small ? <CheckmarkFilled16 color={green[50]} /> : <CheckmarkFilled20 color={green[50]} />)
+    : (small ? <ErrorFilled16 color={red[50]} /> : <ErrorFilled20 color={red[50]} />)
 
-  const eligibilityRows = userAndEligibleOwners
+  const eligibilityRows = eligibleOwners
     .filter(data => addressFilter === "" || data.address.indexOf(addressFilter) > -1)
     .map(({address, liquidity, debt }, index) => {
       return {
@@ -137,8 +128,30 @@ const Genesis: React.FunctionComponent = () => {
     dispatch(waitForGenesisClaimAllocations({ genesisAllocation, allocations }))
   }
 
+  const userDebtEligible = userAddress === null ? false : debtOwners.includes(userAddress)
+  const userLiquidityEligible = userAddress === null ? false : liquidityOwners.includes(userAddress)
+
+  const total = (userDebtEligible ? 50 : 0) + (userLiquidityEligible ? 50 : 0)
+
   return (
-    <>
+    <SpacedList spacing={32} >
+      <AppTile title={`Your Genesis Eligibility: ${total}%`}>
+        {userAddress === null
+          ? <ConnectWalletButton />
+          : <>
+              <Col xs={8} style={{marginLeft: 32, paddingBottom: 32}}>
+                <Row middle="xs">
+                  <Col style={{marginRight: 8}}><Text>Borrowed Hue: </Text></Col>
+                  <Col>{booleanIcon(userDebtEligible, true)}</Col>
+                </Row>
+                <Row middle="xs">
+                  <Col style={{marginRight: 8}}><Text>Also Provided Uniswap Liquidity: </Text></Col>
+                  <Col>{booleanIcon(userLiquidityEligible, true)}</Col>
+                </Row>
+              </Col>
+            </>
+        }
+      </AppTile>
       <AppTile title={`Tcp Genesis Address Eligibility (${Object.values(eligibleOwners).length})`} className="genesis-eligibility">
         <div style={{ display: "flex", marginBottom: "5px" }}>
           <div style={{ flex: 1 }}>
@@ -174,11 +187,12 @@ const Genesis: React.FunctionComponent = () => {
         </div>
         <SimpleTable rows={eligibilityRows} />
       </AppTile>
-      <AppTile title={`Allocation`} style={{marginTop: 32}}>
+
+      <AppTile title={`Allocation`}>
         <SimpleTable rows={allocationRows} />
       </AppTile>
       <a {...downloadAnchorProps}>Hidden Genesis Data Download Link</a>
-    </>
+    </SpacedList>
   )
 }
 
