@@ -87,6 +87,7 @@ const CreateTDaoAllocationPosition = () => {
 
 
 
+    /*
     const currentMinUnlockDuration = unscale(
       bnf(ta.minimumAverageTokensAllocatedxLockYears).mul(mnt(1)).div(mnt(ta.totalAllocation))
     )
@@ -94,6 +95,7 @@ const CreateTDaoAllocationPosition = () => {
     const currentUnlockDuration = unscale(
       bnf(ta.cumulativeTokensAllocatedxLockYears).mul(mnt(1)).div(mnt(ta.tokensAllocated))
     )
+    */
 
 
 
@@ -116,11 +118,13 @@ const CreateTDaoAllocationPosition = () => {
 
     const newTokensAllocated = mnt(ta.tokensAllocated + count)
 
+    /*
     const newUnlockDuration = unscale(
       bnf(newCumulativeLockYears).mul(mnt(1)).div(newTokensAllocated)
     )
+    */
 
-    console.log({currentMinUnlockDuration, currentUnlockDuration, newUnlockDuration})
+    // console.log({currentMinUnlockDuration, currentUnlockDuration, newUnlockDuration})
 
     return (
       newCumulativeLockYears.mul(scale(ta.totalAllocation)).gt(

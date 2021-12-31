@@ -21,7 +21,7 @@ import {
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { TokenAllocationOptions } from './'
-import { invert, last, range, notNullString, onNumChange } from '../../utils'
+import { invert, last, range, notNullString, onNumChange, numDisplay } from '../../utils'
 import ParagraphDivider from '../library/ParagraphDivider'
 
 const ClaimUnderlyingTokens = () => {
@@ -35,6 +35,11 @@ const ClaimUnderlyingTokens = () => {
 
   const [ count, setCount ] = useState(0)
 
+  const tcpToAllocate =
+    tcpAllocationInfo === null  || tcpAllocationInfo.totalAllocation < tcpAllocationInfo.tokensAllocated
+      ? 0
+      : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated
+
   const dataNull =
     balances === null ||
     userAddress === null ||
@@ -44,16 +49,15 @@ const ClaimUnderlyingTokens = () => {
 
   const columnOne =
     <SpacedList>
-      <InputPicker
-        options={TokenAllocationOptions}
-        initialValue={TokenAllocationOptions.ClaimTokens}
-        navigation={{
-          [TokenAllocationOptions.LockTokens]: '/positions/allocate/lock/tcp'
-        }}
-        width={300}
-        label="Allocation options"
-        style={{}}
-      />
+        <InputPicker
+          options={TokenAllocationOptions}
+          initialValue={TokenAllocationOptions.ClaimTokens}
+          navigation={{
+            [TokenAllocationOptions.LockTokens]: '/positions/allocate/lock/tcp'
+          }}
+          label="Allocation options"
+          style={{minWidth: 180}}
+        />
       <NumberInput
         hideSteppers
         id="Tcp Allocation Count Input"
@@ -81,9 +85,11 @@ const ClaimUnderlyingTokens = () => {
 
   const columnTwo =
     <LargeText>
-      strings and such
+      You have {numDisplay(tcpToAllocate)} Tcp to allocate.
       <ParagraphDivider />
-      wooooo
+      Tcp token allocations must be claimed after waiting at least 1 year.
+      <ParagraphDivider />
+      If you would like to lock Tcp on chain and earn TDao instead, select Lock Tokens from the dropdown.
     </LargeText>
 
   return (
