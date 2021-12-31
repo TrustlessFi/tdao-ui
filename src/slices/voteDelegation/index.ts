@@ -68,10 +68,16 @@ const name = 'voteDelegation'
 export const voteDelegationSlice = createSlice({
   name,
   initialState: initialState as voteDelegationState,
-  reducers: {},
+  reducers: {
+    clearVoteDelegation: (state) => {
+      state.data.value = null
+    },
+  },
   extraReducers: (builder) => {
     builder = getGenericReducerBuilder(builder, getVoteDelegation)
   },
 })
+
+export const { clearVoteDelegation } = voteDelegationSlice.actions
 
 export default voteDelegationSlice.reducer
