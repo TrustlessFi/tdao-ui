@@ -2,11 +2,12 @@ import React, { useState } from "react"
 import * as ethers from "ethers"
 import { Button, TextInput, Form, FormGroup } from "carbon-components-react"
 import { CheckmarkFilled20,  ErrorFilled20} from '@carbon/icons-react';
-import { red, green } from '@carbon/colors';
+import { red, green, blue } from '@carbon/colors';
 
+import Text from "../library/Text"
 import AppTile from "../library/AppTile"
 import SimpleTable from "../library/SimpleTable"
-import { unscale } from "../../utils"
+import { unscale, unique } from "../../utils"
 
 import { useAppSelector as selector, useAppDispatch } from "../../app/hooks"
 import {
@@ -27,13 +28,17 @@ const Genesis: React.FunctionComponent = () => {
     liquidity: [],
   }
   // get debt owners
-  const debtOwnersSet = new Set(debt.map((pos) => pos.owner))
-  const debtOwners = Array.from(debtOwnersSet)
+  const uniqueDebtOwners = unique(debt.map(d => d.owner).sort())
+
+  const debtOwners =
+    userAddress === null
+    ? uniqueDebtOwners
+    : uniqueDebtOwners.sort(address => address === userAddress ? -1 : 1) // float user address to the top
+
   // get liquidity owners who also have debt
-  const liquidityOwnersSet = new Set(liquidity.map((pos) => pos.owner))
-  const liquidityOwners = Array.from(liquidityOwnersSet).filter(
-    (liquidityOwner) => debtOwnersSet.has(liquidityOwner)
-  )
+  const liquidityOwners =
+    unique(liquidity.map(l => l.owner).sort())
+      .filter(l => debtOwners.includes(l))
 
   // process genesis allocations
   const allAllocations = waitForGenesisAllocations(selector, dispatch) || {}
@@ -46,28 +51,38 @@ const Genesis: React.FunctionComponent = () => {
   // view data
   //tables
   const eligibleOwners =
-    Object.fromEntries(debtOwners.sort().map(address => [address, {
+    debtOwners.sort().map(address => ({
+      address,
       debt: true,
       liquidity: liquidityOwners.includes(address),
-    }]
-  ))
+    })
+  )
+
+  const userAndEligibleOwners =
+    userAddress === null
+    ? eligibleOwners
+    : (debtOwners.includes(userAddress)
+      ? eligibleOwners
+      : [{address: userAddress, debt: false, liquidity: false}].concat(eligibleOwners)
+    )
 
   const booleanIcon = (value: boolean) =>
     value
     ? <CheckmarkFilled20 color={green[50]} />
     : <ErrorFilled20 color={red[50]}/>
 
-  const eligibilityRows = Object.entries(eligibleOwners)
-    .map(([address, { liquidity, debt }]) => {
+  const eligibilityRows = userAndEligibleOwners
+    .filter(data => addressFilter === "" || data.address.indexOf(addressFilter) > -1)
+    .map(({address, liquidity, debt }, index) => {
       return {
-        key: address,
+        key: index,
         data: {
-          Address: address,
+          Address: address === userAddress ? <Text bold color={blue[50]}>{address}</Text> : address,
           'Borrowed Hue': booleanIcon(debt),
           'Provided Uniswap Liquidity': booleanIcon(liquidity),
         },
       }
-    }).filter(data => addressFilter === "" || data.key.indexOf(addressFilter) > -1)
+    })
 
   const allocationRows = allocations.map(({ roundID, count }) => ({
     key: `${roundID}-${count}`,
