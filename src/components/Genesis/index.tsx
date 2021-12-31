@@ -45,18 +45,18 @@ const Genesis: React.FunctionComponent = () => {
 
   // view data
   //tables
-  type Eligibility = { liquidity: boolean; debt: boolean }
-  const eligibleOwners = {} as { [key: string]: Eligibility }
-  debtOwners.map(
-    (address) => (eligibleOwners[address] = { liquidity: false, debt: true })
-  )
+  const eligibleOwners =
+    Object.fromEntries(debtOwners.sort().map(address => [address, {
+      debt: true,
+      liquidity: liquidityOwners.includes(address),
+    }]
+  ))
 
   const booleanIcon = (value: boolean) =>
     value
     ? <CheckmarkFilled20 color={green[50]} />
     : <ErrorFilled20 color={red[50]}/>
 
-  liquidityOwners.map((address) => (eligibleOwners[address].liquidity = true))
   const eligibilityRows = Object.entries(eligibleOwners)
     .map(([address, { liquidity, debt }]) => {
       return {
@@ -67,11 +67,8 @@ const Genesis: React.FunctionComponent = () => {
           'Provided Uniswap Liquidity': booleanIcon(liquidity),
         },
       }
-    })
-    .filter(
-      (data) => addressFilter === "" || data.key.indexOf(addressFilter) > -1
-    )
-    .sort((a, b) => a.key.localeCompare(b.key))
+    }).filter(data => addressFilter === "" || data.key.indexOf(addressFilter) > -1)
+
   const allocationRows = allocations.map(({ roundID, count }) => ({
     key: `${roundID}-${count}`,
     data: {
@@ -122,7 +119,7 @@ const Genesis: React.FunctionComponent = () => {
 
   return (
     <>
-      <AppTile title="Tcp Genesis Eligibility" className="genesis-eligibility">
+      <AppTile title={`Tcp Genesis Address Eligibility (${Object.values(eligibleOwners).length})`} className="genesis-eligibility">
         <div style={{ display: "flex", marginBottom: "5px" }}>
           <div style={{ flex: 1 }}>
             <TextInput
