@@ -36,7 +36,7 @@ const SimpleTable = ({rows}: {rows: row[]}) => rows.length === 0 ? null : (
     </TableHead>
     <TableBody>
       {rows.map((row, i0) => (
-        <TableRow key={row.key ? row.key : i0} onClick={row.onClick} style={{cursor: 'pointer'}}>
+        <TableRow key={row.key ? row.key : i0} onClick={row.onClick} style={{cursor: 'pointer'}} >
           {Object.values(row.data).map((value, i1) => <TableCell key={(row.key ? row.key : i0) + i1.toString()}>{value}</TableCell>)}
         </TableRow>
       ))}

@@ -1,6 +1,8 @@
 import React, { useState } from "react"
 import * as ethers from "ethers"
 import { Button, TextInput, Form, FormGroup } from "carbon-components-react"
+import { CheckmarkFilled20,  ErrorFilled20} from '@carbon/icons-react';
+import { red, green } from '@carbon/colors';
 
 import AppTile from "../library/AppTile"
 import SimpleTable from "../library/SimpleTable"
@@ -48,10 +50,15 @@ const Genesis: React.FunctionComponent = () => {
   debtOwners.map(
     (address) => (eligibleOwners[address] = { liquidity: false, debt: true })
   )
+
+  const booleanIcon = (value: boolean) =>
+    value
+    ? <CheckmarkFilled20 color={green[50]} />
+    : <ErrorFilled20 color={red[50]}/>
+
   liquidityOwners.map((address) => (eligibleOwners[address].liquidity = true))
   const eligibilityRows = Object.entries(eligibleOwners)
     .map(([address, { liquidity, debt }]) => {
-      const booleanIcon = (value: boolean) => (value ? "✔" : "✖")
       return {
         key: address,
         data: {
@@ -122,7 +129,7 @@ const Genesis: React.FunctionComponent = () => {
               id={"address-search"}
               hideLabel={true}
               labelText={"Search"}
-              placeholder={"Enter address"}
+              placeholder={"Search for address"}
               value={addressFilter}
               onChange={(event) => setAddressFilter(event.target.value)}
               light={true}
