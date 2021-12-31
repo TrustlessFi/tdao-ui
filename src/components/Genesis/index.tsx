@@ -63,8 +63,8 @@ const Genesis: React.FunctionComponent = () => {
         key: address,
         data: {
           Address: address,
-          Debt: booleanIcon(debt),
-          Liquidity: booleanIcon(liquidity),
+          'Borrowed Hue': booleanIcon(debt),
+          'Provided Uniswap Liquidity': booleanIcon(liquidity),
         },
       }
     })
@@ -122,7 +122,7 @@ const Genesis: React.FunctionComponent = () => {
 
   return (
     <>
-      <AppTile title="Genesis Eligibility" className="genesis-eligibility">
+      <AppTile title="Tcp Genesis Eligibility" className="genesis-eligibility">
         <div style={{ display: "flex", marginBottom: "5px" }}>
           <div style={{ flex: 1 }}>
             <TextInput
