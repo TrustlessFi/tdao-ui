@@ -58,6 +58,9 @@ const Genesis: React.FunctionComponent = () => {
     })
   )
 
+  const userDebtEligible = userAddress === null ? false : debtOwners.includes(userAddress)
+  const userLiquidityEligible = userAddress === null ? false : liquidityOwners.includes(userAddress)
+
   const userAndEligibleOwners =
     userAddress === null
     ? eligibleOwners
@@ -65,6 +68,8 @@ const Genesis: React.FunctionComponent = () => {
       ? eligibleOwners
       : [{address: userAddress, debt: false, liquidity: false}].concat(eligibleOwners)
     )
+
+
 
   const booleanIcon = (value: boolean) =>
     value
@@ -169,10 +174,9 @@ const Genesis: React.FunctionComponent = () => {
         </div>
         <SimpleTable rows={eligibilityRows} />
       </AppTile>
-      <div style={{ display: "none" }}>
-        <h3>Allocation</h3>
+      <AppTile title={`Allocation`} style={{marginTop: 32}}>
         <SimpleTable rows={allocationRows} />
-      </div>
+      </AppTile>
       <a {...downloadAnchorProps}>Hidden Genesis Data Download Link</a>
     </>
   )
