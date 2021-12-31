@@ -6,7 +6,7 @@ import CreateTransactionButton from '../library/CreateTransactionButton'
 import RelativeLoading from '../library/RelativeLoading'
 import { TransactionType } from '../../slices/transactions'
 import { Button } from 'carbon-components-react'
-import { numDisplay } from '../../utils'
+import { numDisplay, sum } from '../../utils'
 
 const ExistingTDaoPositions = () => {
   const dispatch = useAppDispatch()
@@ -17,6 +17,7 @@ const ExistingTDaoPositions = () => {
   const tdao = selector((state) => state.chainID.tdao)
 
   const positionsIDsWithRewards: string[] = []
+  const totalRewards = positions === null ? 0 : Object.values(positions).map(p => p.approximateRewards).reduce(sum)
 
   const positionDisplay =
     positions === null
@@ -44,7 +45,7 @@ const ExistingTDaoPositions = () => {
         <CreateTransactionButton
           style={{marginRight: 16}}
           disabled={tcpAllocationInfo === null || tdao == null || positionsIDsWithRewards.length === 0}
-          title="Claim all TDao Rewards"
+          title={`Claim ${numDisplay(totalRewards)} TDao`}
           txArgs={{
             type: TransactionType.ClaimAllTDaoPositionRewards,
             tdao: tdao === null ? '' : tdao,
