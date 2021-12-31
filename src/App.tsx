@@ -27,7 +27,7 @@ export enum Tab {
 }
 
 export const tabDisplay: { [key in Tab]?: string } = {
-  // [Tab.Tcp]: 'Tcp Governance',
+  [Tab.Tcp]: 'Tcp DAO',
 }
 
 const tabToRender: { [key in Tab]: ReactNode } = {
