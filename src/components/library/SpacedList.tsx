@@ -8,35 +8,35 @@ export enum ListDirection {
 
 const SpacedList = ({
   spacing,
+  row,
   children,
-  direction,
   style,
 }: {
   spacing: number,
+  row: boolean,
   children: ReactNode | ReactNode[],
-  direction: ListDirection
   style?: CSSProperties
 }) => {
   return (
     <div style={style}>
       {Array.isArray(children)
-        ? (direction === ListDirection.Col
+        ? (row
           ? children.map((child, index) =>
+            index === children.length - 1
+              ? child
+              : <span key={index} style={{ marginRight: spacing }}>{child}</span>)
+          : children.map((child, index) =>
             index === children.length - 1
               ? child
               : <div key={index} style={{ marginBottom: spacing }}>{child}</div>
           )
-          : children.map((child, index) =>
-            index === children.length - 1
-              ? child
-              : <span key={index} style={{ marginRight: spacing }}>{child}</span>)
         ) : children}
     </div>
   )
 }
 
 SpacedList.defaultProps = {
-  direction: ListDirection.Col,
+  row: false,
   small: false,
   spacing: 8,
 }

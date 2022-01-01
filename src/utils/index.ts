@@ -47,8 +47,11 @@ export const notNullString = (input: null | string): string => input === null ? 
 export type abi = { [key in string]: any }[]
 export type contractArtifact = { abi: abi }
 
-export const addressToERC20 = (erc20Address: string): ERC20 =>
-  new Contract(erc20Address, (erc20Artifact as unknown as contractArtifact).abi, getProvider()) as ERC20
+export const addressToERC20 = (erc20Address: string): ERC20 => {
+  const provider = getProvider()
+  const contract = new Contract(erc20Address, (erc20Artifact as unknown as contractArtifact).abi, provider) as ERC20
+  return contract.connect(provider.getSigner())
+}
 
 export const addressToProtocolToken = (address: string) =>
   new Contract(address, (protocolTokenArtifact as unknown as contractArtifact).abi, getProvider()) as ProtocolToken

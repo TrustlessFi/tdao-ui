@@ -18,7 +18,7 @@ import getContract from '../../utils/getContract'
 import { scale, timeMS } from '../../utils'
 import { parseMetamaskError, extractRevertReasonString } from '../../utils'
 import { ChainID } from '@trustlessfi/addresses'
-import { numDisplay } from '../../utils'
+import { numDisplay, addressToERC20, uint256Max } from '../../utils'
 
 export enum TransactionType {
   UpdateTDaoPositionLockDuration,
@@ -31,6 +31,7 @@ export enum TransactionType {
   VoteTcpProposal,
   ClaimTcpVotingRewards,
   SelfDelegateTcp,
+  ApproveToken,
 }
 
 export enum TransactionStatus {
@@ -105,6 +106,14 @@ export interface txSelfDelegateTcp {
   userAddress: string
 }
 
+export interface txApproveToken {
+  type: TransactionType.ApproveToken
+  tokenAddress: string
+  spenderAddress: string
+  tokenSymbol: string
+  spenderName: string
+}
+
 export type TransactionArgs =
   txVoteTcpProposal |
   txClaimVotingRewards |
@@ -114,7 +123,8 @@ export type TransactionArgs =
   txCreateTDaoTcpAllocationPosition |
   txClaimTcpTokenAllocationImmediately |
   txCreateTDaoPosition |
-  txSelfDelegateTcp
+  txSelfDelegateTcp |
+  txApproveToken
 
 export interface TransactionData {
   args: TransactionArgs
@@ -157,6 +167,8 @@ export const getTxLongName = (args: TransactionArgs) => {
       return `Claim Tcp voting rewards`
     case TransactionType.SelfDelegateTcp:
       return `Self delegate Tcp votes`
+    case TransactionType.ApproveToken:
+      return `Approve ${args.spenderName} to spend ${args.tokenSymbol}`
 
     default:
       assertUnreachable(type)
@@ -184,6 +196,8 @@ export const getTxShortName = (type: TransactionType) => {
       return `Claim Tcp voting rewards`
     case TransactionType.SelfDelegateTcp:
       return `Self delegate Tcp votes`
+    case TransactionType.ApproveToken:
+      return `Approve Token`
     default:
       assertUnreachable(type)
   }
@@ -263,6 +277,9 @@ const executeTransaction = async (
 
     case TransactionType.SelfDelegateTcp:
       return await getTcp(args.tcp).delegate(args.userAddress)
+
+    case TransactionType.ApproveToken:
+      return await addressToERC20(args.tokenAddress).approve(args.spenderAddress, uint256Max)
 
     default:
       assertUnreachable(type)
@@ -359,6 +376,9 @@ export const waitForTransaction = createAsyncThunk(
           break
         case TransactionType.SelfDelegateTcp:
           // TODO
+          break
+        case TransactionType.ApproveToken:
+          dispatch(clearBalances())
           break
       default:
         assertUnreachable(type)

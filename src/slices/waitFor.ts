@@ -10,6 +10,7 @@ import { getTcpProposals } from "./proposals/tcpProposals"
 import { getContracts, ContractsInfo } from "./contracts"
 import { getTDaoInfo, tdaoInfo } from './tdaoInfo'
 import { getTcpAllocationInfo, tcpAllocationInfo } from './tcpAllocation'
+import { getCurrentChainInfo } from './currentChainInfo'
 import { sliceState } from "./"
 
 import { getGenesisPositions, getGenesisAllocations, GenesisPositions } from "./genesis"
@@ -71,6 +72,11 @@ const getWaitFunction = <
 type FetchNode = keyof fetchNodeTypes
 
 
+export const waitForCurrentChainInfo = getWaitFunction(
+  (state: RootState) => state.currentChainInfo,
+  getCurrentChainInfo,
+  ['trustlessMulticall'],
+)
 
 export const waitForBalances = getWaitFunction(
   (state: RootState) => state.balances,

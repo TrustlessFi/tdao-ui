@@ -14,7 +14,6 @@ import CreateTransactionButton from '../library/CreateTransactionButton'
 import TwoColumnDisplay from '../library/TwoColumnDisplay'
 import {
   waitForTDaoInfo,
-  waitForTcpAllocationInfo,
   waitForCurrentChainInfo,
 } from '../../slices/waitFor'
 import {
@@ -26,9 +25,8 @@ import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { TokenAllocationOptions, getMultiplierForMonths } from './'
 import {
-  invert, onNumChange, last, range, notNullString, bnf, mnt,
-  years, scale, unscale, getDateTimeStringMS,
-  days, monthsToDays, getDateStringMS,
+  invert, onNumChange, last, range, notNullString,
+  days, monthsToDays, getDateStringMS, first,
 } from '../../utils'
 import ParagraphDivider from '../library/ParagraphDivider'
 
@@ -38,12 +36,9 @@ const CreateTDaoAllocationPosition = () => {
   const balances = waitForBalances(selector, dispatch)
   const contracts = waitForContracts(selector, dispatch)
   const tdaoInfo = waitForTDaoInfo(selector, dispatch)
-  const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
   const currentChainInfo = waitForCurrentChainInfo(selector, dispatch)
   const userAddress = selector(state => state.wallet.address)
   const tdao = selector(state => state.chainID.tdao)
-
-  console.log({balances, contracts, tdaoInfo, tcpAllocationInfo, currentChainInfo, userAddress, tdao})
 
   const [ lockDurationMonths, setLockDurationMonths ] = useState(48)
   const [ count, setCount ] = useState(0)
@@ -53,7 +48,7 @@ const CreateTDaoAllocationPosition = () => {
     tdaoInfo === null ||
     userAddress === null ||
     tdao === null ||
-    tcpAllocationInfo === null ||
+    currentChainInfo === null ||
     contracts === null
 
   const monthsToMonthsAndYears = (months: number): string => {
@@ -71,10 +66,10 @@ const CreateTDaoAllocationPosition = () => {
       : range(tdaoInfo.minMonths, tdaoInfo.maxMonths, tdaoInfo.monthIncrements)
     ).map(op => [op, monthsToMonthsAndYears(op)]))
 
-  const tcpToAllocate =
-    tcpAllocationInfo === null  || tcpAllocationInfo.totalAllocation < tcpAllocationInfo.tokensAllocated
+  const tcpToLock =
+    contracts === null || balances === null
       ? 0
-      : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated
+      : balances.tokens[contracts.Tcp].userBalance
 
   const timeNow = currentChainInfo === null ? 0 : currentChainInfo.blockTimestamp
 
@@ -83,73 +78,15 @@ const CreateTDaoAllocationPosition = () => {
 
   const multiplier = getMultiplierForMonths(lockDurationMonths)
 
-  const isLockDurationExceeded = () => {
-    if (tcpAllocationInfo === null) return true
-    const ta = tcpAllocationInfo
-    console.log({ta})
-
-
-
-
-    /*
-    const currentMinUnlockDuration = unscale(
-      bnf(ta.minimumAverageTokensAllocatedxLockYears).mul(mnt(1)).div(mnt(ta.totalAllocation))
-    )
-
-    const currentUnlockDuration = unscale(
-      bnf(ta.cumulativeTokensAllocatedxLockYears).mul(mnt(1)).div(mnt(ta.tokensAllocated))
-    )
-    */
-
-
-
-
-
-
-
-
-
-
-
-    const yearsE18 = bnf(mnt(1)).mul(
-      Math.floor((timeNow + years(parseFloat(multiplier))) - ta.startTime)
-    ).div(years(1))
-
-    console.log({yearsE18: yearsE18.toString()})
-
-    const newCumulativeLockYears =
-      bnf(ta.cumulativeTokensAllocatedxLockYears).add(yearsE18.mul(mnt(count)).div(mnt(1)))
-
-    const newTokensAllocated = mnt(ta.tokensAllocated + count)
-
-    /*
-    const newUnlockDuration = unscale(
-      bnf(newCumulativeLockYears).mul(mnt(1)).div(newTokensAllocated)
-    )
-    */
-
-    // console.log({currentMinUnlockDuration, currentUnlockDuration, newUnlockDuration})
-
-    return (
-      newCumulativeLockYears.mul(scale(ta.totalAllocation)).gt(
-        bnf(ta.minimumAverageTokensAllocatedxLockYears).mul(newTokensAllocated)
-      )
-    )
-  }
-
   const failures: { [key in string]: reason } = dataNull ? {} : {
     notEnoughTcp: {
-      message: 'Not enough Tcp to allocate.',
-      failing: balances === null || contracts === null ? false : count > tcpToAllocate,
+      message: 'Not enough Tcp.',
+      failing: balances === null || contracts === null ? false : count > tcpToLock,
     },
     noop: {
       message: 'Must lock Tcp',
       failing: isNaN(count) || count === 0,
       silent: true,
-    },
-    lockDurationTooShort: {
-      message: 'Average lock duration is too short.',
-      failing: !isLockDurationExceeded(),
     },
   }
 
@@ -169,33 +106,8 @@ const CreateTDaoAllocationPosition = () => {
     },
   ]
 
-  // const secondsToMonths = (seconds: number) => Math.round((seconds / years(1)) * 12)
-
-  /*
-  const durationString = (durationFromNow: number): string => {
-    const duration = Math.abs(durationFromNow)
-
-    const diff = secondsToMonths(duration)
-    const result = diff + ' months'
-    return (
-      durationFromNow >= 0
-      ? result + ' from now'
-      : result + ' ago')
-  }
-  */
-
   const columnOne = (
     <SpacedList>
-      <>Block time {currentChainInfo === null ? '' : getDateTimeStringMS(currentChainInfo.blockTimestamp * 1000)}</>
-      <InputPicker
-        options={TokenAllocationOptions}
-        initialValue={TokenAllocationOptions.LockTokens}
-        navigation={{
-          [TokenAllocationOptions.ClaimTokens]: '/positions/allocate/claim/tcp'
-        }}
-        label="Allocation options"
-        style={{}}
-      />
       <Dropdown
         ariaLabel="Dropdown"
         id="month_selector"
@@ -211,10 +123,10 @@ const CreateTDaoAllocationPosition = () => {
       />
       <NumberInput
         hideSteppers
-        id="Tcp Allocation Count Input"
+        id="Tcp Count Input"
         invalidText=""
         min={0}
-        max={tcpAllocationInfo === null ? 0 : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated}
+        max={tcpToLock}
         step={1e-3}
         size="lg"
         onChange={onNumChange((value: number) => setCount(value))}
@@ -222,27 +134,47 @@ const CreateTDaoAllocationPosition = () => {
         style={{}}
       />
       <PositionMetadata items={metadataItems} />
-      <CreateTransactionButton
-        style={{}}
-        disabled={isFailing}
-        txArgs={{
-          type: TransactionType.CreateTDaoTcpAllocationPosition,
-          tcpAllocation: contracts === null ? '' : contracts.TcpAllocation,
-          count,
-          decimals: 18,
-          lockDurationMonths,
-          userAddress: notNullString(userAddress),
-        }}
-      />
+      {
+        balances === null || contracts === null || !balances.tokens[contracts.Tcp].approval.TDao.approved
+        ? <CreateTransactionButton
+            shouldOpenTxTab={false}
+            style={{}}
+            title="Approve Tcp"
+            disabled={isFailing || balances === null || contracts === null}
+            txArgs={{
+              type: TransactionType.ApproveToken,
+              tokenAddress: balances === null || contracts === null ? '' : balances.tokens[contracts.Tcp].token.address,
+              tokenSymbol: balances === null || contracts === null ? '' : balances.tokens[contracts.Tcp].token.symbol,
+              spenderAddress: notNullString(tdao),
+              spenderName: 'TDao'
+            }}
+          />
+        : <CreateTransactionButton
+            style={{}}
+            disabled={isFailing || dataNull}
+            title="Create Position"
+            txArgs={{
+              type: TransactionType.CreateTDaoPosition,
+              tdao: notNullString(tdao),
+              tokenID:
+                tdaoInfo === null || contracts === null
+                ? 0
+                : first(Object.values(tdaoInfo.underlyingProtocolTokens).filter(u => u.address === contracts.Tcp)).tokenID,
+              count,
+              decimals: 18,
+              lockDurationMonths,
+              userAddress: notNullString(userAddress),
+              tokenSymbol: 'Tcp'
+            }}
+          />
+      }
       <ErrorMessage reasons={failureReasons} />
     </SpacedList>
   )
 
   const columnTwo =
     <LargeText>
-      You have {numDisplay(tcpToAllocate)} Tcp to allocate.
-      <ParagraphDivider />
-      Tcp token allocations must be locked for an average of at least 1 year from the time they were granted.
+      You have {numDisplay(tcpToLock)} Tcp to lock.
       <ParagraphDivider />
       This position will have a TDao multiplier of {multiplier}x, meaning your locked Tcp tokens will
       accrue TDao rewards as if you had locked {numDisplay(count * parseFloat(multiplier))} Tcp.
@@ -250,7 +182,7 @@ const CreateTDaoAllocationPosition = () => {
 
   return (
     <>
-      <Breadcrumbs crumbs={[{ text: 'Positions', href: '/positions' }, 'Allocate', 'Lock', 'Tcp' ]} />
+      <Breadcrumbs crumbs={[{ text: 'Positions', href: '/positions' }, 'Create', 'Tcp' ]} />
       <TwoColumnDisplay
         columnOne={columnOne}
         columnTwo={columnTwo}

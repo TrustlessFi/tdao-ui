@@ -3,6 +3,7 @@ import TDaoPositionIncreaseLockTime from './TDaoPositionIncreaseLockTime'
 import ExistingTDaoPositions from './ExistingTDaoPositions'
 import DeleteTDaoPosition from './DeleteTDaoPosition'
 import CreateTDaoAllocationPosition from './CreateTDaoAllocationPosition'
+import CreateTDaoPosition from './CreateTDaoPosition'
 import ClaimUnderlyingTokens from './ClaimUnderlyingTokens'
 import { roundToXDecimals } from '../../utils'
 
@@ -31,6 +32,9 @@ const Positions = () => (
     </Route>
     <Route path='/positions/allocate/claim/tcp'>
       <ClaimUnderlyingTokens />
+    </Route>
+    <Route path='/positions/create/tcp'>
+      <CreateTDaoPosition />
     </Route>
     <Route path='/positions/delete/:positionID'>
       <DeleteTDaoPosition />

@@ -19,7 +19,6 @@ export interface tcpAllocationInfo {
   restrictedToUnlockDuration: boolean
   restrictedUnlockTime: number
   startTime: number
-  blockTime: number
   totalAllocation: number
   minimumAverageTokensAllocatedxLockYears: string
   tokensAllocated: number
@@ -41,7 +40,7 @@ export const getTcpAllocationInfo = createAsyncThunk(
     const tcpAllocation = getContract(args.contracts.TcpAllocation, ProtocolContract.TcpAllocation) as TDao
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
-    const { tdaoInfo, blockTime } = await executeMulticalls(trustlessMulticall, {
+    const { tdaoInfo } = await executeMulticalls(trustlessMulticall, {
       tdaoInfo: oneContractManyFunctionMC(
         tcpAllocation,
         {
@@ -56,17 +55,12 @@ export const getTcpAllocationInfo = createAsyncThunk(
           getUserAllocation: [args.userAddress],
         }
       ),
-      blockTime: oneContractManyFunctionMC(
-        trustlessMulticall,
-        { getCurrentBlockTimestamp: rc.BigNumberToNumber },
-      ),
     })
 
     return {
       restrictedToUnlockDuration: tdaoInfo.restrictedToUnlockDuration,
       restrictedUnlockTime: tdaoInfo.restrictedUnlockTime,
       startTime: tdaoInfo.startTime,
-      blockTime: blockTime.getCurrentBlockTimestamp,
       totalAllocation: unscale(tdaoInfo.getUserAllocation.totalAllocation),
       minimumAverageTokensAllocatedxLockYears: tdaoInfo.getUserAllocation.minimumAverageTokensAllocatedxLockYears.toString(),
       tokensAllocated: unscale(tdaoInfo.getUserAllocation.tokensAllocated),
