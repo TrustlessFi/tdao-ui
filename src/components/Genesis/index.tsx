@@ -6,16 +6,20 @@ import { CheckmarkOutline16, ErrorOutline16} from '@carbon/icons-react';
 import { red, green, blue } from '@carbon/colors';
 
 import Text from "../library/Text"
+import CreateTransactionButton from '../library/CreateTransactionButton'
 import AppTile from "../library/AppTile"
 import SimpleTable from "../library/SimpleTable"
 import SpacedList from "../library/SpacedList"
 import ConnectWalletButton from '../library/ConnectWalletButton'
-import { unscale, unique, numDisplay } from "../../utils"
+import { unscale, unique, numDisplay, bnf, notNullString, first } from "../../utils"
+import { TransactionType } from '../../slices/transactions'
+import { Allocation } from '../../slices/genesisAllocations'
 
 import { useAppSelector as selector, useAppDispatch } from "../../app/hooks"
 import {
   waitForGenesisPositions,
   waitForGenesisAllocations,
+  waitForClaimedAllocationRounds,
 } from "../../slices/waitFor"
 
 const BooleanIcon: React.FunctionComponent<{
@@ -28,21 +32,66 @@ const BooleanIcon: React.FunctionComponent<{
 
 const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
   const dispatch = useAppDispatch()
-  const allAllocations = waitForGenesisAllocations(selector, dispatch) || {}
+
+  const allAllocations = waitForGenesisAllocations(selector, dispatch)
+  const claimedAllocationRounds = waitForClaimedAllocationRounds(selector, dispatch)
   const userAddress = selector((state) => state.wallet.address)
+  const genesisAllocation = selector((state) => state.chainID.genesisAllocation)
+
+  const dataNull =
+    allAllocations === null ||
+    claimedAllocationRounds === null ||
+    userAddress === null ||
+    genesisAllocation === null
+
+  console.log({allAllocations, claimedAllocationRounds, userAddress})
+
   // process genesis allocations
-  const allocations = userAddress ? allAllocations[userAddress] || [] : []
+  const userAllocations =
+    allAllocations === null || userAddress === null
+    ? []
+    : allAllocations.allocations[userAddress]
 
-  const allocationRows = allocations.map(({ roundID, count }) => ({
-    key: `${roundID}-${count}`,
-    data: {
-      "Round ID": roundID,
-      "Claimable Tcp": numDisplay(unscale(ethers.BigNumber.from(count))),
-      "Claimed": <BooleanIcon isTrue={false} />,
-    },
-  }))
+  let totalCount = 0
+  const unclaimedRoundIDs: number[] = []
+  const unclaimedAllocations: Allocation[] = []
 
-  const claimAllocationButton = <Button small onClick={() => alert('on claim clicked')}>Claim Allocations</Button>
+  const allocationRows = userAllocations.map(({ roundID, count }, index) => {
+    const claimed = claimedAllocationRounds === null ? false : claimedAllocationRounds.claimedRounds[roundID]
+    const unscaledCount = unscale(bnf(count))
+    if (!claimed) {
+      const allocationsForRoundID = userAllocations.filter(ua => ua.roundID === roundID)
+      if (allocationsForRoundID.length > 1) throw new Error(`more than 1 sig found for round ${roundID}`)
+      if (allocationsForRoundID.length > 0) {
+        totalCount += unscaledCount
+        unclaimedRoundIDs.push(roundID)
+        unclaimedAllocations.push(first(allocationsForRoundID))
+      }
+    }
+
+    return {
+      key: index,
+      data: {
+        "Round ID": roundID,
+        "Claimable Tcp": numDisplay(unscaledCount),
+        "Claimed": <BooleanIcon isTrue={claimed} />,
+      },
+    }
+  })
+
+  const claimAllocationButton =
+    <CreateTransactionButton
+      style={{}}
+      disabled={dataNull || totalCount === 0 }
+      size='sm'
+      title='Claim'
+      txArgs={{
+        type: TransactionType.ClaimGenesisAllocations,
+        genesisAllocation: notNullString(genesisAllocation),
+        allocations: unclaimedAllocations,
+        roundIDs: unclaimedRoundIDs,
+      }}
+    />
 
   return (
       <AppTile title='Claim Genesis Tcp' rightElement={claimAllocationButton}>

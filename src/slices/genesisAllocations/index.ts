@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import * as ethers from "ethers"
 import { initialState, sliceState, getGenericReducerBuilder } from "../index"
 
-interface Allocation {
+export interface Allocation {
   auth: { r: string; s: string; v: number }
   roundID: number
   count: string
@@ -66,7 +66,6 @@ async function _fetchRounds() {
   }
   return {rounds, roundCount: id}
 }
-
 
 export async function fetchAllocations() {
   const {rounds, roundCount} = await _fetchRounds()

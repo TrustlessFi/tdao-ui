@@ -6,13 +6,15 @@ import { addNotification } from '../notifications'
 import { clearBalances } from '../balances'
 import { clearTcpAllocationInfo } from '../tcpAllocation'
 import { clearTcpProposals } from '../proposals/tcpProposals'
+import { clearClaimedAllocationRounds } from '../claimedAllocationRounds'
 import { clearTDaoPositions } from '../tdaoPositions'
+import { Allocation } from '../genesisAllocations'
 import { ethers, ContractTransaction } from 'ethers'
-import { ProtocolContract, TDaoRootContract } from '../contracts'
+import { ProtocolContract, TDaoRootContract, RootContract } from '../contracts'
 
 import {
   TcpGovernorAlpha, TDao, TcpAllocation, Tcp,
-  GovernorAlphaWithVotingRewards,
+  GovernorAlphaWithVotingRewards, GenesisAllocation
 } from '@trustlessfi/typechain'
 import getContract from '../../utils/getContract'
 import { scale, timeMS } from '../../utils'
@@ -32,6 +34,8 @@ export enum TransactionType {
   ClaimTcpVotingRewards,
   SelfDelegateTcp,
   ApproveToken,
+
+  ClaimGenesisAllocations,
 }
 
 export enum TransactionStatus {
@@ -87,6 +91,7 @@ export interface txCreateTDaoPosition {
   tokenSymbol: string
 }
 
+
 export interface txVoteTcpProposal {
   type: TransactionType.VoteTcpProposal
   TcpGovernorAlpha: string
@@ -114,6 +119,13 @@ export interface txApproveToken {
   spenderName: string
 }
 
+export interface txClaimGenesisAllocations {
+  type: TransactionType.ClaimGenesisAllocations
+  genesisAllocation: string
+  allocations: Allocation[]
+  roundIDs: number[]
+}
+
 export type TransactionArgs =
   txVoteTcpProposal |
   txClaimVotingRewards |
@@ -124,7 +136,8 @@ export type TransactionArgs =
   txClaimTcpTokenAllocationImmediately |
   txCreateTDaoPosition |
   txSelfDelegateTcp |
-  txApproveToken
+  txApproveToken |
+  txClaimGenesisAllocations
 
 export interface TransactionData {
   args: TransactionArgs
@@ -169,6 +182,8 @@ export const getTxLongName = (args: TransactionArgs) => {
       return `Self delegate Tcp votes`
     case TransactionType.ApproveToken:
       return `Approve ${args.spenderName} to spend ${args.tokenSymbol}`
+    case TransactionType.ClaimGenesisAllocations:
+      return `Claim Genesis Tcp Tokens for rounds ${args.roundIDs.join(', ')}`
 
     default:
       assertUnreachable(type)
@@ -198,6 +213,8 @@ export const getTxShortName = (type: TransactionType) => {
       return `Self delegate Tcp votes`
     case TransactionType.ApproveToken:
       return `Approve Token`
+    case TransactionType.ClaimGenesisAllocations:
+      return `Claim Genesis Tcp Tokens`
     default:
       assertUnreachable(type)
   }
@@ -229,6 +246,10 @@ const executeTransaction = async (
   const getTcp = (address: string) =>
     getContract(address, ProtocolContract.Tcp)
       .connect(provider.getSigner()) as Tcp
+
+  const getGenesisAllocation = (address: string) =>
+    getContract(address, RootContract.GenesisAllocation)
+      .connect(provider.getSigner()) as GenesisAllocation
 
   const type = args.type
 
@@ -280,6 +301,9 @@ const executeTransaction = async (
 
     case TransactionType.ApproveToken:
       return await addressToERC20(args.tokenAddress).approve(args.spenderAddress, uint256Max)
+
+    case TransactionType.ClaimGenesisAllocations:
+      return await getGenesisAllocation(args.genesisAllocation).claimAllocations(args.allocations)
 
     default:
       assertUnreachable(type)
@@ -379,6 +403,9 @@ export const waitForTransaction = createAsyncThunk(
           break
         case TransactionType.ApproveToken:
           dispatch(clearBalances())
+          break
+        case TransactionType.ClaimGenesisAllocations:
+          dispatch(clearClaimedAllocationRounds())
           break
       default:
         assertUnreachable(type)
