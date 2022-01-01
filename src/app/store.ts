@@ -2,9 +2,11 @@ import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit'
 
 import balancesReducer from '../slices/balances'
 import chainIDReducer from '../slices/chainID'
-import currentChainInfoReducer from '../slices/currentChainInfo'
+import claimedAllocationRoundsReducer from '../slices/claimedAllocationRounds'
 import contractsReducer from '../slices/contracts'
-import genesisReducer from '../slices/genesis'
+import currentChainInfoReducer from '../slices/currentChainInfo'
+import genesisAllocationsReducer from '../slices/genesisAllocations'
+import genesisPositionsReducer from '../slices/genesisPositions'
 import governorReducer from '../slices/governor'
 import notificationsReducer from '../slices/notifications'
 import tcpProposalsReducer from '../slices/proposals/tcpProposals'
@@ -18,9 +20,11 @@ export const store = configureStore({
   reducer: {
     balances: balancesReducer,
     chainID: chainIDReducer,
-    currentChainInfo: currentChainInfoReducer,
+    claimedAllocationRounds: claimedAllocationRoundsReducer,
     contracts: contractsReducer,
-    genesis: genesisReducer,
+    currentChainInfo: currentChainInfoReducer,
+    genesisAllocations: genesisAllocationsReducer,
+    genesisPositions: genesisPositionsReducer,
     governor: governorReducer,
     notifications: notificationsReducer,
     tcpProposals: tcpProposalsReducer,
