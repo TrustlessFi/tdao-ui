@@ -1,4 +1,5 @@
 import {
+  DataTableSize,
   Table,
   TableHead,
   TableRow,
@@ -25,8 +26,8 @@ export const TableHeaderOnly = ({headers}: {headers: string[]}) => (
   </Table>
 )
 
-const SimpleTable = ({rows}: {rows: row[]}) => rows.length === 0 ? null : (
-  <Table>
+const SimpleTable = ({rows, size}: {rows: row[], size?: DataTableSize}) => rows.length === 0 ? null : (
+  <Table size={size}>
     <TableHead>
       <TableRow>
         {Object.keys(rows[0].data).map((header, index) => (

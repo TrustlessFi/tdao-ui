@@ -77,21 +77,6 @@ interface claimAllocationsArgs {
   genesisAllocation: string
   allocations: Allocation[]
 }
-export const waitForGenesisClaimAllocations = createAsyncThunk(
-  "genesis/claimAllocations",
-  async (opts: claimAllocationsArgs) => {
-    const { allocations } = opts
-
-    const provider = getProvider();
-    const genesisAllocation = getContract(
-      opts.genesisAllocation,
-      RootContract.GenesisAllocation
-    ).connect(provider.getSigner()) as GenesisAllocation
-
-    const transaction = await claimAllocations({ genesisAllocation, allocations });
-    const receipt = await provider.waitForTransaction(transaction.hash);
-  }
-)
 
 export const genesisSlice = createSlice({
   name: "genesis",

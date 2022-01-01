@@ -2,35 +2,69 @@ import { Row, Col } from 'react-flexbox-grid'
 import React, { useState } from "react"
 import * as ethers from "ethers"
 import { Button, TextInput, Form, FormGroup } from "carbon-components-react"
-import { CheckmarkFilled20, CheckmarkFilled16, ErrorFilled16,  ErrorFilled20} from '@carbon/icons-react';
+import { CheckmarkOutline16, ErrorOutline16} from '@carbon/icons-react';
 import { red, green, blue } from '@carbon/colors';
 
 import Text from "../library/Text"
-import LargeText from "../library/LargeText"
 import AppTile from "../library/AppTile"
 import SimpleTable from "../library/SimpleTable"
-import SpacedList, {ListDirection} from "../library/SpacedList"
+import SpacedList from "../library/SpacedList"
 import ConnectWalletButton from '../library/ConnectWalletButton'
-import { unscale, unique } from "../../utils"
+import { unscale, unique, numDisplay } from "../../utils"
 
 import { useAppSelector as selector, useAppDispatch } from "../../app/hooks"
 import {
   waitForGenesisPositions,
   waitForGenesisAllocations,
 } from "../../slices/waitFor"
-import { waitForGenesisClaimAllocations } from "../../slices/genesis"
+
+const BooleanIcon: React.FunctionComponent<{
+  isTrue: boolean,
+}> = ({ isTrue }) => {
+  return isTrue
+    ? <CheckmarkOutline16 color={green[50]} />
+    : <ErrorOutline16 color={red[50]} />
+}
+
+const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
+  const dispatch = useAppDispatch()
+  const allAllocations = waitForGenesisAllocations(selector, dispatch) || {}
+  const userAddress = selector((state) => state.wallet.address)
+  // process genesis allocations
+  const allocations = userAddress ? allAllocations[userAddress] || [] : []
+
+  const allocationRows = allocations.map(({ roundID, count }) => ({
+    key: `${roundID}-${count}`,
+    data: {
+      "Round ID": roundID,
+      "Claimable Tcp": numDisplay(unscale(ethers.BigNumber.from(count))),
+      "Claimed": <BooleanIcon isTrue={false} />,
+    },
+  }))
+
+  const claimAllocationButton = <Button small onClick={() => alert('on claim clicked')}>Claim Allocations</Button>
+
+  return (
+      <AppTile title='Claim Genesis Tcp' rightElement={claimAllocationButton}>
+        <SimpleTable rows={allocationRows} />
+      </AppTile>
+  )
+}
 
 const Genesis: React.FunctionComponent = () => {
   const dispatch = useAppDispatch()
   const downloadRef = React.createRef<HTMLAnchorElement>()
 
-  const chainID = selector((state) => state.chainID.chainID)
-  const userAddress = selector((state) => state.wallet.address)
   // process debt and liquidity
   const { debt, liquidity } = waitForGenesisPositions(selector, dispatch) || {
     debt: [],
     liquidity: [],
   }
+
+  const chainID = selector((state) => state.chainID.chainID)
+  const userAddress = selector((state) => state.wallet.address)
+  const genesisAllocation = selector((state) => state.chainID.genesisAllocation)
+
   // get debt owners
   const uniqueDebtOwners = unique(debt.map(d => d.owner).sort())
 
@@ -44,10 +78,6 @@ const Genesis: React.FunctionComponent = () => {
     unique(liquidity.map(l => l.owner).sort())
       .filter(l => debtOwners.includes(l))
 
-  // process genesis allocations
-  const allAllocations = waitForGenesisAllocations(selector, dispatch) || {}
-  const allocations = userAddress ? allAllocations[userAddress] || [] : []
-  const genesisAllocation = selector((state) => state.chainID.genesisAllocation)
 
   // eligibility search box
   const [addressFilter, setAddressFilter] = useState("")
@@ -62,11 +92,6 @@ const Genesis: React.FunctionComponent = () => {
     })
   )
 
-  const booleanIcon = (value: boolean, small = false) =>
-    value
-    ? (small ? <CheckmarkFilled16 color={green[50]} /> : <CheckmarkFilled20 color={green[50]} />)
-    : (small ? <ErrorFilled16 color={red[50]} /> : <ErrorFilled20 color={red[50]} />)
-
   const eligibilityRows = eligibleOwners
     .filter(data => addressFilter === "" || data.address.indexOf(addressFilter) > -1)
     .map(({address, liquidity, debt }, index) => {
@@ -74,19 +99,12 @@ const Genesis: React.FunctionComponent = () => {
         key: index,
         data: {
           Address: address === userAddress ? <Text bold color={blue[50]}>{address}</Text> : address,
-          'Borrowed Hue': booleanIcon(debt),
-          'Provided Uniswap Liquidity': booleanIcon(liquidity),
+          'Borrowed Hue': <BooleanIcon isTrue={debt} />,
+          'Provided Uniswap Liquidity': <BooleanIcon isTrue={liquidity} />,
         },
       }
     })
 
-  const allocationRows = allocations.map(({ roundID, count }) => ({
-    key: `${roundID}-${count}`,
-    data: {
-      "Round ID": roundID,
-      "Tokens Allocated": unscale(ethers.BigNumber.from(count)),
-    },
-  }))
 
   //download url
   const downloadDisabled =
@@ -119,15 +137,6 @@ const Genesis: React.FunctionComponent = () => {
     hiddenAnchorElement.click()
   }
 
-  // claim url
-  const claimDisabled = genesisAllocation === null || allocations.length === 0
-  const claimClick = () => {
-    if (claimDisabled) return
-    if (claimDisabled) return
-    if (genesisAllocation === null) return
-    dispatch(waitForGenesisClaimAllocations({ genesisAllocation, allocations }))
-  }
-
   const userDebtEligible = userAddress === null ? false : debtOwners.includes(userAddress)
   const userLiquidityEligible = userAddress === null ? false : liquidityOwners.includes(userAddress)
 
@@ -142,55 +151,47 @@ const Genesis: React.FunctionComponent = () => {
               <Col xs={8} style={{marginLeft: 32, paddingBottom: 32}}>
                 <Row middle="xs">
                   <Col style={{marginRight: 8}}><Text>Borrowed Hue: </Text></Col>
-                  <Col>{booleanIcon(userDebtEligible, true)}</Col>
+                  <Col><BooleanIcon isTrue={userDebtEligible} /></Col>
                 </Row>
                 <Row middle="xs">
                   <Col style={{marginRight: 8}}><Text>Also Provided Uniswap Liquidity: </Text></Col>
-                  <Col>{booleanIcon(userLiquidityEligible, true)}</Col>
+                  <Col><BooleanIcon isTrue={userLiquidityEligible} /></Col>
                 </Row>
               </Col>
             </>
         }
       </AppTile>
-      <AppTile title={`Tcp Genesis Address Eligibility (${Object.values(eligibleOwners).length})`} className="genesis-eligibility">
-        <div style={{ display: "flex", marginBottom: "5px" }}>
+      <ClaimGenesisAllocationsPanel />
+      <AppTile
+        title={`Tcp Genesis Address Eligibility (${Object.values(eligibleOwners).length})`}
+        rightElement={
+          <Button
+            kind={"secondary"}
+            disabled={downloadDisabled}
+            onClick={downloadClick}
+            size={"sm"}>
+            Download JSON
+          </Button>
+        }
+        className="genesis-eligibility">
+
+        <div style={{ display: 'flex', marginBottom: 8 }}>
           <div style={{ flex: 1 }}>
             <TextInput
               id={"address-search"}
               hideLabel={true}
-              labelText={"Search"}
-              placeholder={"Search for address"}
+              labelText='Search'
+              placeholder='filter addresses'
               value={addressFilter}
               onChange={(event) => setAddressFilter(event.target.value)}
               light={true}
               size={"sm"}
             />
           </div>
-          <div>
-            <Button
-              kind={"primary"}
-              onClick={claimClick}
-              disabled={claimDisabled}
-              size={"sm"}
-            >
-              Claim
-            </Button>
-            <Button
-              kind={"secondary"}
-              disabled={downloadDisabled}
-              onClick={downloadClick}
-              size={"sm"}
-            >
-              Save
-            </Button>
-          </div>
         </div>
-        <SimpleTable rows={eligibilityRows} />
+        <SimpleTable rows={eligibilityRows} size="compact" />
       </AppTile>
 
-      <AppTile title={`Allocation`}>
-        <SimpleTable rows={allocationRows} />
-      </AppTile>
       <a {...downloadAnchorProps}>Hidden Genesis Data Download Link</a>
     </SpacedList>
   )
@@ -203,7 +204,7 @@ const _dateString = (date: Date) => {
   const hour = date.getHours()
   const minutes = date.getMinutes()
   const seconds = date.getSeconds()
-  return `${year}${month}${day}${hour}${minutes}${seconds}`
+  return `${year}/${month}/${day}_${hour}:${minutes}:${seconds}`
 }
 
 export default Genesis

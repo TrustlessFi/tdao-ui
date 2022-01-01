@@ -341,7 +341,7 @@ export interface Allocations {
 
 export async function fetchAllocations() {
   const rounds = await _fetchRounds()
-  const allocations = {} as Allocations
+  const allocations: Allocations = {}
   for (const round of rounds) {
     const { roundID } = round
     for (const [address, {tokenCount, signature}] of Object.entries(round.signatures)) {
@@ -368,7 +368,7 @@ export async function claimAllocations({
 }: claimAllocationsArgs) {
   const convertedAllocations = allocations.map(({auth, roundID, count})=>({
     auth, roundID, count: ethers.BigNumber.from(count)
-  }));
-  console.log('claimAllocations', genesisAllocation, convertedAllocations);
-  return await genesisAllocation.claimAllocations(convertedAllocations);
+  }))
+  console.log('claimAllocations', genesisAllocation, convertedAllocations)
+  return await genesisAllocation.claimAllocations(convertedAllocations)
 }
