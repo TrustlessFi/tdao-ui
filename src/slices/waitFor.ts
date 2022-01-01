@@ -13,8 +13,9 @@ import { getTcpAllocationInfo, tcpAllocationInfo } from './tcpAllocation'
 import { getCurrentChainInfo } from './currentChainInfo'
 import { sliceState } from "./"
 
-import { getGenesisPositions, getGenesisAllocations, GenesisPositions } from "./genesis"
-import { Allocations } from "./genesis/api"
+import { getGenesisPositions, genesisPositionsInfo } from "./genesisPositions"
+import { getGenesisAllocations, genesisAllocationsInfo } from "./genesisAllocations"
+import { getClaimedAllocationRounds, claimedAllocationRoundsInfo } from "./claimedAllocationRounds"
 
 
 interface fetchNodeTypes {
@@ -32,8 +33,8 @@ interface fetchNodeTypes {
   contracts: ContractsInfo
   tdaoPositions: tdaoPositionsInfo
   tcpAllocationInfo: tcpAllocationInfo,
-  genesisPositions: GenesisPositions,
-  genesisAllocations: Allocations,
+  genesisAllocations: genesisAllocationsInfo,
+  genesisPositions: genesisPositionsInfo,
   tcpProposals: proposalsInfo,
 }
 
@@ -114,23 +115,30 @@ export const waitForTcpAllocationInfo = getWaitFunction(
   ['userAddress', 'trustlessMulticall', 'contracts']
 )
 
-export const waitForGenesisPositions = getWaitFunction(
-  (state: RootState) => state.genesis.positions,
-  getGenesisPositions,
-  ['contracts', 'trustlessMulticall']
-)
-
-export const waitForGenesisAllocations = getWaitFunction(
-  (state: RootState) => state.genesis.allocations,
-  getGenesisAllocations,
-  []
-)
-
 export const waitForTcpProposals = getWaitFunction(
   (state: RootState) => state.tcpProposals,
   getTcpProposals,
   ['contracts', 'userAddress', 'trustlessMulticall']
 )
+
+export const waitForGenesisPositions = getWaitFunction(
+  (state: RootState) => state.genesisPositions,
+  getGenesisPositions,
+  ['contracts', 'trustlessMulticall']
+)
+
+export const waitForGenesisAllocations = getWaitFunction(
+  (state: RootState) => state.genesisAllocations,
+  getGenesisAllocations,
+  []
+)
+
+export const waitForClaimedAllocationRounds = getWaitFunction(
+  (state: RootState) => state.claimedAllocationRounds,
+  getClaimedAllocationRounds,
+  ['genesisAllocations', 'trustlessMulticall', 'userAddress', 'genesisAllocation']
+)
+
 
 const getStateSelector = <T>(selectorFunc: (state: RootState) => T) =>
   (selector: AppSelector, _dispatch: AppDispatch) => selector(selectorFunc)
