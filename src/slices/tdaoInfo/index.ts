@@ -16,7 +16,6 @@ import { TDao } from '@trustlessfi/typechain'
 import { TDaoRootContract } from '../contracts'
 
 export interface tdaoInfo {
-  lastPeriodGlobalInflationUpdated: number
   minMonths: number
   maxMonths: number
   monthIncrements: number
@@ -24,7 +23,6 @@ export interface tdaoInfo {
   startPeriod: number
   periodLength: number
   firstPeriod: number
-  currentPeriod: number
   underlyingProtocolTokens: {
     [key in number]: {
       tokenID: number
@@ -32,10 +30,6 @@ export interface tdaoInfo {
       name: string
       symbol: string
       decimals: number
-      rs: {
-        cumulativeVirtualCount: string
-        totalRewards: string
-      }
     }
   }
 }
@@ -53,12 +47,10 @@ export const getTDaoInfo = createAsyncThunk(
       tdaoInfo: oneContractManyFunctionMC(
         tdao,
         {
-          lastPeriodGlobalInflationUpdated: rc.BigNumberToNumber,
           countUnderlyingProtocolTokens: rc.BigNumberToNumber,
           startPeriod: rc.BigNumberToNumber,
           periodLength: rc.BigNumberToNumber,
           firstPeriod: rc.BigNumberToNumber,
-          currentPeriod: rc.BigNumberToNumber,
           allTokens: (result: any) => result as PromiseType<ReturnType<TDao['allTokens']>>,
         }
       ),
@@ -75,20 +67,8 @@ export const getTDaoInfo = createAsyncThunk(
       },
     )
 
-    const { rewardsStatus } = await executeMulticalls(
-      trustlessMulticall,
-      {
-        rewardsStatus: oneContractOneFunctionMC(
-          tdao,
-          'getRewardsStatus',
-          (result: any) => result as PromiseType<ReturnType<TDao['getRewardsStatus']>>,
-          Object.fromEntries(tokenAddresses.map((address, tokenID) => [address, [tokenID]])),
-        ),
-      },
-    )
 
     return {
-      lastPeriodGlobalInflationUpdated: tdaoInfo.lastPeriodGlobalInflationUpdated,
       minMonths: 6,
       maxMonths: 48,
       monthIncrements: 3,
@@ -96,7 +76,6 @@ export const getTDaoInfo = createAsyncThunk(
       startPeriod: tdaoInfo.startPeriod,
       periodLength: tdaoInfo.periodLength,
       firstPeriod: tdaoInfo.firstPeriod,
-      currentPeriod: tdaoInfo.currentPeriod,
       underlyingProtocolTokens:
         Object.fromEntries(tokenAddresses.map((address, tokenID) => {
           return [tokenID, {
@@ -105,10 +84,6 @@ export const getTDaoInfo = createAsyncThunk(
             symbol: symbol[address],
             name: name[address],
             decimals: decimals[address],
-            rs: {
-              cumulativeVirtualCount: rewardsStatus[address].cumulativeVirtualCount.toString(),
-              totalRewards: rewardsStatus[address].cumulativeVirtualCount.toString(),
-            }
           }]
         }))
     }

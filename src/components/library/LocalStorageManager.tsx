@@ -26,8 +26,7 @@ type persistedSlices = {
 
 const NO_EXPIRATION = -1
 const SHORT_EXPIRATION = minutes(1)
-const MEDIUM_EXPIRATION = minutes(5)
-const LONG_EXPIRATION = minutes(30)
+const LONG_EXPIRATION = minutes(60)
 
 export const slicesToPersist: persistedSlices = {
 
@@ -51,7 +50,7 @@ export const slicesToPersist: persistedSlices = {
   // Slices with loadable state
   [tdaoInfoSlice.name]: {
     slice: tdaoInfoSlice,
-    ttl: MEDIUM_EXPIRATION,
+    ttl: SHORT_EXPIRATION,
     getState: (state: RootState) => state.tdaoInfo.data.value
   },
 }

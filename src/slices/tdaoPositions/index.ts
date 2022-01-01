@@ -5,9 +5,9 @@ import { ContractsInfo } from '../contracts'
 import { getGenericReducerBuilder } from '../'
 import { tdaoInfo } from '../tdaoInfo'
 import getContract, { getMulticallContract } from '../../utils/getContract'
-import { oneContractOneFunctionMC, idToIdAndArg, executeMulticalls, rc } from '@trustlessfi/multicall'
+import { oneContractOneFunctionMC, idToIdAndArg, executeMulticalls, rc, oneContractManyFunctionMC } from '@trustlessfi/multicall'
 import { PromiseType } from '@trustlessfi/utils'
-import { unscale, bnf } from '../../utils'
+import { unscale, bnf, unique } from '../../utils'
 
 import { TDaoPositionNFT, TDao } from '@trustlessfi/typechain'
 import { TDaoContract, TDaoRootContract } from '../contracts'
@@ -50,30 +50,51 @@ export const getTDaoPositions = createAsyncThunk(
 
     const positionArgs = idToIdAndArg(positionIDs)
 
-    const { positions, tokenSVGs, canBeUnlocked } = await executeMulticalls(trustlessMulticall, {
-      positions: oneContractOneFunctionMC(
+    const {
+      rawPositions,
+      tokenSVGs,
+      canBeUnlocked,
+      tdaoCurrentInfo ,
+      rewardsStatus,
+    } = await executeMulticalls(trustlessMulticall, {
+      rawPositions: oneContractOneFunctionMC(
         tdao,
         'getPosition',
         (result: any) => result as PromiseType<ReturnType<TDao['getPosition']>>,
         positionArgs,
       ),
       tokenSVGs: oneContractOneFunctionMC(tdaoPostionNFT, 'tokenURI', rc.String, positionArgs),
-      canBeUnlocked: oneContractOneFunctionMC(tdao, 'positionIsAbleToBeUnlocked', rc.Boolean, positionArgs)
+      canBeUnlocked: oneContractOneFunctionMC(tdao, 'positionIsAbleToBeUnlocked', rc.Boolean, positionArgs),
+      tdaoCurrentInfo: oneContractManyFunctionMC(
+        tdao,
+        {
+          currentPeriod: rc.BigNumberToNumber,
+          lastPeriodGlobalInflationUpdated: rc.BigNumberToNumber,
+        }
+      ),
+      rewardsStatus: oneContractOneFunctionMC(
+        tdao,
+        'getRewardsStatus',
+        (result: any) => result as PromiseType<ReturnType<TDao['getRewardsStatus']>>,
+        idToIdAndArg(Object.keys(args.tdaoInfo.underlyingProtocolTokens)),
+      ),
     })
 
-    const result = Object.fromEntries(positionIDs.map(id => {
-      const position = positions[id]
+    return Object.fromEntries(positionIDs.map(id => {
+      const position = rawPositions[id]
 
       let approximateRewards = BigNumber.from(0)
       const lastPeriodPositionUpdated = position.lastPeriodUpdated.toNumber()
 
-      const tokenRewardsStatus = args.tdaoInfo.underlyingProtocolTokens[position.tokenID].rs
+      const tokenRewardsStatus = rewardsStatus[position.tokenID]
 
-      if (lastPeriodPositionUpdated < args.tdaoInfo.lastPeriodGlobalInflationUpdated)   {
-        let avgDebtPerPeriod =
-          bnf(tokenRewardsStatus.cumulativeVirtualCount)
-            .sub(position.startCumulativeVirtualCount)
-            .div(args.tdaoInfo.lastPeriodGlobalInflationUpdated - lastPeriodPositionUpdated)
+      if (lastPeriodPositionUpdated < tdaoCurrentInfo.lastPeriodGlobalInflationUpdated)   {
+        const inflationPeriods = tdaoCurrentInfo.lastPeriodGlobalInflationUpdated - lastPeriodPositionUpdated
+        const realPeriods = tdaoCurrentInfo.currentPeriod - lastPeriodPositionUpdated
+
+        const avgDebtPerPeriod =
+          bnf(tokenRewardsStatus.cumulativeVirtualCount).sub(position.startCumulativeVirtualCount)
+            .div(inflationPeriods)
 
         if (!avgDebtPerPeriod.eq(0)) {
           approximateRewards =
@@ -82,25 +103,25 @@ export const getTDaoPositions = createAsyncThunk(
               .div(12)
               .mul(bnf(tokenRewardsStatus.totalRewards).sub(position.startTotalRewards))
               .div(avgDebtPerPeriod)
+              .mul(realPeriods)
+              .div(inflationPeriods)
         }
       }
 
       return [id, {
         nftTokenID: id,
         approximateRewards: unscale(approximateRewards, 18),
-        count: positions[id].count.toString(),
-        startTotalRewards: positions[id].startTotalRewards.toString(),
-        startCumulativeVirtualCount: positions[id].startCumulativeVirtualCount.toString(),
-        lastPeriodUpdated: positions[id].lastPeriodUpdated.toNumber(),
-        endPeriod: positions[id].endPeriod.toNumber(),
-        durationMonths: positions[id].durationMonths.toNumber(),
-        underlyingTokenID: positions[id].tokenID,
+        count: rawPositions[id].count.toString(),
+        startTotalRewards: rawPositions[id].startTotalRewards.toString(),
+        startCumulativeVirtualCount: rawPositions[id].startCumulativeVirtualCount.toString(),
+        lastPeriodUpdated: rawPositions[id].lastPeriodUpdated.toNumber(),
+        endPeriod: rawPositions[id].endPeriod.toNumber(),
+        durationMonths: rawPositions[id].durationMonths.toNumber(),
+        underlyingTokenID: rawPositions[id].tokenID,
         canBeUnlocked: canBeUnlocked[id],
         svg: tokenSVGs[id]
       }]
     }))
-
-    return result
   }
 )
 
