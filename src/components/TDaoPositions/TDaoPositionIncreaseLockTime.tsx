@@ -19,6 +19,7 @@ import { days, monthsToDays, timeS, getDateStringMS, invert, last } from '../../
 import TwoColumnDisplay from '../library/TwoColumnDisplay'
 import LargeText from '../library/LargeText'
 import ParagraphDivider from '../library/ParagraphDivider'
+import SpacedList from '../library/SpacedList'
 
 interface MatchParams {
   positionID: string
@@ -70,7 +71,7 @@ const TDaoPositionIncreaseLockTime = () => {
           size="lg"
           initialSelectedItem={last(Object.values(extensionOptionsMap))}
           label="Month Selector"
-          style={{width: 300, marginTop: 8}}
+          style={{width: 300}}
         />
     }
   }
@@ -78,7 +79,7 @@ const TDaoPositionIncreaseLockTime = () => {
   const isFailing = extensionOptions.length === 0
 
   const columnOne =
-    <>
+    <SpacedList>
       <InputPicker
         options={PositionUpdateOptions}
         initialValue={PositionUpdateOptions.IncreaseLockTime}
@@ -91,7 +92,6 @@ const TDaoPositionIncreaseLockTime = () => {
       />
       {monthSelector}
       <CreateTransactionButton
-        style={{marginTop: 8}}
         disabled={isFailing}
         txArgs={{
           type: TransactionType.UpdateTDaoPositionLockDuration,
@@ -100,7 +100,7 @@ const TDaoPositionIncreaseLockTime = () => {
           tdao: tdao === null ? '' : tdao,
         }}
       />
-    </>
+    </SpacedList>
 
   const newUnlockTime = timeS() + days(monthsToDays(newDurationMonths))
   const unlockDateString = getDateStringMS(newUnlockTime * 1000)

@@ -27,7 +27,7 @@ import InputPicker from '../library/InputPicker'
 import { TokenAllocationOptions, getMultiplierForMonths } from './'
 import {
   invert, onNumChange, last, range, notNullString, bnf, mnt,
-  years, scale, unscale, getDateTimeStringMS,
+  years, scale, getDateTimeStringMS,
   days, monthsToDays, getDateStringMS,
 } from '../../utils'
 import ParagraphDivider from '../library/ParagraphDivider'
@@ -88,9 +88,6 @@ const CreateTDaoAllocationPosition = () => {
     const ta = tcpAllocationInfo
     console.log({ta})
 
-
-
-
     /*
     const currentMinUnlockDuration = unscale(
       bnf(ta.minimumAverageTokensAllocatedxLockYears).mul(mnt(1)).div(mnt(ta.totalAllocation))
@@ -100,16 +97,6 @@ const CreateTDaoAllocationPosition = () => {
       bnf(ta.cumulativeTokensAllocatedxLockYears).mul(mnt(1)).div(mnt(ta.tokensAllocated))
     )
     */
-
-
-
-
-
-
-
-
-
-
 
     const yearsE18 = bnf(mnt(1)).mul(
       Math.floor((timeNow + years(parseFloat(multiplier))) - ta.startTime)
@@ -168,22 +155,7 @@ const CreateTDaoAllocationPosition = () => {
       value: unlockDateString,
     },
   ]
-
-  // const secondsToMonths = (seconds: number) => Math.round((seconds / years(1)) * 12)
-
-  /*
-  const durationString = (durationFromNow: number): string => {
-    const duration = Math.abs(durationFromNow)
-
-    const diff = secondsToMonths(duration)
-    const result = diff + ' months'
-    return (
-      durationFromNow >= 0
-      ? result + ' from now'
-      : result + ' ago')
-  }
-  */
-
+  
   const columnOne = (
     <SpacedList>
       <>Block time {currentChainInfo === null ? '' : getDateTimeStringMS(currentChainInfo.blockTimestamp * 1000)}</>
