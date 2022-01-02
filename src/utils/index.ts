@@ -249,7 +249,7 @@ export const parseMetamaskError = (error: any): string[] => {
     }
   }
 
-  const userRejectedMessage = ['Please accept in metamask']
+  const userRejectedMessage = ['Please accept in Metamask']
 
   if (error.hasOwnProperty('code') && error.code === 4001) {
     return userRejectedMessage
@@ -262,7 +262,7 @@ export const parseMetamaskError = (error: any): string[] => {
     const end = message.lastIndexOf('}')
     if (end < begin ) return [message]
 
-    const jsonString = message.substr(begin, (end - begin)+ 1)
+    const jsonString = message.substring(begin, (end - begin)+ 1)
     const innerObject = JSON.parse(jsonString)
     if (innerObject.hasOwnProperty('message')) return [innerObject.message]
     if (innerObject.hasOwnProperty('value')) {

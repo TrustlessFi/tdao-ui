@@ -10,6 +10,7 @@ import { notificationInfo } from '../../slices/notifications'
 import { getTxErrorName, getTxShortName } from '../../slices/transactions'
 import { useEffect, useState, useRef } from "react";
 import { useAppDispatch } from '../../app/hooks';
+import { NOTIFICATION_FADE_OUT_MS, NOTIFICATION_DURATION_SECONDS} from '../../constants'
 
 
 const statusColor = (status: TransactionStatus) => {
@@ -47,9 +48,6 @@ const NotificationText = ({large, children}: {large?: boolean, children: ReactNo
   return <p style={{fontSize: large ? 18 : 14, fontFamily}}>{children}</p>
 }
 
-const NOTIFICATION_DURATION_SECONDS = 12
-const FADE_OUT_MS = 300
-
 const Notification = ({ notif }: { notif: notificationInfo, }) => {
   const dispatch = useAppDispatch()
 
@@ -68,7 +66,7 @@ const Notification = ({ notif }: { notif: notificationInfo, }) => {
 
     clearInterval()
     setVisible(false)
-    setTimeout(() => dispatch(notificationClosed(notif.uid)), FADE_OUT_MS)
+    setTimeout(() => dispatch(notificationClosed(notif.uid)), NOTIFICATION_FADE_OUT_MS)
   }
 
   const explorerLink = notif.hash === undefined
@@ -89,7 +87,7 @@ const Notification = ({ notif }: { notif: notificationInfo, }) => {
     return () => clearInterval(interval)
   })
 
-  if (timeMS() > endTime + FADE_OUT_MS) {
+  if (timeMS() > endTime + NOTIFICATION_FADE_OUT_MS) {
     dispatch(notificationClosed(notif.uid))
     return null
   }
