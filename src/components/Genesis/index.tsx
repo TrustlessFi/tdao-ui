@@ -1,15 +1,16 @@
 import { Row, Col } from 'react-flexbox-grid'
 import React, { useState } from "react"
-import * as ethers from "ethers"
+import * as ethers from 'ethers'
 import { Button, TextInput, Form, FormGroup } from "carbon-components-react"
 import { CheckmarkOutline16, ErrorOutline16} from '@carbon/icons-react';
 import { red, green, blue } from '@carbon/colors';
 
 import Text from "../library/Text"
+import Center from '../library/Center'
 import CreateTransactionButton from '../library/CreateTransactionButton'
-import AppTile from "../library/AppTile"
-import SimpleTable from "../library/SimpleTable"
-import SpacedList from "../library/SpacedList"
+import AppTile from '../library/AppTile'
+import SimpleTable from '../library/SimpleTable'
+import SpacedList from '../library/SpacedList'
 import ConnectWalletButton from '../library/ConnectWalletButton'
 import { unscale, unique, numDisplay, bnf, notNullString, first } from "../../utils"
 import { TransactionType } from '../../slices/transactions'
@@ -194,21 +195,23 @@ const Genesis: React.FunctionComponent = () => {
   return (
     <SpacedList spacing={32} >
       <AppTile title={`Your Genesis Eligibility: ${total}%`}>
-        {userAddress === null
-          ? <ConnectWalletButton />
-          : <>
-              <Col xs={8} style={{marginLeft: 32, paddingBottom: 32}}>
-                <Row middle="xs">
-                  <Col style={{marginRight: 8}}><Text>Borrowed Hue: </Text></Col>
-                  <Col><BooleanIcon isTrue={userDebtEligible} /></Col>
-                </Row>
-                <Row middle="xs">
-                  <Col style={{marginRight: 8}}><Text>Also Provided Uniswap Liquidity: </Text></Col>
-                  <Col><BooleanIcon isTrue={userLiquidityEligible} /></Col>
-                </Row>
-              </Col>
-            </>
-        }
+        <div style={{paddingBottom: 32}}>
+          {userAddress === null
+            ? <Center><ConnectWalletButton size='sm' /></Center>
+            : <>
+                <Col xs={8} style={{marginLeft: 32}}>
+                  <Row middle="xs">
+                    <Col style={{marginRight: 8}}><Text>Borrowed Hue: </Text></Col>
+                    <Col><BooleanIcon isTrue={userDebtEligible} /></Col>
+                  </Row>
+                  <Row middle="xs">
+                    <Col style={{marginRight: 8}}><Text>Also Provided Uniswap Liquidity: </Text></Col>
+                    <Col><BooleanIcon isTrue={userLiquidityEligible} /></Col>
+                  </Row>
+                </Col>
+              </>
+          }
+        </div>
       </AppTile>
       <ClaimGenesisAllocationsPanel />
       <AppTile
