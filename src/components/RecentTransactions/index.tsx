@@ -34,7 +34,7 @@ const RecentTransactions = () => {
             <div style={{margin: 32}}>
               {userAddress === null
                 ? <ConnectWalletButton />
-                : <Button onClick={() => window.open(getEtherscanAddressLink(userAddress, chainID.chainID!), '_blank')}>
+                : <Button onClick={() => window.open(getEtherscanAddressLink(userAddress, chainID.chainID!), '_blank')} size='sm'>
                     View History on Etherscan
                   </Button>
               }

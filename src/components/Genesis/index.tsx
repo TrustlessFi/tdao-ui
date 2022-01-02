@@ -1,7 +1,6 @@
 import { Row, Col } from 'react-flexbox-grid'
 import React, { useState } from "react"
-import * as ethers from 'ethers'
-import { Button, TextInput, Form, FormGroup } from "carbon-components-react"
+import { Button, TextInput } from "carbon-components-react"
 import { CheckmarkOutline16, ErrorOutline16} from '@carbon/icons-react';
 import { red, green, blue } from '@carbon/colors';
 
@@ -96,7 +95,7 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
 
   return (
       <AppTile title='Claim Genesis Tcp' rightElement={claimAllocationButton}>
-        <SimpleTable rows={allocationRows} />
+        <SimpleTable rows={allocationRows} clickable={false} />
       </AppTile>
   )
 }
@@ -155,7 +154,6 @@ const Genesis: React.FunctionComponent = () => {
       }
     })
 
-
   //download url
   const downloadDisabled =
     genesisAllocation === null ||
@@ -177,10 +175,10 @@ const Genesis: React.FunctionComponent = () => {
     downloadAnchorProps = {
       ...downloadAnchorProps,
       href: URL.createObjectURL(blob),
-      download: `genesis-${_dateString(new Date())}-${chainID}.json`,
+      download: `genesis-${_dateString(new Date())}_${chainID}.json`,
     }
   }
-  const downloadClick = (event: React.MouseEvent) => {
+  const downloadClick = () => {
     const hiddenAnchorElement = downloadRef.current
     if (!hiddenAnchorElement) return
     if (downloadDisabled) return
@@ -241,7 +239,7 @@ const Genesis: React.FunctionComponent = () => {
             />
           </div>
         </div>
-        <SimpleTable rows={eligibilityRows} size="compact" />
+        <SimpleTable rows={eligibilityRows} size="compact" clickable={false} />
       </AppTile>
 
       <a {...downloadAnchorProps}>Hidden Genesis Data Download Link</a>
@@ -256,7 +254,7 @@ const _dateString = (date: Date) => {
   const hour = date.getHours()
   const minutes = date.getMinutes()
   const seconds = date.getSeconds()
-  return `${year}/${month}/${day}_${hour}:${minutes}:${seconds}`
+  return `${year}-${month}-${day}_${hour}-${minutes}-${seconds}`
 }
 
 export default Genesis

@@ -16,7 +16,7 @@ const TDaoPositionDisplay = ({
 } ) => {
 
   return (
-    <span style={{marginRight: 16, marginBottom: 16, display: 'inline-block'}}>
+    <span style={{marginRight: 16, marginBottom: 16, display: 'inline-block', cursor: 'pointer' }}>
       <div style={{width}}>
         <img
           src={`data:image/svg+xml;base64,${Buffer.from(position.svg, 'binary').toString('base64')}`}

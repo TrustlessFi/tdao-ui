@@ -26,7 +26,7 @@ export const TableHeaderOnly = ({headers}: {headers: string[]}) => (
   </Table>
 )
 
-const SimpleTable = ({rows, size}: {rows: row[], size?: DataTableSize}) => rows.length === 0 ? null : (
+const SimpleTable = ({rows, size, clickable}: {rows: row[], size?: DataTableSize, clickable?: boolean}) => rows.length === 0 ? null : (
   <Table size={size}>
     <TableHead>
       <TableRow>
@@ -37,7 +37,10 @@ const SimpleTable = ({rows, size}: {rows: row[], size?: DataTableSize}) => rows.
     </TableHead>
     <TableBody>
       {rows.map((row, i0) => (
-        <TableRow key={row.key ? row.key : i0} onClick={row.onClick} style={{cursor: 'pointer'}} >
+        <TableRow
+          key={row.key ? row.key : i0}
+          onClick={row.onClick}
+          style={clickable === false ? {} : {cursor: 'pointer'}}>
           {Object.values(row.data).map((value, i1) => <TableCell key={(row.key ? row.key : i0) + i1.toString()}>{value}</TableCell>)}
         </TableRow>
       ))}
