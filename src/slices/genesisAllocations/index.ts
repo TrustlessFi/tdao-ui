@@ -1,93 +1,93 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
-import * as ethers from "ethers"
-import { initialState, sliceState, getGenericReducerBuilder } from "../index"
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import * as ethers from 'ethers'
+import { initialState, sliceState, getGenericReducerBuilder } from '../'
+import { ROUND_ID_TO_URI } from '../../constants'
 
 export interface Allocation {
   auth: { r: string; s: string; v: number }
-  roundID: number
+  roundID: string
   count: string
 }
 
 interface Allocations {
-  [key: string]: Allocation[]
+  [userAddress: string]: Allocation[]
 }
 
 export interface genesisAllocationsInfo {
   allocations: Allocations,
-  roundCount: number
+  roundIDs: string[]
 }
 
 type genesisAllocationsState = sliceState<genesisAllocationsInfo>
 
 interface Round {
-  roundID: number,
-  signatures: { [key: string]: {
-    tokenCount: string,
-    signature: string
-  }}
+  roundID: string,
+  signatures: {
+    [userAddress: string]: {
+      tokenCount: string,
+      signature: string
+    }
+  }
 }
 
-async function _fetchRound(id: number) {
-  const url = `/rounds/${id}.json`
-  const round = await fetch(url).then((response) => {
+interface roundIDtoURI {
+  roundIDtoURI: {
+    [key: string]: {
+      fleekURI: string
+      ipfsHash: string
+    }
+  }
+}
+
+const fetchJSON = async <T>(url: string) => {
+  return await fetch(url).then(response => {
+    console.log({response})
     // parse if found
-    if (response.ok) {
-      return response.json()
-    }
+    if (response.ok) return response.json()
     // return null if missing
-    if (response.status === 404) {
-      return null
-    }
-    // raise error on non-404 HTTP errors.
-    throw new Error(
-      `Request to ${url} failed with status code ${response.status}`
+    throw new Error(`Request to ${url} failed with status code ${response.status}`)
+  }) as T
+}
+
+const fetchRounds = async () => {
+  const roundInfo = (await fetchJSON<roundIDtoURI>(ROUND_ID_TO_URI))
+  console.log({roundInfo})
+  const roundIDToURI = (await fetchJSON<roundIDtoURI>(ROUND_ID_TO_URI)).roundIDtoURI
+
+  console.log({roundIDToURI})
+
+  return await Promise.all(
+    Object.values(roundIDToURI).map(
+      uri => fetchJSON<Round>(uri.fleekURI)
     )
-  })
-  console.log(`_fetchRound ${id}`, round)
-  return round as Round
-}
-
-async function _fetchRounds() {
-  let id = 0
-  async function* iter() {
-    // starting at 0,
-    // fetch rounds sequentially until payload not found
-    while (true) {
-      const next = await _fetchRound(id)
-      id++
-      if (next === null) break
-      yield next
-    }
-  }
-
-  const rounds = []
-  for await (const round of iter()) {
-    rounds.push(round)
-  }
-  return {rounds, roundCount: id}
-}
-
-export async function fetchAllocations() {
-  const {rounds, roundCount} = await _fetchRounds()
-  const allocations: Allocations = {}
-  for (const round of rounds) {
-    const { roundID } = round
-    for (const [address, {tokenCount, signature}] of Object.entries(round.signatures)) {
-      const { r, s, v } = ethers.utils.splitSignature(signature)
-      allocations[address] = allocations[address] || []
-      allocations[address].push({
-        roundID,
-        count: tokenCount,
-        auth: { r, s, v },
-      })
-    }
-  }
-  return {allocations, roundCount}
+  )
 }
 
 export const getGenesisAllocations = createAsyncThunk(
-  "genesisAllocations/getGenesisAllocations",
-  async (_: {}): Promise<genesisAllocationsInfo> => fetchAllocations()
+  'genesisAllocations/getGenesisAllocations',
+  async (_: {}): Promise<genesisAllocationsInfo> => {
+    console.log("begin getGenesisAllocations")
+    const rounds = await fetchRounds()
+    const roundIDs = rounds.map(round => round.roundID)
+
+    console.log("getGenesisAllocations", {rounds, roundIDs})
+
+    const allocations: Allocations = {}
+    for (const round of rounds) {
+      const { roundID } = round
+      for (const [address, {tokenCount, signature}] of Object.entries(round.signatures)) {
+        const { r, s, v } = ethers.utils.splitSignature(signature)
+        allocations[address] = allocations[address] || []
+        allocations[address].push({
+          roundID,
+          count: tokenCount,
+          auth: { r, s, v },
+        })
+      }
+    }
+
+    return { allocations, roundIDs }
+  }
 )
 
 export const genesisAllocationsSlice = createSlice({

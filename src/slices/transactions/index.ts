@@ -123,7 +123,7 @@ export interface txClaimGenesisAllocations {
   type: TransactionType.ClaimGenesisAllocations
   genesisAllocation: string
   allocations: Allocation[]
-  roundIDs: number[]
+  roundIDs: string[]
 }
 
 export type TransactionArgs =
@@ -406,6 +406,7 @@ export const waitForTransaction = createAsyncThunk(
           break
         case TransactionType.ClaimGenesisAllocations:
           dispatch(clearClaimedAllocationRounds())
+          dispatch(clearTcpAllocationInfo())
           break
       default:
         assertUnreachable(type)

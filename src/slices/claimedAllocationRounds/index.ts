@@ -1,7 +1,6 @@
 import { sliceState } from '../'
 import { initialState, getGenericReducerBuilder } from '../'
 import { genesisAllocationsInfo } from '../genesisAllocations'
-import { range } from '../../utils'
 import { RootContract } from '../contracts'
 import getContract, { getMulticallContract} from '../../utils/getContract'
 import {
@@ -13,8 +12,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { GenesisAllocation } from '@trustlessfi/typechain'
 
 export interface claimedAllocationRoundsInfo {
-  claimedRounds: {[key: string]: boolean}
-  countRounds: number
+  [roundID: string]: boolean
 }
 
 export interface claimedAllocationRoundsState extends sliceState<claimedAllocationRoundsInfo> {}
@@ -34,11 +32,9 @@ export const getClaimedAllocationRounds = createAsyncThunk(
     const multicall = getMulticallContract(args.trustlessMulticall)
     const genesisAllocation = getContract(args.genesisAllocation, RootContract.GenesisAllocation) as GenesisAllocation
 
-    const countRounds = args.genesisAllocations.roundCount
+    const roundIDs = args.genesisAllocations.roundIDs
 
-    const roundIDs = range(0, countRounds)
-
-    const claimedRounds = await executeMulticalls(
+    const result = await executeMulticalls(
       multicall,
       {
         claimedRounds: oneContractOneFunctionMC(
@@ -49,10 +45,7 @@ export const getClaimedAllocationRounds = createAsyncThunk(
         ),
       }
     )
-    return {
-      ...claimedRounds,
-      countRounds,
-    }
+    return result.claimedRounds
   }
 )
 

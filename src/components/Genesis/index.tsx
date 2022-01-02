@@ -1,6 +1,6 @@
 import { Row, Col } from 'react-flexbox-grid'
 import React, { useState } from "react"
-import { Button, TextInput } from "carbon-components-react"
+import { Button, TextInput, DataTableSkeleton } from "carbon-components-react"
 import { CheckmarkOutline16, ErrorOutline16} from '@carbon/icons-react';
 import { red, green, blue } from '@carbon/colors';
 
@@ -33,31 +33,36 @@ const BooleanIcon: React.FunctionComponent<{
 const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
   const dispatch = useAppDispatch()
 
-  const allAllocations = waitForGenesisAllocations(selector, dispatch)
+  const allocations = waitForGenesisAllocations(selector, dispatch)
   const claimedAllocationRounds = waitForClaimedAllocationRounds(selector, dispatch)
-  const userAddress = selector((state) => state.wallet.address)
-  const genesisAllocation = selector((state) => state.chainID.genesisAllocation)
+  const userAddress = selector(state => state.wallet.address)
+  const genesisAllocation = selector(state => state.chainID.genesisAllocation)
+  const allocationsLoading = selector(state => state.genesisAllocations.loading)
 
   const dataNull =
-    allAllocations === null ||
+    allocations === null ||
     claimedAllocationRounds === null ||
     userAddress === null ||
     genesisAllocation === null
 
-  console.log({allAllocations, claimedAllocationRounds, userAddress})
+  console.log({allocations, claimedAllocationRounds, userAddress})
 
   // process genesis allocations
   const userAllocations =
-    allAllocations === null || userAddress === null
+    userAddress === null || allocations === null || allocations.allocations[userAddress] === undefined
     ? []
-    : allAllocations.allocations[userAddress]
+    : allocations.allocations[userAddress]
 
   let totalCount = 0
-  const unclaimedRoundIDs: number[] = []
+  const unclaimedRoundIDs: string[] = []
   const unclaimedAllocations: Allocation[] = []
 
   const allocationRows = userAllocations.map(({ roundID, count }, index) => {
-    const claimed = claimedAllocationRounds === null ? false : claimedAllocationRounds.claimedRounds[roundID]
+    console.log({roundID, count, claimedAllocationRounds, claimed: claimedAllocationRounds === null ? null : claimedAllocationRounds[roundID]})
+
+
+
+    const claimed = claimedAllocationRounds === null ? false : claimedAllocationRounds[roundID]
     const unscaledCount = unscale(bnf(count))
     if (!claimed) {
       const allocationsForRoundID = userAllocations.filter(ua => ua.roundID === roundID)
@@ -95,7 +100,11 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
 
   return (
       <AppTile title='Claim Genesis Tcp' rightElement={claimAllocationButton}>
-        <SimpleTable rows={allocationRows} clickable={false} />
+        {
+          allocationsLoading
+          ? <DataTableSkeleton showHeader={false} showToolbar={false} columnCount={3} />
+          : <SimpleTable rows={allocationRows} clickable={false} />
+        }
       </AppTile>
   )
 }
