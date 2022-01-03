@@ -197,7 +197,7 @@ const Genesis: React.FunctionComponent = () => {
 
   return (
     <SpacedList spacing={32} >
-      <AppTile title={`Your Genesis Eligibility: ${total}%`}>
+      <AppTile title={`Your Tcp Genesis Eligibility: ${total}%`}>
         <div style={{paddingBottom: 32}}>
           {userAddress === null
             ? <Center><ConnectWalletButton size='sm' /></Center>
