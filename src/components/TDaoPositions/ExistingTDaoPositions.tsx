@@ -14,6 +14,14 @@ import { TransactionType } from '../../slices/transactions'
 import { Button } from 'carbon-components-react'
 import { numDisplay, sum } from '../../utils'
 
+
+import { Row, Col } from 'react-flexbox-grid'
+import Text from "../library/Text"
+import Center from '../library/Center'
+import AppTile from '../library/AppTile'
+import LargeText from '../library/LargeText'
+import ConnectWalletButton from '../library/ConnectWalletButton'
+
 const ExistingTDaoPositions = () => {
   const dispatch = useAppDispatch()
   const history = useHistory()
@@ -22,7 +30,8 @@ const ExistingTDaoPositions = () => {
   const contracts = waitForContracts(selector, dispatch)
   const positions = waitForTDaoPositions(selector, dispatch)
   const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
-  const tdao = selector((state) => state.chainID.tdao)
+  const tdao = selector(state => state.chainID.tdao)
+  const userAddress = selector(state => state.wallet.address)
 
   console.log({balances, contracts, positions, tcpAllocationInfo, tdao})
 
@@ -31,7 +40,8 @@ const ExistingTDaoPositions = () => {
     contracts === null ||
     positions === null ||
     tcpAllocationInfo === null ||
-    tdao === null
+    tdao === null ||
+    userAddress === null
 
   const tcpBalance =
     balances === null || contracts === null
@@ -62,37 +72,44 @@ const ExistingTDaoPositions = () => {
     tcpAllocationInfo === null
     ? null
     : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated
+  const tokensToBeAllocatedDisplay = tokensToBeAllocated === null ? '-' : numDisplay(tokensToBeAllocated)
+
+  const tcpWalletBalanceDisplay =
+    contracts === null || balances === null ? '-' : numDisplay(balances.tokens[contracts.Tcp].userBalance)
+
+  const tdaoWalletBalanceDisplay =
+    contracts === null || balances === null ? '-' : numDisplay(balances.tokens[contracts.TDaoToken].userBalance)
 
   return (
-    <>
-      <div style={{marginBottom: 16, position: 'relative'}}>
+    <SpacedList spacing={16} >
+      <div style={{position: 'relative'}}>
         <RelativeLoading show={dataNull} />
         <SpacedList row spacing={8}>
-          <CreateTransactionButton
-            disabled={tcpAllocationInfo === null || tdao == null || positionsIDsWithRewards.length === 0}
-            title={`Claim ${numDisplay(totalRewards)} TDao`}
-            txArgs={{
-              type: TransactionType.ClaimAllTDaoPositionRewards,
-              tdao: tdao === null ? '' : tdao,
-              positionIDs: positionsIDsWithRewards,
-            }}
-          />
           <Button
             disabled={tokensToBeAllocated === null || tokensToBeAllocated === 0}
             onClick={() => history.push(`/positions/allocate/lock/tcp`)}
             style={{marginBottom: 16}}>
-            Allocate {tokensToBeAllocated === null ? '-' : numDisplay(tokensToBeAllocated)} TCP
+            Stake {tokensToBeAllocatedDisplay} Tcp Rewards
           </Button>
           <Button
             disabled={tcpBalance === 0}
             onClick={() => history.push(`/positions/create/tcp`)}
             style={{marginBottom: 16}}>
-            Create Lock Position
+            Stake {tcpWalletBalanceDisplay} Tcp From Wallet
           </Button>
-        </SpacedList >
+        </SpacedList>
       </div>
       {positionDisplay}
-    </>
+      <CreateTransactionButton
+        disabled={tcpAllocationInfo === null || tdao == null || positionsIDsWithRewards.length === 0}
+        title={`Claim ${numDisplay(totalRewards)} TDao`}
+        txArgs={{
+          type: TransactionType.ClaimAllTDaoPositionRewards,
+          tdao: tdao === null ? '' : tdao,
+          positionIDs: positionsIDsWithRewards,
+        }}
+      />
+    </SpacedList>
   )
 }
 

@@ -58,10 +58,6 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
   const unclaimedAllocations: Allocation[] = []
 
   const allocationRows = userAllocations.map(({ roundID, count }, index) => {
-    console.log({roundID, count, claimedAllocationRounds, claimed: claimedAllocationRounds === null ? null : claimedAllocationRounds[roundID]})
-
-
-
     const claimed = claimedAllocationRounds === null ? false : claimedAllocationRounds[roundID]
     const unscaledCount = unscale(bnf(count))
     if (!claimed) {
@@ -207,7 +203,7 @@ const Genesis: React.FunctionComponent = () => {
             ? <Center><ConnectWalletButton size='sm' /></Center>
             : <>
                 <Col xs={8} style={{marginLeft: 32}}>
-                  <Row middle="xs">
+                  <Row bottom="xs">
                     <Col style={{marginRight: 8}}><Text>Borrowed Hue: </Text></Col>
                     <Col><BooleanIcon isTrue={userDebtEligible} /></Col>
                   </Row>
