@@ -11,17 +11,12 @@ import { TransactionType } from '../../slices/transactions'
 import CreateTransactionButton from '../library/CreateTransactionButton'
 import TwoColumnDisplay from '../library/TwoColumnDisplay'
 import {
-  waitForTDaoInfo,
-} from '../../slices/waitFor'
-import {
   NumberInput,
-  Dropdown,
-  OnChangeData,
 } from 'carbon-components-react'
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
 import { TokenAllocationOptions } from './'
-import { invert, last, range, notNullString, onNumChange, numDisplay } from '../../utils'
+import { notNullString, onNumChange, numDisplay } from '../../utils'
 import ParagraphDivider from '../library/ParagraphDivider'
 
 const ClaimUnderlyingTokens = () => {

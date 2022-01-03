@@ -10,10 +10,12 @@ import genesisPositionsReducer from '../slices/genesisPositions'
 import governorReducer from '../slices/governor'
 import notificationsReducer from '../slices/notifications'
 import tcpProposalsReducer from '../slices/proposals/tcpProposals'
+import tcpProposalsVoterInfoReducer from '../slices/proposalsVoterInfo/tcpProposals'
 import tcpAllocationInfoReducer from '../slices/tcpAllocation'
 import tdaoInfoReducer from '../slices/tdaoInfo'
 import tdaoPositionsReducer from '../slices/tdaoPositions'
 import transactionsReducer from '../slices/transactions'
+import voteDelegationReducer from '../slices/voteDelegation'
 import walletReducer from '../slices/wallet'
 
 export const store = configureStore({
@@ -28,10 +30,12 @@ export const store = configureStore({
     governor: governorReducer,
     notifications: notificationsReducer,
     tcpProposals: tcpProposalsReducer,
+    tcpProposalsVoterInfo: tcpProposalsVoterInfoReducer,
     tcpAllocationInfo: tcpAllocationInfoReducer,
     tdaoInfo: tdaoInfoReducer,
     tdaoPositions: tdaoPositionsReducer,
     transactions: transactionsReducer,
+    voteDelegation: voteDelegationReducer,
     wallet: walletReducer,
   }
 })

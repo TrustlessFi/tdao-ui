@@ -64,7 +64,7 @@ const ProposalActions: FunctionComponent<{
 
   const contracts = waitForContracts(selector, dispatch)
 
-  const { proposal: p } = proposal
+  const p = proposal
   return (
     <Col>
       {p.targets.map((_, index) => {

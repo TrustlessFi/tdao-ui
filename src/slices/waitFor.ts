@@ -6,7 +6,8 @@ import { getBalances, balancesInfo } from "./balances"
 import { ChainID } from "@trustlessfi/addresses"
 import { getTDaoPositions, tdaoPositionsInfo } from './tdaoPositions'
 import { proposalsInfo } from './proposals/'
-import { getTcpProposals } from "./proposals/tcpProposals"
+import { getTcpProposals } from './proposals/tcpProposals'
+import { getTcpProposalsVoterInfo } from './proposalsVoterInfo/tcpProposals'
 import { getContracts, ContractsInfo } from "./contracts"
 import { getTDaoInfo, tdaoInfo } from './tdaoInfo'
 import { getTcpAllocationInfo, tcpAllocationInfo } from './tcpAllocation'
@@ -15,7 +16,8 @@ import { sliceState } from "./"
 
 import { getGenesisPositions, genesisPositionsInfo } from "./genesisPositions"
 import { getGenesisAllocations, genesisAllocationsInfo } from "./genesisAllocations"
-import { getClaimedAllocationRounds, claimedAllocationRoundsInfo } from "./claimedAllocationRounds"
+import { getClaimedAllocationRounds } from "./claimedAllocationRounds"
+import { getVoteDelegation } from './voteDelegation'
 
 
 interface fetchNodeTypes {
@@ -118,7 +120,13 @@ export const waitForTcpAllocationInfo = getWaitFunction(
 export const waitForTcpProposals = getWaitFunction(
   (state: RootState) => state.tcpProposals,
   getTcpProposals,
-  ['contracts', 'userAddress', 'trustlessMulticall']
+  ['contracts', 'trustlessMulticall']
+)
+
+export const waitForTcpProposalsVoterInfo = getWaitFunction(
+  (state: RootState) => state.tcpProposalsVoterInfo,
+  getTcpProposalsVoterInfo,
+  ['contracts', 'trustlessMulticall', 'userAddress']
 )
 
 export const waitForGenesisPositions = getWaitFunction(
@@ -139,6 +147,11 @@ export const waitForClaimedAllocationRounds = getWaitFunction(
   ['genesisAllocations', 'trustlessMulticall', 'userAddress', 'genesisAllocation']
 )
 
+export const waitForVoteDelegation = getWaitFunction(
+  (state: RootState) => state.voteDelegation,
+  getVoteDelegation,
+  ['userAddress', 'trustlessMulticall', 'contracts', 'tdaoInfo'],
+)
 
 const getStateSelector = <T>(selectorFunc: (state: RootState) => T) =>
   (selector: AppSelector, _dispatch: AppDispatch) => selector(selectorFunc)

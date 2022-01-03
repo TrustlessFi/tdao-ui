@@ -14,14 +14,6 @@ import { TransactionType } from '../../slices/transactions'
 import { Button } from 'carbon-components-react'
 import { numDisplay, sum } from '../../utils'
 
-
-import { Row, Col } from 'react-flexbox-grid'
-import Text from "../library/Text"
-import Center from '../library/Center'
-import AppTile from '../library/AppTile'
-import LargeText from '../library/LargeText'
-import ConnectWalletButton from '../library/ConnectWalletButton'
-
 const ExistingTDaoPositions = () => {
   const dispatch = useAppDispatch()
   const history = useHistory()
@@ -32,8 +24,6 @@ const ExistingTDaoPositions = () => {
   const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
   const tdao = selector(state => state.chainID.tdao)
   const userAddress = selector(state => state.wallet.address)
-
-  console.log({balances, contracts, positions, tcpAllocationInfo, tdao})
 
   const dataNull =
     balances === null ||
@@ -76,9 +66,6 @@ const ExistingTDaoPositions = () => {
 
   const tcpWalletBalanceDisplay =
     contracts === null || balances === null ? '-' : numDisplay(balances.tokens[contracts.Tcp].userBalance)
-
-  const tdaoWalletBalanceDisplay =
-    contracts === null || balances === null ? '-' : numDisplay(balances.tokens[contracts.TDaoToken].userBalance)
 
   return (
     <SpacedList spacing={16} >

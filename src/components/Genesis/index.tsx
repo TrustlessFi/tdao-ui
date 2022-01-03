@@ -45,8 +45,6 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
     userAddress === null ||
     genesisAllocation === null
 
-  console.log({allocations, claimedAllocationRounds, userAddress})
-
   // process genesis allocations
   const userAllocations =
     userAddress === null || allocations === null || allocations.allocations[userAddress] === undefined

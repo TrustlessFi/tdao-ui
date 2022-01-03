@@ -16,10 +16,11 @@ const TDaoPositionDisplay = ({
 } ) => {
 
   return (
-    <span style={{marginRight: 16, marginBottom: 16, display: 'inline-block', cursor: 'pointer' }}>
+    <span style={{marginRight: 16, marginBottom: 16, display: 'inline-block' }}>
       <div style={{width}}>
         <img
           src={`data:image/svg+xml;base64,${Buffer.from(position.svg, 'binary').toString('base64')}`}
+          style={{cursor: 'pointer'}}
           width={width}
           alt={`TDao Position ID ${position.nftTokenID}`}
           onClick={() => onClick(position.nftTokenID)}
@@ -40,7 +41,7 @@ const TDaoPositionDisplay = ({
 
 TDaoPositionDisplay.defaultProps = {
   width: 500,
-  onClick: (positionID: string) => {},
+  onClick: (_positionID: string) => {},
   displayRewards: true
 }
 

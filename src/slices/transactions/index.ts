@@ -108,7 +108,6 @@ export interface txClaimVotingRewards {
 export interface txSelfDelegateTcp {
   type: TransactionType.SelfDelegateTcp
   tcp: string
-  userAddress: string
 }
 
 export interface txApproveToken {
@@ -227,29 +226,31 @@ const executeTransaction = async (
   args: TransactionArgs,
   provider: ethers.providers.Web3Provider,
 ): Promise<ContractTransaction> => {
+  const signer = provider.getSigner()
+
   const getTcpGovernorAlpha = (address: string) =>
     getContract(address, ProtocolContract.TcpGovernorAlpha)
-      .connect(provider.getSigner()) as TcpGovernorAlpha
+      .connect(signer) as TcpGovernorAlpha
 
   const getGovernorAlphaWithVotingRewards = (address: string) =>
     getContract(address, ProtocolContract.TcpGovernorAlpha)
-      .connect(provider.getSigner()) as GovernorAlphaWithVotingRewards
+      .connect(signer) as GovernorAlphaWithVotingRewards
 
   const getTDao = (address: string) =>
     getContract(address, TDaoRootContract.TDao)
-      .connect(provider.getSigner()) as TDao
+      .connect(signer) as TDao
 
   const getTcpAllocation = (address: string) =>
     getContract(address, ProtocolContract.TcpAllocation)
-      .connect(provider.getSigner()) as TcpAllocation
+      .connect(signer) as TcpAllocation
 
   const getTcp = (address: string) =>
     getContract(address, ProtocolContract.Tcp)
-      .connect(provider.getSigner()) as Tcp
+      .connect(signer) as Tcp
 
   const getGenesisAllocation = (address: string) =>
     getContract(address, RootContract.GenesisAllocation)
-      .connect(provider.getSigner()) as GenesisAllocation
+      .connect(signer) as GenesisAllocation
 
   const type = args.type
 
@@ -297,7 +298,9 @@ const executeTransaction = async (
       )
 
     case TransactionType.SelfDelegateTcp:
-      return await getTcp(args.tcp).delegate(args.userAddress)
+      // TODO pass in user address instead
+      const userAddress = await signer.getAddress()
+      return await getTcp(args.tcp).delegate(userAddress)
 
     case TransactionType.ApproveToken:
       return await addressToERC20(args.tokenAddress).approve(args.spenderAddress, uint256Max)

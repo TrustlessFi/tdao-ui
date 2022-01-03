@@ -66,7 +66,6 @@ export const getBalances = createAsyncThunk(
   async (
     args: balanceArgs,
   ): Promise<balancesInfo> => {
-    console.log({args})
     const provider = getProvider()
     const multicall = getMulticallContract(args.trustlessMulticall)
     const tokenContract = new Contract(zeroAddress, erc20Artifact.abi, provider) as ERC20
@@ -103,7 +102,6 @@ export const getBalances = createAsyncThunk(
         ),
       }
     )
-    console.log({userBalance})
 
     const getApprovalFor = (value: BigNumber) => ({
       allowance: value.toString(),

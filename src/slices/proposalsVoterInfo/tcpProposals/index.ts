@@ -3,36 +3,36 @@ import { initialState } from '../../'
 import { getGenericReducerBuilder } from '../../'
 import { addressToProtocolToken } from '../../../utils/'
 import getContract from '../../../utils/getContract'
-import { proposalsArgs, proposalsInfo, ProposalsState, fetchProposals } from '../'
+import { proposalsArgs, proposalsVoterInfo, ProposalsState, fetchProposalsVoterInfo } from '../'
 import { TcpGovernorAlpha } from '@trustlessfi/typechain'
 import { ProtocolContract } from '../../contracts/'
 
-export const getTcpProposals = createAsyncThunk(
-  'tcpProposals/getProposals',
-  async (args: proposalsArgs): Promise<proposalsInfo> =>  {
+export const getTcpProposalsVoterInfo = createAsyncThunk(
+  'tcpProposals/getTcpProposalsVoterInfo',
+  async (args: proposalsArgs): Promise<proposalsVoterInfo> =>  {
 
-    return await fetchProposals(
+    return await fetchProposalsVoterInfo(
+      args.userAddress,
       getContract(args.contracts.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha ) as TcpGovernorAlpha,
       addressToProtocolToken(args.contracts.Tcp),
       args.trustlessMulticall,
-      0.005,
     )
   }
 )
 
-export const tcpProposalsSlice = createSlice({
-  name: 'tcpProposals',
+export const tcpProposalsVoterInfoSlice = createSlice({
+  name: 'tcpProposalsVoterInfo',
   initialState: initialState as ProposalsState,
   reducers: {
-    clearTcpProposals: (state) => {
+    clearTcpProposalsVoterInfo: (state) => {
       state.data.value = null
     },
   },
   extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getTcpProposals)
+    builder = getGenericReducerBuilder(builder, getTcpProposalsVoterInfo)
   },
 })
 
-export const { clearTcpProposals } = tcpProposalsSlice.actions
+export const { clearTcpProposalsVoterInfo } = tcpProposalsVoterInfoSlice.actions
 
-export default tcpProposalsSlice.reducer
+export default tcpProposalsVoterInfoSlice.reducer

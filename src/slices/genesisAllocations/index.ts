@@ -41,7 +41,6 @@ interface roundIDtoURI {
 
 const fetchJSON = async <T>(url: string) => {
   return await fetch(url).then(response => {
-    console.log({response})
     // parse if found
     if (response.ok) return response.json()
     // return null if missing
@@ -50,11 +49,7 @@ const fetchJSON = async <T>(url: string) => {
 }
 
 const fetchRounds = async () => {
-  const roundInfo = (await fetchJSON<roundIDtoURI>(ROUND_ID_TO_URI))
-  console.log({roundInfo})
   const roundIDToURI = (await fetchJSON<roundIDtoURI>(ROUND_ID_TO_URI)).roundIDtoURI
-
-  console.log({roundIDToURI})
 
   return await Promise.all(
     Object.values(roundIDToURI).map(
@@ -66,11 +61,8 @@ const fetchRounds = async () => {
 export const getGenesisAllocations = createAsyncThunk(
   'genesisAllocations/getGenesisAllocations',
   async (_: {}): Promise<genesisAllocationsInfo> => {
-    console.log("begin getGenesisAllocations")
     const rounds = await fetchRounds()
     const roundIDs = rounds.map(round => round.roundID)
-
-    console.log("getGenesisAllocations", {rounds, roundIDs})
 
     const allocations: Allocations = {}
     for (const round of rounds) {

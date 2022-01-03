@@ -3,13 +3,11 @@ import { ContractsInfo } from '../contracts'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
 import { getGenericReducerBuilder } from '../'
-import getContract, { getMulticallContract } from '../../utils/getContract'
+import { getMulticallContract } from '../../utils/getContract'
 import {
   executeMulticalls,
   rc,
   manyContractOneFunctionMC,
-  oneContractManyFunctionMC,
-  idToIdAndArg,
 } from '@trustlessfi/multicall'
 import { zeroAddress } from '../../utils'
 import getProvider from '../../utils/getProvider';
@@ -17,11 +15,9 @@ import protocolTokenArtifact from '@trustlessfi/artifacts/dist/contracts/core/to
 import { tdaoInfo } from '../tdaoInfo'
 
 import { ProtocolToken } from '@trustlessfi/typechain'
-import { TDaoRootContract } from '../contracts'
 
 export type voteDelegationInfo = {
-  tdao: string
-  underlyingTokens: {[key in string]: string}
+  [key in string]: string
 }
 
 export interface voteDelegationState extends sliceState<voteDelegationInfo> {}
@@ -29,7 +25,6 @@ export interface voteDelegationState extends sliceState<voteDelegationInfo> {}
 interface voteDelegationArgs {
   userAddress: string,
   trustlessMulticall: string
-  tdao: string
   contracts: ContractsInfo
   tdaoInfo: tdaoInfo
 }
@@ -38,28 +33,25 @@ export const getVoteDelegation = createAsyncThunk(
   'voteDelegation/getVoteDelegation',
   async (args: voteDelegationArgs): Promise<voteDelegationInfo> => {
     const provider = getProvider()
-    const tdao = getContract(args.tdao, TDaoRootContract.TDao) as ProtocolToken
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
     const protocolTokenContract = new Contract(zeroAddress, protocolTokenArtifact.abi, provider) as ProtocolToken
 
-    const { tdaoDelegate, underlyingTokenDelegates } = await executeMulticalls(trustlessMulticall, {
-      tdaoDelegate: oneContractManyFunctionMC(tdao,
-        { delegates: rc.String },
-        { delegates: [args.userAddress]}
-      ),
-      underlyingTokenDelegates: manyContractOneFunctionMC(
+    const tokenAddresses =
+      Object.values(args.tdaoInfo.underlyingProtocolTokens)
+        .map(token => token.address)
+          .concat([args.contracts.TDaoToken])
+
+    const { delegates } = await executeMulticalls(trustlessMulticall, {
+      delegates: manyContractOneFunctionMC(
         protocolTokenContract,
-        idToIdAndArg(Object.values(args.tdaoInfo.underlyingProtocolTokens).map(token => token.address)),
+        Object.fromEntries(tokenAddresses.map(address => [address, [args.userAddress]])),
         'delegates',
         rc.String,
       )
     })
 
-    return {
-      tdao: tdaoDelegate.delegates,
-      underlyingTokens: underlyingTokenDelegates
-    }
+    return delegates
   }
 )
 

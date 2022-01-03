@@ -43,7 +43,7 @@ const CreateTDaoAllocationPosition = () => {
   const userAddress = selector(state => state.wallet.address)
   const tdao = selector(state => state.chainID.tdao)
 
-  console.log({balances, contracts, tdaoInfo, tcpAllocationInfo, currentChainInfo, userAddress, tdao})
+  // console.log({balances, contracts, tdaoInfo, tcpAllocationInfo, currentChainInfo, userAddress, tdao})
 
   const [ lockDurationMonths, setLockDurationMonths ] = useState(48)
   const [ count, setCount ] = useState(0)
@@ -86,7 +86,7 @@ const CreateTDaoAllocationPosition = () => {
   const isLockDurationExceeded = () => {
     if (tcpAllocationInfo === null) return true
     const ta = tcpAllocationInfo
-    console.log({ta})
+    // console.log({ta})
 
     /*
     const currentMinUnlockDuration = unscale(
@@ -102,7 +102,7 @@ const CreateTDaoAllocationPosition = () => {
       Math.floor((timeNow + years(parseFloat(multiplier))) - ta.startTime)
     ).div(years(1))
 
-    console.log({yearsE18: yearsE18.toString()})
+    // console.log({yearsE18: yearsE18.toString()})
 
     const newCumulativeLockYears =
       bnf(ta.cumulativeTokensAllocatedxLockYears).add(yearsE18.mul(mnt(count)).div(mnt(1)))
@@ -155,7 +155,7 @@ const CreateTDaoAllocationPosition = () => {
       value: unlockDateString,
     },
   ]
-  
+
   const columnOne = (
     <SpacedList>
       <>Block time {currentChainInfo === null ? '' : getDateTimeStringMS(currentChainInfo.blockTimestamp * 1000)}</>
