@@ -5,7 +5,7 @@ import {
   waitForContracts,
   waitForTcpProposalsVoterInfo,
 } from '../../slices/waitFor'
-import { Proposal, isVotingCompleteState } from '../../slices/proposals'
+import { Proposal, isVotingCompleteState, ProposalState } from '../../slices/proposals'
 import AppTile from '../library/AppTile'
 import Center from '../library/Center'
 import { useDispatch } from 'react-redux'
@@ -37,12 +37,18 @@ const ProposalsList: FunctionComponent = () => {
     )
   }
 
-  const getVotingRewardsDisplay = (p: Proposal, inflationPercentage: number) => {
-    const totalVotes = p.forVotes + p.againstVotes
-    if (totalVotes === null || tcpProposalsVoterInfo === null) return ''
-    const votingPower = tcpProposalsVoterInfo[p.id].votingPower
+  const getVotingRewardsDisplay = (p: Proposal) => {
+    if (tcpProposalsVoterInfo === null) return '-'
+    const vi = tcpProposalsVoterInfo[p.id]
+    if (vi.votingPower === 0) return '-'
+    if (p.state === ProposalState.Active) return 'Voting still active'
 
-    return numDisplay((p.initialSupply * inflationPercentage * votingPower) / totalVotes)
+    const rewards = vi.votingRewards
+    return (
+      vi.receipt.rewardReceived
+      ? `Claimed ${numDisplay(rewards)} Tcp`
+      : `${numDisplay(rewards)} Tcp`
+    )
   }
 
   const proposalIDsWithUnclaimedRewards: number[] = []
@@ -84,7 +90,7 @@ const ProposalsList: FunctionComponent = () => {
                     <ProgressBar label="Quorum" amount={p.forVotes} max={tcpProposals.quorum} />
                   </div>,
                 'Your Vote': vi === null || !vi.receipt.hasVoted ? '-' : (vi.receipt.support ? 'Yes' : 'No'),
-                'Voting Rewards': getVotingRewardsDisplay(p, tcpProposals.inflationPercentage)
+                'Voting Rewards': getVotingRewardsDisplay(p)
               },
               onClick: () => history.push(`/tcp/proposal/${p.id}`),
             }
