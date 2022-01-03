@@ -4,7 +4,7 @@ import { clearBalances } from '../../slices/balances'
 import { clearTDaoPositions } from '../../slices/tdaoPositions'
 import { clearTcpAllocationInfo } from '../../slices/tcpAllocation'
 import { clearVoteDelegation } from '../../slices/voteDelegation'
-import { clearTcpProposals } from '../../slices/proposals/tcpProposals'
+import { clearTcpProposalsVoterInfo } from '../../slices/proposalsVoterInfo/tcpProposals'
 import { ChainID } from '@trustlessfi/addresses'
 
 export enum UserTxSortOption {
@@ -52,5 +52,5 @@ export const clearUserData = (dispatch: AppDispatch) => {
   dispatch(clearTDaoPositions())
   dispatch(clearTcpAllocationInfo())
   dispatch(clearVoteDelegation())
-  dispatch(clearTcpProposals())
+  dispatch(clearTcpProposalsVoterInfo())
 }

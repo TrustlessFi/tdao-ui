@@ -12,7 +12,7 @@ export const getTcpProposals = createAsyncThunk(
   async (args: proposalsArgs): Promise<proposalsInfo> =>  {
 
     return await fetchProposals(
-      getContract(args.contracts.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha ) as TcpGovernorAlpha,
+      getContract(args.contracts.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha) as TcpGovernorAlpha,
       addressToProtocolToken(args.contracts.Tcp),
       args.trustlessMulticall,
       0.005,

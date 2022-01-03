@@ -4,7 +4,6 @@ import {
   waitForTcpProposals,
   waitForContracts,
   waitForTcpProposalsVoterInfo,
-  waitForVoteDelegation,
 } from '../../slices/waitFor'
 import { Proposal, isVotingCompleteState } from '../../slices/proposals'
 import AppTile from '../library/AppTile'
@@ -16,63 +15,10 @@ import { TransactionType } from '../../slices/transactions'
 import { zeroAddress, numDisplay } from '../../utils'
 import { FunctionComponent } from 'react'
 import SimpleTable, { TableHeaderOnly } from '../library/SimpleTable'
-import RelativeLoading from '../library/RelativeLoading'
 import SpacedList from '../library/SpacedList'
+import VoteDelegationPanel from './VoteDelegationPanel'
 import { InlineAppTag } from './GovernanceSubcomponents'
 import { DataTableSkeleton } from "carbon-components-react"
-
-const VoteDelegationPanel = ({
-  underlyingTokenAddress
-}:{
-  underlyingTokenAddress: string
-}) => {
-  const dispatch = useAppDispatch()
-
-  const contracts = waitForContracts(selector, dispatch)
-  const voteDelegation = waitForVoteDelegation(selector, dispatch)
-
-  const tdao = selector(state => state.chainID.tdao)
-  const userAddress = selector(state => state.wallet.address)
-
-  const loading =
-    contracts === null ||
-    voteDelegation === null ||
-    tdao === null ||
-    userAddress === null
-
-  const alreadySelfDelegated =
-    voteDelegation !== null &&
-    userAddress !== null &&
-    voteDelegation[underlyingTokenAddress] === userAddress
-
-  if (loading || alreadySelfDelegated) return null
-
-  return (
-    <AppTile title='Vote Delegation Delegate'>
-      <div style={{position: 'relative'}}>
-        <RelativeLoading show={loading} />
-        <SpacedList spacing={16}>
-          <span>
-            Before you can vote, you must delegate your voting power to yourself.
-          </span>
-          <span>
-            You only need to do this once.
-          </span>
-          <CreateTransactionButton
-            style={{marginTop: 8}}
-            disabled={loading || alreadySelfDelegated}
-            title="Self Delegate Tcp"
-            size="sm"
-            txArgs={{
-              type: TransactionType.SelfDelegateTcp,
-              tcp: contracts === null ? '' : contracts.Tcp,
-            }}
-          />
-        </SpacedList>
-      </div>
-    </AppTile>
-  )
-}
 
 const ProposalsList: FunctionComponent = () => {
   const dispatch = useDispatch()

@@ -5,9 +5,10 @@ import getProvider from '../../utils/getProvider'
 import { addNotification } from '../notifications'
 import { clearBalances } from '../balances'
 import { clearTcpAllocationInfo } from '../tcpAllocation'
-import { clearTcpProposals } from '../proposals/tcpProposals'
+import { clearTcpProposalsVoterInfo } from '../proposalsVoterInfo/tcpProposals'
 import { clearClaimedAllocationRounds } from '../claimedAllocationRounds'
 import { clearTDaoPositions } from '../tdaoPositions'
+import { clearVoteDelegation } from '../voteDelegation'
 import { Allocation } from '../genesisAllocations'
 import { ethers, ContractTransaction } from 'ethers'
 import { ProtocolContract, TDaoRootContract, RootContract } from '../contracts'
@@ -381,9 +382,12 @@ export const waitForTransaction = createAsyncThunk(
 
       switch (type) {
         case TransactionType.UpdateTDaoPositionLockDuration:
+          dispatch(clearTDaoPositions())
+          break
         case TransactionType.DeleteTDaoPosition:
         case TransactionType.ClaimAllTDaoPositionRewards:
           dispatch(clearTDaoPositions())
+          dispatch(clearBalances())
           break
         case TransactionType.CreateTDaoTcpAllocationPosition:
           dispatch(clearTDaoPositions())
@@ -399,10 +403,11 @@ export const waitForTransaction = createAsyncThunk(
           break
         case TransactionType.VoteTcpProposal:
         case TransactionType.ClaimTcpVotingRewards:
-          dispatch(clearTcpProposals())
+          dispatch(clearBalances())
+          dispatch(clearTcpProposalsVoterInfo())
           break
         case TransactionType.SelfDelegateTcp:
-          // TODO
+          dispatch(clearVoteDelegation())
           break
         case TransactionType.ApproveToken:
           dispatch(clearBalances())

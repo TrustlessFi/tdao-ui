@@ -18,6 +18,7 @@ import { InlineAppTag } from './GovernanceSubcomponents'
 import ProposalActions from './ProposalActions'
 import Breadcrumbs from '../library/Breadcrumbs'
 import TwoColumnDisplay from '../library/TwoColumnDisplay'
+import VoteDelegationPanel from './VoteDelegationPanel'
 import SpacedList from '../library/SpacedList'
 import InputPicker from '../library/InputPicker'
 import { Launch16 } from '@carbon/icons-react';
@@ -40,6 +41,7 @@ const ProposalDisplay: FunctionComponent = () => {
   const tcpProposalsVoterInfo = waitForTcpProposalsVoterInfo(selector, dispatch)
   const chainID = selector(state => state.chainID.chainID)
 
+  const [ voteChoice, setVoteChoice ] = useState<Vote>(Vote['-'])
 
   const dataNull =
     tcpProposals === null ||
@@ -53,7 +55,6 @@ const ProposalDisplay: FunctionComponent = () => {
     ? (vi.receipt.support ? Vote.Yes : Vote.No)
     : Vote['-']
 
-  const [ voteChoice, setVoteChoice ] = useState<Vote>(Vote['-'])
 
   useEffect(() => { if (vi !== null) setVoteChoice(getVote(vi)) }, [vi])
 
@@ -110,40 +111,50 @@ const ProposalDisplay: FunctionComponent = () => {
       }
     </>
 
+  const hasVoted = vi !== null && vi.receipt.hasVoted
+  const isActiveProposal = p !== null && p.state === ProposalState.Active
+  const hasVotingPower = vi !== null && vi.votingPower > 0
+  const previousVote = vi === null ? Vote['-'] : (vi.receipt.support ? Vote.Yes : Vote.No)
 
-  const isVotingDisabled =
-    vi === null ||
-    p === null ||
-    vi.receipt.hasVoted ||
-    p.state !== ProposalState.Active ||
-    vi.votingPower === 0
 
   const voteColumnOne =
     <SpacedList>
-      <LargeText>Your Vote</LargeText>
-      <div>{p === null ? '-' : 'your vote display'}</div>
-        <InputPicker
-          options={Vote}
-          onChange={handleVoteChange}
-          initialValue={Vote['-']}
-          label="Allocation options"
-          style={{}}
-        />
-        <CreateTransactionButton
-          title='Cast Vote'
-          disabled={p === null || contracts === null ? true : isVotingDisabled || voteChoice === Vote['-']}
-          txArgs={{
-            type: TransactionType.VoteTcpProposal,
-            TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
-            proposalID: p === null ? 0 : p.id,
-            support: voteChoice === Vote.Yes,
-          }}
-        />
+      {
+        hasVoted
+        ? `You voted ${previousVote}.`
+        : (
+          isActiveProposal
+          ? (
+            hasVotingPower
+            ? <SpacedList>
+                <InputPicker
+                  options={Vote}
+                  onChange={handleVoteChange}
+                  initialValue={Vote['-']}
+                  label="Allocation options"
+                  style={{display: 'block'}}
+                />
+                <CreateTransactionButton
+                  title='Cast Vote'
+                  disabled={voteChoice === Vote['-']}
+                  txArgs={{
+                    type: TransactionType.VoteTcpProposal,
+                    TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
+                    proposalID: p === null ? 0 : p.id,
+                    support: voteChoice === Vote.Yes,
+                  }}
+                />
+              </SpacedList>
+            : 'You have no voting power on this proposal.'
+            )
+          : 'Voting is closed.'
+        )
+      }
     </SpacedList>
 
   const voteColumnTwo =
     <SpacedList spacing={16}>
-      <LargeText>Updated Vote Count: </LargeText>
+      <LargeText>Vote Count: </LargeText>
       <ProgressBar
         label={`Yes: ${voteForPercentage}%`}
         amount={forVotes}
@@ -161,6 +172,7 @@ const ProposalDisplay: FunctionComponent = () => {
   return (
     <>
       <Breadcrumbs crumbs={[{ text: 'Tcp', href: '/tcp' }, 'Proposal', proposalID.toString()]} />
+      <VoteDelegationPanel underlyingTokenAddress={contracts === null ? null : contracts.Tcp} />
       <TwoColumnDisplay
         style={{marginTop: 32}}
         columnOne={infoColumnOne}

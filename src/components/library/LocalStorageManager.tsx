@@ -70,6 +70,7 @@ const LocalStorageManager = () => {
 
 const permanentLocalStorage: string[] = [
   transactionsSlice.name,
+  notificationsSlice.name,
 ]
 
 export const clearEphemeralStorage = () => {
