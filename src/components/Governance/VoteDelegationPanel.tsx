@@ -1,3 +1,4 @@
+import { CSSProperties, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import {
   waitForContracts,
@@ -11,9 +12,11 @@ import { TransactionType } from '../../slices/transactions'
 import SpacedList from '../library/SpacedList'
 
 const VoteDelegationPanel = ({
-  underlyingTokenAddress
+  underlyingTokenAddress,
+  style,
 }:{
-  underlyingTokenAddress: string | null
+  underlyingTokenAddress: string | null,
+  style?: CSSProperties,
 }) => {
   const dispatch = useAppDispatch()
 
@@ -45,7 +48,7 @@ const VoteDelegationPanel = ({
   if (userBalance === 0) return null // no tokens to vote with
 
   return (
-    <AppTile title={`Delegate ${numDisplay(userBalance)} Votes`}>
+    <AppTile title={`Delegate ${numDisplay(userBalance)} Votes`} style={style}>
       <div style={{position: 'relative', paddingBottom: 32, paddingLeft: 32}}>
         <SpacedList spacing={16}>
           <span>Before you can vote you must delegate your Tcp voting power to yourself. This only needs to be done once.</span>

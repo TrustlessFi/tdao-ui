@@ -12,9 +12,9 @@ import RelativeLoading from '../library/RelativeLoading'
 import SpacedList from '../library/SpacedList'
 import AddTokenToWalletButton from '../library/AddTokenToWalletButton'
 import { TransactionType } from '../../slices/transactions'
-import { tokenAddedToWallet, WalletToken } from '../../slices/tokensAddedToWallet'
+import { WalletToken } from '../../slices/tokensAddedToWallet'
 import { Button } from 'carbon-components-react'
-import { numDisplay, sum, addTokenToWallet, convertSVGtoURI } from '../../utils'
+import { numDisplay, sum } from '../../utils'
 
 
 const ExistingTDaoPositions = () => {
@@ -27,19 +27,10 @@ const ExistingTDaoPositions = () => {
   const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
   const tdao = selector(state => state.chainID.tdao)
   const userAddress = selector(state => state.wallet.address)
-  const tokensAddedToWallet = selector(state => state.tokensAddedToWallet)
-
-  const dataNull =
-    balances === null ||
-    contracts === null ||
-    positions === null ||
-    tcpAllocationInfo === null ||
-    tdao === null ||
-    userAddress === null
 
   const tcpBalance =
     balances === null || contracts === null
-    ? 0
+    ? null
     : balances.tokens[contracts.Tcp].userBalance
 
   const positionsIDsWithRewards: string[] = []
@@ -74,7 +65,7 @@ const ExistingTDaoPositions = () => {
   return (
     <SpacedList spacing={16} >
       <div style={{position: 'relative'}}>
-        <RelativeLoading show={dataNull} />
+        <RelativeLoading show={(tokensToBeAllocated === null || tcpBalance === null) && userAddress !== null} />
         <SpacedList row spacing={8}>
           <Button
             disabled={tokensToBeAllocated === null || tokensToBeAllocated === 0}
@@ -83,7 +74,7 @@ const ExistingTDaoPositions = () => {
             Stake {tokensToBeAllocatedDisplay} Tcp Rewards
           </Button>
           <Button
-            disabled={tcpBalance === 0}
+            disabled={tcpBalance === null || tcpBalance === null}
             onClick={() => history.push(`/positions/create/tcp`)}
             style={{marginBottom: 16}}>
             Stake {tcpWalletBalanceDisplay} Tcp From Wallet

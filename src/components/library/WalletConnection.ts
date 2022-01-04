@@ -1,7 +1,7 @@
 import { AppDispatch, store } from '../../app/store'
-import { connected, connectionFailed, connecting } from '../../slices/wallet'
-import { equalStringsCaseInsensitive , toChecksumAddress } from '../../utils/index';
-import { clearUserData } from './index';
+import { connecting, connected, connectionFailed } from '../../slices/wallet'
+import { equalStringsCaseInsensitive, toChecksumAddress } from '../../utils/'
+import { clearUserData } from './'
 
 
 export const getWalletConnectedFunction = (dispatch: AppDispatch) => (accounts: string[]) => {

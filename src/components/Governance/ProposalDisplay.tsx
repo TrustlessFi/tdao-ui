@@ -18,6 +18,7 @@ import { InlineAppTag } from './GovernanceSubcomponents'
 import ProposalActions from './ProposalActions'
 import Breadcrumbs from '../library/Breadcrumbs'
 import TwoColumnDisplay from '../library/TwoColumnDisplay'
+import ConnectWalletButton from '../library/ConnectWalletButton'
 import VoteDelegationPanel from './VoteDelegationPanel'
 import SpacedList from '../library/SpacedList'
 import InputPicker from '../library/InputPicker'
@@ -40,6 +41,7 @@ const ProposalDisplay: FunctionComponent = () => {
   const tcpProposals = waitForTcpProposals(selector, dispatch)
   const tcpProposalsVoterInfo = waitForTcpProposalsVoterInfo(selector, dispatch)
   const chainID = selector(state => state.chainID.chainID)
+  const userAddress = selector(state => state.wallet.address)
 
   const [ voteChoice, setVoteChoice ] = useState<Vote>(Vote['-'])
 
@@ -120,34 +122,37 @@ const ProposalDisplay: FunctionComponent = () => {
   const voteColumnOne =
     <SpacedList>
       {
-        hasVoted
-        ? `You voted ${previousVote}.`
-        : (
-          isActiveProposal
-          ? (
-            hasVotingPower
-            ? <SpacedList>
-                <InputPicker
-                  options={Vote}
-                  onChange={handleVoteChange}
-                  initialValue={Vote['-']}
-                  label="Allocation options"
-                  style={{display: 'block'}}
-                />
-                <CreateTransactionButton
-                  title='Cast Vote'
-                  disabled={voteChoice === Vote['-']}
-                  txArgs={{
-                    type: TransactionType.VoteTcpProposal,
-                    TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
-                    proposalID: p === null ? 0 : p.id,
-                    support: voteChoice === Vote.Yes,
-                  }}
-                />
-              </SpacedList>
-            : 'You have no voting power on this proposal.'
-            )
-          : 'Voting is closed.'
+        userAddress === null
+        ? <ConnectWalletButton size='sm' />
+        : (hasVoted
+          ? `You voted ${previousVote}.`
+          : (
+            isActiveProposal
+            ? (
+              hasVotingPower
+              ? <SpacedList>
+                  <InputPicker
+                    options={Vote}
+                    onChange={handleVoteChange}
+                    initialValue={Vote['-']}
+                    label="Allocation options"
+                    style={{display: 'block'}}
+                  />
+                  <CreateTransactionButton
+                    title='Cast Vote'
+                    disabled={voteChoice === Vote['-']}
+                    txArgs={{
+                      type: TransactionType.VoteTcpProposal,
+                      TcpGovernorAlpha: contracts === null ? '' : contracts.TcpGovernorAlpha,
+                      proposalID: p === null ? 0 : p.id,
+                      support: voteChoice === Vote.Yes,
+                    }}
+                  />
+                </SpacedList>
+              : 'You have no voting power on this proposal.'
+              )
+            : 'Voting is closed.'
+          )
         )
       }
     </SpacedList>

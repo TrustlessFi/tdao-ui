@@ -112,14 +112,17 @@ const ProposalsList: FunctionComponent = () => {
     />
 
   return (
-    <SpacedList spacing={32}>
-      <VoteDelegationPanel underlyingTokenAddress={contracts === null ? zeroAddress : contracts.Tcp} />
+    <>
+      <VoteDelegationPanel
+        underlyingTokenAddress={contracts === null ? zeroAddress : contracts.Tcp}
+        style={{marginBottom: 32}}
+      />
       <AppTile
         title={`Proposals (${Object.values(tcpProposals.proposals).length})`}
         rightElement={claimAllRewardsButton}>
         {table}
       </AppTile>
-    </SpacedList>
+    </>
   )
 }
 
