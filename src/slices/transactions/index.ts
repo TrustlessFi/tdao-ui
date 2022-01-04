@@ -157,7 +157,7 @@ export type TransactionInfo = {
   args: TransactionArgs
 }
 
-export type TransactionState = {[key in string]: TransactionInfo}
+export type transactionState = {[key in string]: TransactionInfo}
 
 export const getTxLongName = (args: TransactionArgs) => {
   const type = args.type
@@ -426,7 +426,7 @@ const name = 'transactions'
 
 export const transactionsSlice = createSlice({
   name,
-  initialState: getLocalStorage(name, {}) as TransactionState,
+  initialState: getLocalStorage(name, {}) as transactionState,
   reducers: {
     clearUserTransactions: (state, action: PayloadAction<string>) => {
       const userAddress = action.payload

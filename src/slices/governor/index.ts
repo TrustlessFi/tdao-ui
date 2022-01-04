@@ -10,7 +10,7 @@ export type governorInfo = {
   phase: number
 }
 
-export interface GovernorState extends sliceState<governorInfo> {}
+export interface governorState extends sliceState<governorInfo> {}
 
 export const getGovernorInfo = createAsyncThunk(
   'governor/getGovernorInfo',
@@ -29,7 +29,7 @@ export const getGovernorInfo = createAsyncThunk(
 
 export const governorSlice = createSlice({
   name: 'governor',
-  initialState: initialState as GovernorState,
+  initialState: initialState as governorState,
   reducers: {},
   extraReducers: (builder) => {
     builder = getGenericReducerBuilder(builder, getGovernorInfo)

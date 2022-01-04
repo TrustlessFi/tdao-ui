@@ -2,16 +2,16 @@ import { useAppSelector as selector, } from '../../app/hooks'
 import { Slice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store'
 import { minutes, timeS } from '../../utils/'
-import { transactionsSlice, TransactionState } from '../../slices/transactions'
+import { transactionsSlice, transactionState } from '../../slices/transactions'
 import { contractsSlice, ContractsState } from '../../slices/contracts'
 import { tdaoInfoSlice, tdaoInfo } from '../../slices/tdaoInfo'
-import { notificationsSlice, NotificationState } from '../../slices/notifications'
+import { notificationsSlice, notificationsState } from '../../slices/notifications'
 import { tokensAddedToWalletSlice, tokensAddedToWalletState } from '../../slices/tokensAddedToWallet'
 
 type slicesState =
-  TransactionState |
+  transactionState |
   ContractsState |
-  NotificationState |
+  notificationsState |
   tdaoInfo |
   tokensAddedToWalletState |
   null

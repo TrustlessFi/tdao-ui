@@ -14,7 +14,7 @@ export interface currentChainInfo {
   chainID: number
 }
 
-export interface currentChainState extends sliceState<currentChainInfo> {}
+export interface currentChainInfoState extends sliceState<currentChainInfo> {}
 
 export interface balanceArgs {
   trustlessMulticall: string,
@@ -51,7 +51,7 @@ export const getCurrentChainInfo = createAsyncThunk(
 
 export const currentChainInfoSlice = createSlice({
   name: 'currentChainInfo',
-  initialState: initialState as currentChainState,
+  initialState: initialState as currentChainInfoState,
   reducers: {},
   extraReducers: (builder) => {
     builder = getGenericReducerBuilder(builder, getCurrentChainInfo)

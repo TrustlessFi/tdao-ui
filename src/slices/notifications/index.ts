@@ -13,20 +13,20 @@ export interface notificationArgs {
   message?: string
 }
 
-export interface notificationInfo extends notificationArgs {
+export interface notificationsInfo extends notificationArgs {
   startTimeMS: number,
   uid: string,
 }
 
-export type NotificationState = {[key in string]: notificationInfo}
+export type notificationsState = {[key in string]: notificationsInfo}
 
-const initialState: NotificationState = {}
+const initialState: notificationsState = {}
 
 const name = 'notifications'
 
 export const notificationsSlice = createSlice({
   name,
-  initialState: getLocalStorage(name, initialState) as NotificationState,
+  initialState: getLocalStorage(name, initialState) as notificationsState,
   reducers: {
     addNotification: (state, action: PayloadAction<notificationArgs>) => {
       const args = action.payload

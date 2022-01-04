@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers"
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
-import { ContractsInfo } from '../contracts'
+import { contractsInfo } from '../contracts'
 import { getGenericReducerBuilder } from '../'
 import { tdaoInfo } from '../tdaoInfo'
 import getContract, { getMulticallContract } from '../../utils/getContract'
@@ -31,12 +31,12 @@ export interface tdaoPositionsInfo { [key: string]: TDaoPosition }
 export interface tdaoPositionsArgs {
   userAddress: string
   tdao: string
-  contracts: ContractsInfo
+  contracts: contractsInfo
   trustlessMulticall: string
   tdaoInfo: tdaoInfo
 }
 
-export interface TDaoPositionsState extends sliceState<tdaoPositionsInfo> {}
+export interface tdaoPositionsState extends sliceState<tdaoPositionsInfo> {}
 
 export const getTDaoPositions = createAsyncThunk(
   'tdaoPositions/getTDaoPositions',
@@ -127,7 +127,7 @@ export const getTDaoPositions = createAsyncThunk(
 
 export const tdaoPositionsSlice = createSlice({
   name: 'tDaoPositions',
-  initialState: initialState as TDaoPositionsState,
+  initialState: initialState as tdaoPositionsState,
   reducers: {
     clearTDaoPositions: (state) => {
       state.data.value = null

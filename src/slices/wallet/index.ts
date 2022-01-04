@@ -5,13 +5,13 @@ export interface ProviderData {
   provider: ethers.providers.Web3Provider
 }
 
-export interface WalletState {
+export interface walletState {
   address: string | null,
   connecting: boolean,
   waitingForMetamask: boolean,
 }
 
-const initialState: WalletState = { address: null, connecting: false, waitingForMetamask: false }
+const initialState: walletState = { address: null, connecting: false, waitingForMetamask: false }
 
 export const walletSlice = createSlice({
   name: 'wallet',

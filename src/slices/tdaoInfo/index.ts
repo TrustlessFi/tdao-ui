@@ -5,7 +5,6 @@ import getContract, { getMulticallContract } from '../../utils/getContract'
 import {
   executeMulticalls,
   rc,
-  oneContractOneFunctionMC,
   oneContractManyFunctionMC,
   manyContractOneFunctionMC,
 } from '@trustlessfi/multicall'
@@ -34,7 +33,7 @@ export interface tdaoInfo {
   }
 }
 
-export interface TDaoInfoState extends sliceState<tdaoInfo> {}
+export interface tdaoInfoState extends sliceState<tdaoInfo> {}
 
 export const getTDaoInfo = createAsyncThunk(
   'tdaoInfo/getTDaoInfo',
@@ -92,7 +91,7 @@ export const getTDaoInfo = createAsyncThunk(
 
 export const tdaoInfoSlice = createSlice({
   name: 'tdaoInfo',
-  initialState: initialState as TDaoInfoState,
+  initialState: initialState as tdaoInfoState,
   reducers: {},
   extraReducers: (builder) => {
     builder = getGenericReducerBuilder(builder, getTDaoInfo)

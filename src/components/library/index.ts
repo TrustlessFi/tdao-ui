@@ -1,4 +1,4 @@
-import { TransactionInfo, TransactionState } from '../../slices/transactions'
+import { TransactionInfo, transactionState } from '../../slices/transactions'
 import { AppDispatch } from '../../app/store'
 import { clearBalances } from '../../slices/balances'
 import { clearTDaoPositions } from '../../slices/tdaoPositions'
@@ -15,7 +15,7 @@ export enum UserTxSortOption {
 export const getSortedUserTxs = (
   chainID: ChainID | null,
   userAddress: string | null,
-  txs: TransactionState | null,
+  txs: transactionState | null,
   sortOption: UserTxSortOption = UserTxSortOption.NONCE_ASCENDING,
 ): TransactionInfo[] => {
   if (chainID === null) return []

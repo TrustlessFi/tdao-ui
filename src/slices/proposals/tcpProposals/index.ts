@@ -3,7 +3,7 @@ import { initialState } from '../../'
 import { getGenericReducerBuilder } from '../../'
 import { addressToProtocolToken } from '../../../utils/'
 import getContract from '../../../utils/getContract'
-import { proposalsArgs, proposalsInfo, ProposalsState, fetchProposals } from '../'
+import { proposalsArgs, proposalsInfo, proposalsState, fetchProposals } from '../'
 import { TcpGovernorAlpha } from '@trustlessfi/typechain'
 import { ProtocolContract } from '../../contracts/'
 
@@ -22,7 +22,7 @@ export const getTcpProposals = createAsyncThunk(
 
 export const tcpProposalsSlice = createSlice({
   name: 'tcpProposals',
-  initialState: initialState as ProposalsState,
+  initialState: initialState as proposalsState,
   reducers: {
     clearTcpProposals: (state) => {
       state.data.value = null

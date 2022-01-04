@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
 import { getGenericReducerBuilder } from '../'
 import getContract, { getMulticallContract } from '../../utils/getContract'
-import { ContractsInfo } from '../contracts/'
+import { contractsInfo } from '../contracts/'
 import {
   executeMulticalls,
   rc,
@@ -28,11 +28,10 @@ export interface tcpAllocationInfo {
 export interface tcpAllocationInfoArgs {
   userAddress: string
   trustlessMulticall: string
-  contracts: ContractsInfo
+  contracts: contractsInfo
 }
 
 export interface TcpAllocationInfoState extends sliceState<tcpAllocationInfo> {}
-
 
 export const getTcpAllocationInfo = createAsyncThunk(
   'tcpAllocation/getTcpAllocationInfo',

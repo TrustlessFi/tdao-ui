@@ -4,14 +4,13 @@ import { initialState, getGenericReducerBuilder } from '../'
 import { tdaoInfo } from '../tdaoInfo'
 import { unscale, uint255Max, zeroAddress, unique } from '../../utils'
 import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
-import { TDaoRootContract, ContractsInfo } from '../contracts'
+import { TDaoRootContract, contractsInfo } from '../contracts'
 import { getMulticallContract} from '../../utils/getContract'
 import {
   executeMulticalls,
   rc,
   oneContractManyFunctionMC,
   manyContractOneFunctionMC,
-  idToIdAndArg,
 } from '@trustlessfi/multicall'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import getProvider from '../../utils/getProvider'
@@ -51,20 +50,20 @@ export interface balancesInfo {
   tokens: tokenBalances
 }
 
-export interface balanceState extends sliceState<balancesInfo> {}
+export interface balancesState extends sliceState<balancesInfo> {}
 
-export interface balanceArgs {
+export interface balancesArgs {
   userAddress: string,
   trustlessMulticall: string,
   tdao: string,
-  contracts: ContractsInfo
+  contracts: contractsInfo
   tdaoInfo: tdaoInfo
 }
 
 export const getBalances = createAsyncThunk(
   'balances/getBalances',
   async (
-    args: balanceArgs,
+    args: balancesArgs,
   ): Promise<balancesInfo> => {
     const provider = getProvider()
     const multicall = getMulticallContract(args.trustlessMulticall)
@@ -167,7 +166,7 @@ const name = 'balances'
 
 export const balancesSlice = createSlice({
   name,
-  initialState: initialState as balanceState,
+  initialState: initialState as balancesState,
   reducers: {
     clearBalances: (state) => {
       state.data.value = null

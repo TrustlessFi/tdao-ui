@@ -8,7 +8,7 @@ import { getTDaoPositions, tdaoPositionsInfo } from './tdaoPositions'
 import { proposalsInfo } from './proposals/'
 import { getTcpProposals } from './proposals/tcpProposals'
 import { getTcpProposalsVoterInfo } from './proposalsVoterInfo/tcpProposals'
-import { getContracts, ContractsInfo } from "./contracts"
+import { getContracts, contractsInfo } from "./contracts"
 import { getTDaoInfo, tdaoInfo } from './tdaoInfo'
 import { getTcpAllocationInfo, tcpAllocationInfo } from './tcpAllocation'
 import { getCurrentChainInfo } from './currentChainInfo'
@@ -32,7 +32,7 @@ interface fetchNodeTypes {
   balances: balancesInfo
   tdaoInfo: tdaoInfo
   governorInfo: governorInfo
-  contracts: ContractsInfo
+  contracts: contractsInfo
   tdaoPositions: tdaoPositionsInfo
   tcpAllocationInfo: tcpAllocationInfo,
   genesisAllocations: genesisAllocationsInfo,

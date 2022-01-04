@@ -5,7 +5,7 @@ import { FunctionComponent } from "react"
 import { Proposal } from "../../slices/proposals"
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { waitForContracts } from '../../slices/waitFor'
-import { ContractsInfo, ProtocolContract } from '../../slices/contracts'
+import { contractsInfo, ProtocolContract } from '../../slices/contracts'
 
 const getProposalActionsRawString = (
   target: string,
@@ -18,7 +18,7 @@ const getProposalActionsRawString = (
 ].join('\n')
 
 const getProposalActionsString = (
-  contracts: ContractsInfo | null,
+  contracts: contractsInfo | null,
   targetAddress: string,
   signature: string,
   calldata: string

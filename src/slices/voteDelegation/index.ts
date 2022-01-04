@@ -1,5 +1,5 @@
 import { Contract } from 'ethers'
-import { ContractsInfo } from '../contracts'
+import { contractsInfo } from '../contracts'
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { sliceState, initialState } from '../'
 import { getGenericReducerBuilder } from '../'
@@ -25,7 +25,7 @@ export interface voteDelegationState extends sliceState<voteDelegationInfo> {}
 interface voteDelegationArgs {
   userAddress: string,
   trustlessMulticall: string
-  contracts: ContractsInfo
+  contracts: contractsInfo
   tdaoInfo: tdaoInfo
 }
 

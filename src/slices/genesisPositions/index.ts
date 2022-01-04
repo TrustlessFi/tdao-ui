@@ -6,7 +6,7 @@ import {
   Accounting,
   HuePositionNFT,
 } from "@trustlessfi/typechain"
-import {ContractsInfo, ProtocolContract} from "../contracts"
+import {contractsInfo, ProtocolContract} from "../contracts"
 import {
   DebtPosition,
   fetchDebtPositions,
@@ -23,7 +23,7 @@ export type genesisPositionsState = sliceState<genesisPositionsInfo>
 
 export const getGenesisPositions = createAsyncThunk(
   'genesisPositions/getGenesisPositions',
-  async (args: { contracts: ContractsInfo, trustlessMulticall: string }): Promise<genesisPositionsInfo> => {
+  async (args: { contracts: contractsInfo, trustlessMulticall: string }): Promise<genesisPositionsInfo> => {
     const accounting = getContract(
       args.contracts.Accounting,
       ProtocolContract.Accounting
