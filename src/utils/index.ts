@@ -238,6 +238,14 @@ export const arrayToObject = (array: Array<unknown>) =>
 export type PromiseType<T> = T extends PromiseLike<infer U> ? U : T
 // type PromiseType = PromiseType<typeof promisedOne> // => number
 
+export type JSON =
+  | null
+  | boolean
+  | number
+  | string
+  | JSON[]
+  | { [prop: string]: JSON }
+
 
 export const parseMetamaskError = (error: any): string[] => {
   const metamaskError = error
@@ -457,3 +465,46 @@ export const getAmount0ForAmount1 = (amount1: BigNumber, currentTick: number, lo
 
   return (numerator1.sub(numerator2)).mul(amount1).div(denominator)
 }
+
+// ======================= ETHEREUM TYPESCRIPT ============================
+interface EthereumRequestArguments {
+  method: string;
+  params?: unknown[] | object;
+}
+
+interface ethereum {
+  request: (args: EthereumRequestArguments) => Promise<unknown>
+}
+
+export enum RpcMethod {
+  SwitchChain = 'wallet_switchEthereumChain',
+  ChainID = 'eth_chainId',
+  Accounts = 'eth_accounts',
+}
+
+interface SwitchChainRequest {
+  method: RpcMethod.SwitchChain
+  chainId: string
+}
+
+type RpcRequest =
+  | SwitchChainRequest
+  // | { method: RpcMethod.ChainID }
+  // | { method: RpcMethod.Accounts }
+
+export const makeRPCRequest = async (request: RpcRequest) => {
+  const ethereum = window.ethereum as ethereum | undefined
+  if (ethereum === undefined) return
+
+  const params = Object.fromEntries(Object.entries(request).filter(([key, _]) => key !== 'method'))
+
+  const requestParams = {
+    method: request.method,
+    params: [params],
+  }
+  console.log({requestParams})
+
+  return await ethereum.request(requestParams)
+}
+
+export const numberToHex = (val: number) => '0x' + val.toString(16)

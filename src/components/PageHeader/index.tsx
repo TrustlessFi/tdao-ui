@@ -69,8 +69,6 @@ const PageHeader = () => {
     ? first(Object.values(Tab))
     : extractPathBase(pagePath)
 
-  console.log({pagePath, currentPage})
-
   const tabs = Object.values(Tab).map((tab, index) => {
     const tabIsCurrentPage = currentPage.toLowerCase() === tab.toLowerCase()
     const display = tabDisplay[tab]
