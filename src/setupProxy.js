@@ -7,6 +7,8 @@ https://create-react-app.dev/docs/proxying-api-requests-in-development
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const proxyPort = process.env.PROXY_PORT || 3001;
 
+// TODO delete this file? @iwantausernamewithoutnumbers
+
 module.exports = function(app) {
   // handle genesis round JSON fetches
   app.use(

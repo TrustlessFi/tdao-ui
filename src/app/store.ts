@@ -14,6 +14,7 @@ import tcpProposalsVoterInfoReducer from '../slices/proposalsVoterInfo/tcpPropos
 import tcpAllocationInfoReducer from '../slices/tcpAllocation'
 import tdaoInfoReducer from '../slices/tdaoInfo'
 import tdaoPositionsReducer from '../slices/tdaoPositions'
+import tokensAddedToWalletReducer from '../slices/tokensAddedToWallet'
 import transactionsReducer from '../slices/transactions'
 import voteDelegationReducer from '../slices/voteDelegation'
 import walletReducer from '../slices/wallet'
@@ -34,6 +35,7 @@ export const store = configureStore({
     tcpAllocationInfo: tcpAllocationInfoReducer,
     tdaoInfo: tdaoInfoReducer,
     tdaoPositions: tdaoPositionsReducer,
+    tokensAddedToWallet: tokensAddedToWalletReducer,
     transactions: transactionsReducer,
     voteDelegation: voteDelegationReducer,
     wallet: walletReducer,

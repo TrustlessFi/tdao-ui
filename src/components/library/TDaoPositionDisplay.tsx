@@ -1,6 +1,6 @@
 import LargeText from '../library/LargeText'
 import Center from '../library/Center'
-import { numDisplay } from '../../utils'
+import { numDisplay, convertSVGtoURI } from '../../utils'
 import { TDaoPosition } from '../../slices/tdaoPositions'
 
 const TDaoPositionDisplay = ({
@@ -19,7 +19,7 @@ const TDaoPositionDisplay = ({
     <span style={{marginRight: 16, marginBottom: 16, display: 'inline-block' }}>
       <div style={{width}}>
         <img
-          src={`data:image/svg+xml;base64,${Buffer.from(position.svg, 'binary').toString('base64')}`}
+          src={convertSVGtoURI(position.svg)}
           style={{cursor: 'pointer'}}
           width={width}
           alt={`TDao Position ID ${position.nftTokenID}`}

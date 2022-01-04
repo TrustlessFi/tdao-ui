@@ -6,12 +6,14 @@ import { transactionsSlice, TransactionState } from '../../slices/transactions'
 import { contractsSlice, ContractsState } from '../../slices/contracts'
 import { tdaoInfoSlice, tdaoInfo } from '../../slices/tdaoInfo'
 import { notificationsSlice, NotificationState } from '../../slices/notifications'
+import { tokensAddedToWalletSlice, tokensAddedToWalletState } from '../../slices/tokensAddedToWallet'
 
 type slicesState =
   TransactionState |
   ContractsState |
   NotificationState |
   tdaoInfo |
+  tokensAddedToWalletState |
   null
 
 type persistedSlice = {
@@ -46,6 +48,11 @@ export const slicesToPersist: persistedSlices = {
     ttl: NO_EXPIRATION,
     getState: (state: RootState) => state.transactions
   },
+  [tokensAddedToWalletSlice.name]: {
+    slice: tokensAddedToWalletSlice,
+    ttl: NO_EXPIRATION,
+    getState: (state: RootState) => state.tokensAddedToWallet
+  },
 
   // Slices with loadable state
   [tdaoInfoSlice.name]: {
@@ -71,6 +78,7 @@ const LocalStorageManager = () => {
 const permanentLocalStorage: string[] = [
   transactionsSlice.name,
   notificationsSlice.name,
+  tokensAddedToWalletSlice.name,
 ]
 
 export const clearEphemeralStorage = () => {

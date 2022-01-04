@@ -10,9 +10,12 @@ import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import CreateTransactionButton from '../library/CreateTransactionButton'
 import RelativeLoading from '../library/RelativeLoading'
 import SpacedList from '../library/SpacedList'
+import AddTokenToWalletButton from '../library/AddTokenToWalletButton'
 import { TransactionType } from '../../slices/transactions'
+import { tokenAddedToWallet, WalletToken } from '../../slices/tokensAddedToWallet'
 import { Button } from 'carbon-components-react'
-import { numDisplay, sum } from '../../utils'
+import { numDisplay, sum, addTokenToWallet, convertSVGtoURI } from '../../utils'
+
 
 const ExistingTDaoPositions = () => {
   const dispatch = useAppDispatch()
@@ -24,6 +27,7 @@ const ExistingTDaoPositions = () => {
   const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
   const tdao = selector(state => state.chainID.tdao)
   const userAddress = selector(state => state.wallet.address)
+  const tokensAddedToWallet = selector(state => state.tokensAddedToWallet)
 
   const dataNull =
     balances === null ||
@@ -96,6 +100,8 @@ const ExistingTDaoPositions = () => {
           positionIDs: positionsIDsWithRewards,
         }}
       />
+      <AddTokenToWalletButton walletToken={WalletToken.TCP} />
+      <AddTokenToWalletButton walletToken={WalletToken.TDao} />
     </SpacedList>
   )
 }

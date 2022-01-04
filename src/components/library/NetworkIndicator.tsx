@@ -15,6 +15,7 @@ const NetworkIndicator = ({
   style?: CSSProperties
 }) => {
   const chainID = selector(state => state.chainID.chainID)
+
   // smallest number chain ID
   const correctChainID =
     first((Object.values(ChainID).filter(id => Number.isInteger(id)) as number[]).sort((a, b) => a - b))

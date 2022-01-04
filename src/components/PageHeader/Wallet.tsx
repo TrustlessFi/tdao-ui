@@ -61,7 +61,7 @@ const Wallet = () => {
     ethereum.autoRefreshOnNetworkChange = false
 
     if (MetaMaskOnboarding.isMetaMaskInstalled()) {
-      ethereum.request({ method: "eth_accounts" }).then(walletConnected)
+      ethereum.request({ method: 'eth_accounts' }).then(walletConnected)
     }
   })
 
