@@ -26,6 +26,7 @@ import { Tab, tabDisplay } from "../../App"
 import Wallet from "./Wallet"
 import NetworkIndicator from "../library/NetworkIndicator"
 import DebugUtils from "../library/DebugUtils"
+import { first, enforce } from '../../utils'
 
 const logo = require("../../img/tdao_logo_white.svg")
 const logo_name = require("../../img/tdao_logo_name_white.svg")
@@ -50,17 +51,36 @@ const PageHeader = () => {
     e.preventDefault()
   }
 
+  const extractPathBase = (path: string) => {
+    path =
+      path.substring(0, 1) === '/'
+      ? path.substring(1)
+      : path
+
+    const slashLocation = path.indexOf('/')
+    return slashLocation === -1
+      ? path
+      : path.substring(0, slashLocation)
+  }
+
+  const pagePath = location.pathname
+  const currentPage =
+    pagePath === '/' || pagePath === ''
+    ? first(Object.values(Tab))
+    : extractPathBase(pagePath)
+
+  console.log({pagePath, currentPage})
+
   const tabs = Object.values(Tab).map((tab, index) => {
-    const link = index === 0 ? "/" : "/" + tab.toLowerCase()
-    const isCurrentPage = location.pathname === link
+    const tabIsCurrentPage = currentPage.toLowerCase() === tab.toLowerCase()
     const display = tabDisplay[tab]
+    const link = index === 0 ? '/' : '/' + tab.toLowerCase()
     return (
       <HeaderMenuItem
         key={index}
         href={link}
         onClick={navigateToRoute.bind(null, link)}
-        isCurrentPage={isCurrentPage}
-      >
+        isCurrentPage={tabIsCurrentPage}>
         {display === undefined ? tab : display }
       </HeaderMenuItem>
     )
