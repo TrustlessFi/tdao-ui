@@ -1,17 +1,16 @@
-import { Row, Col } from 'react-flexbox-grid'
 import React, { useState } from "react"
+
 import { Button, TextInput, DataTableSkeleton } from "carbon-components-react"
 import { CheckmarkOutline16, ErrorOutline16} from '@carbon/icons-react';
 import { red, green, blue } from '@carbon/colors';
 
-import Text from "../library/Text"
 import Center from '../library/Center'
 import CreateTransactionButton from '../library/CreateTransactionButton'
 import AppTile from '../library/AppTile'
+import Text from '../library/Text'
 import SimpleTable from '../library/SimpleTable'
-import SpacedList from '../library/SpacedList'
 import ConnectWalletButton from '../library/ConnectWalletButton'
-import { unscale, unique, numDisplay, bnf, notNullString, first } from "../../utils"
+import { unique, notNullString, numDisplay, bnf, unscale, sum, isEmpty } from "../../utils"
 import { TransactionType } from '../../slices/transactions'
 import { Allocation } from '../../slices/genesisAllocations'
 
@@ -24,10 +23,17 @@ import {
 
 const BooleanIcon: React.FunctionComponent<{
   isTrue: boolean,
-}> = ({ isTrue }) => {
-  return isTrue
-    ? <CheckmarkOutline16 color={green[50]} />
-    : <ErrorOutline16 color={red[50]} />
+  nullState?: boolean,
+}> = ({ isTrue, nullState }) => {
+  return (
+    nullState === true
+    ? <ErrorOutline16 />
+    : (
+      isTrue
+        ? <CheckmarkOutline16 color={green[50]} />
+        : <ErrorOutline16 color={red[50]} />
+    )
+  )
 }
 
 const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
@@ -46,44 +52,44 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
     genesisAllocation === null
 
   // process genesis allocations
-  const userAllocations =
-    userAddress === null || allocations === null || allocations.allocations[userAddress] === undefined
+  let totalCountUnclaimed = bnf(0)
+  let unclaimedRoundIDs: string[] = []
+  let unclaimedAllocations: Allocation[] = []
+
+  const allocationRows =
+    userAddress === null || claimedAllocationRounds === null || allocations === null
     ? []
-    : allocations.allocations[userAddress]
+    : Object
+      .values(allocations).sort((a, b) => parseInt(a.roundID) - parseInt(b.roundID))
+      .map(({roundID, count, userToAllocation}) => {
+        const claimed = claimedAllocationRounds[roundID]
+        const allocation = userToAllocation[userAddress]
+        const userCount = bnf(allocation !== undefined ? allocation.count : 0)
 
-  let totalCount = 0
-  const unclaimedRoundIDs: string[] = []
-  const unclaimedAllocations: Allocation[] = []
+        if (!claimed && allocation !== undefined && userCount.gt(0)) {
+          totalCountUnclaimed = totalCountUnclaimed.add(userCount)
+          unclaimedRoundIDs.push(roundID)
+          unclaimedAllocations.push(allocation)
+        }
 
-  const allocationRows = userAllocations.map(({ roundID, count }, index) => {
-    const claimed = claimedAllocationRounds === null ? false : claimedAllocationRounds[roundID]
-    const unscaledCount = unscale(bnf(count))
-    if (!claimed) {
-      const allocationsForRoundID = userAllocations.filter(ua => ua.roundID === roundID)
-      if (allocationsForRoundID.length > 1) throw new Error(`more than 1 sig found for round ${roundID}`)
-      if (allocationsForRoundID.length > 0) {
-        totalCount += unscaledCount
-        unclaimedRoundIDs.push(roundID)
-        unclaimedAllocations.push(first(allocationsForRoundID))
-      }
-    }
+        return {
+          data: {
+            'Round ID': roundID,
+            'Total': `${numDisplay(count)} Tcp`,
+            'Your Portion': `${numDisplay(unscale(userCount))} Tcp`,
+            'Claimed': <BooleanIcon isTrue={claimed} nullState={userCount.isZero()} />,
+          },
+        }
+      })
 
-    return {
-      key: index,
-      data: {
-        "Round ID": roundID,
-        "Claimable Tcp": numDisplay(unscaledCount),
-        "Claimed": <BooleanIcon isTrue={claimed} />,
-      },
-    }
-  })
+      console.log({unclaimedAllocations})
 
   const claimAllocationButton =
     <CreateTransactionButton
       style={{}}
-      disabled={dataNull || totalCount === 0 }
+      disabled={dataNull || totalCountUnclaimed.isZero() }
       size='sm'
-      title='Claim'
+      title={`Claim ${numDisplay(unscale(totalCountUnclaimed))} Tcp`}
       txArgs={{
         type: TransactionType.ClaimGenesisAllocations,
         genesisAllocation: notNullString(genesisAllocation),
@@ -93,13 +99,15 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
     />
 
   return (
-      <AppTile title='Claim Genesis Tcp' rightElement={claimAllocationButton}>
-        {
-          allocationsLoading
-          ? <DataTableSkeleton showHeader={false} showToolbar={false} columnCount={3} />
-          : <SimpleTable rows={allocationRows} clickable={false} />
-        }
-      </AppTile>
+    <AppTile
+      title='Claim Genesis Tcp'
+      rightElement={claimAllocationButton}>
+      {
+        allocationsLoading
+        ? <DataTableSkeleton showHeader={false} showToolbar={false} columnCount={4} compact />
+        : <SimpleTable rows={allocationRows} clickable={false} size='compact' />
+      }
+    </AppTile>
   )
 }
 
@@ -130,13 +138,12 @@ const Genesis: React.FunctionComponent = () => {
     unique(liquidity.map(l => l.owner).sort())
       .filter(l => debtOwners.includes(l))
 
-
   // eligibility search box
   const [addressFilter, setAddressFilter] = useState("")
 
   // view data
   //tables
-  const eligibleOwners =
+  const eligibleStatuses =
     debtOwners.sort().map(address => ({
       address,
       debt: true,
@@ -144,28 +151,55 @@ const Genesis: React.FunctionComponent = () => {
     })
   )
 
-  const eligibilityRows = eligibleOwners
+  const totalDebtPoints =
+    isEmpty(eligibleStatuses)
+    ? 0
+    : (eligibleStatuses.map(o => o.debt ? 1 : 0) as number[]).reduce(sum)
+
+  const totalLiquidityPoints =
+    isEmpty(eligibleStatuses)
+    ? 0
+    : (eligibleStatuses.map(o => o.liquidity ? 1 : 0) as number[]).reduce(sum)
+
+  const totalPoints = totalDebtPoints + totalLiquidityPoints
+
+  const getPointsString = (points: number) => points === 1 ? '1 point' : `${points} points`
+
+
+  const eligibilityRows = eligibleStatuses
     .filter(data => addressFilter === "" || data.address.indexOf(addressFilter) > -1)
     .map(({address, liquidity, debt }, index) => {
       return {
         key: index,
         data: {
-          Address: address === userAddress ? <Text bold color={blue[50]}>{address}</Text> : address,
-          'Borrowed Hue': <BooleanIcon isTrue={debt} />,
-          'Provided Uniswap Liquidity': <BooleanIcon isTrue={liquidity} />,
+          Address: address === userAddress ? <Text color={blue[50]}>{address}</Text> : address,
+          'Borrow Hue': <BooleanIcon isTrue={debt} />,
+          'Provide Uniswap Liquidity': <BooleanIcon isTrue={liquidity} />,
         },
       }
     })
+
+  eligibilityRows.push({
+      key: -1,
+      data: {
+        Address: ' ',
+        'Borrow Hue': <>{getPointsString(totalDebtPoints)}</>,
+        'Provide Uniswap Liquidity': <>{getPointsString(totalLiquidityPoints)}</>,
+      },
+
+  })
 
   //download url
   const downloadDisabled =
     genesisAllocation === null ||
     (debt.length === 0 && liquidity.length === 0) ||
     !chainID
+
   let downloadAnchorProps = {
     style: { textDecoration: "none", color: "inherit" },
     ref: downloadRef,
     hidden: true,
+
   } as React.HTMLProps<HTMLAnchorElement>
   if (!downloadDisabled) {
     const data = {
@@ -191,32 +225,38 @@ const Genesis: React.FunctionComponent = () => {
   const userDebtEligible = userAddress === null ? false : debtOwners.includes(userAddress)
   const userLiquidityEligible = userAddress === null ? false : liquidityOwners.includes(userAddress)
 
-  const total = (userDebtEligible ? 50 : 0) + (userLiquidityEligible ? 50 : 0)
+  const userPoints = userLiquidityEligible ? 2 : (userDebtEligible ? 1 : 0)
+  const userPointsDisplay = userPoints === 1 ? '1 point' : `${userPoints} points`
+
+  const userPortionDisplay = numDisplay((userPoints / totalPoints) * 100) + '%'
 
   return (
-    <SpacedList spacing={32} >
-      <AppTile title={`Your Tcp Genesis Eligibility: ${total}%`}>
-        <div style={{paddingBottom: 32}}>
+    <>
+      <div style={{marginBottom: 32}}>
+        <ClaimGenesisAllocationsPanel />
+      </div>
+      <AppTile
+        title={`Your Genesis Eligibility: ${userPointsDisplay}`}
+        subTitle={`${userPortionDisplay} of total`}>
+        <div style={{paddingBottom: 16, paddingTop: 16}}>
           {userAddress === null
             ? <Center><ConnectWalletButton size='sm' /></Center>
-            : <>
-                <Col xs={8} style={{marginLeft: 32}}>
-                  <Row bottom="xs">
-                    <Col style={{marginRight: 8}}><Text>Borrowed Hue: </Text></Col>
-                    <Col><BooleanIcon isTrue={userDebtEligible} /></Col>
-                  </Row>
-                  <Row middle="xs">
-                    <Col style={{marginRight: 8}}><Text>Also Provided Uniswap Liquidity: </Text></Col>
-                    <Col><BooleanIcon isTrue={userLiquidityEligible} /></Col>
-                  </Row>
-                </Col>
-              </>
+            : <SimpleTable rows={[{data: {
+                'Your Address': userAddress === null ? '-' : userAddress,
+                'Borrow Hue': <BooleanIcon isTrue={userDebtEligible} />,
+                'Provide Uniswap Liquidity': <BooleanIcon isTrue={userLiquidityEligible} />,
+              }},{data:{
+                'Your Address': '',
+                'Borrow Hue': getPointsString(userDebtEligible ? 1 : 0),
+                'Provide Uniswap Liquidity':getPointsString(userLiquidityEligible ? 1 : 0),
+              }
+            }
+          ]} size='compact' clickable={false} />
           }
         </div>
       </AppTile>
-      <ClaimGenesisAllocationsPanel />
       <AppTile
-        title={`Tcp Genesis Address Eligibility (${Object.values(eligibleOwners).length})`}
+        title={`All Genesis Eligibility: ${numDisplay(totalPoints)} points`}
         rightElement={
           <Button
             kind={"secondary"}
@@ -227,7 +267,6 @@ const Genesis: React.FunctionComponent = () => {
           </Button>
         }
         className="genesis-eligibility">
-
         <div style={{ display: 'flex', marginBottom: 8 }}>
           <div style={{ flex: 1 }}>
             <TextInput
@@ -242,11 +281,11 @@ const Genesis: React.FunctionComponent = () => {
             />
           </div>
         </div>
-        <SimpleTable rows={eligibilityRows} size="compact" clickable={false} />
+        <SimpleTable rows={eligibilityRows} size='compact' clickable={false} />
       </AppTile>
 
       <a {...downloadAnchorProps}>Hidden Genesis Data Download Link</a>
-    </SpacedList>
+    </>
   )
 }
 

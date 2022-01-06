@@ -138,7 +138,7 @@ export const waitForGenesisPositions = getWaitFunction(
 export const waitForGenesisAllocations = getWaitFunction(
   (state: RootState) => state.genesisAllocations,
   getGenesisAllocations,
-  []
+  ['chainID']
 )
 
 export const waitForClaimedAllocationRounds = getWaitFunction(

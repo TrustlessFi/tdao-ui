@@ -1,5 +1,5 @@
 import { useHistory } from 'react-router-dom'
-import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
+import { useAppSelector as selector } from '../../app/hooks'
 import {
   waitForTcpProposals,
   waitForContracts,
@@ -15,7 +15,6 @@ import { TransactionType } from '../../slices/transactions'
 import { zeroAddress, numDisplay } from '../../utils'
 import { FunctionComponent } from 'react'
 import SimpleTable, { TableHeaderOnly } from '../library/SimpleTable'
-import SpacedList from '../library/SpacedList'
 import VoteDelegationPanel from './VoteDelegationPanel'
 import { InlineAppTag } from './GovernanceSubcomponents'
 import { DataTableSkeleton } from "carbon-components-react"
@@ -26,7 +25,6 @@ const ProposalsList: FunctionComponent = () => {
 
   const tcpProposals = waitForTcpProposals(selector, dispatch)
   const tcpProposalsVoterInfo = waitForTcpProposalsVoterInfo(selector, dispatch)
-  console.log("START", {tcpProposals, tcpProposalsVoterInfo})
   const contracts = waitForContracts(selector, dispatch)
 
   if (tcpProposals === null) {
@@ -67,9 +65,7 @@ const ProposalsList: FunctionComponent = () => {
         Object.values(tcpProposals.proposals)
           .sort((a, b) => b.id - a.id)
           .map(p => {
-            console.log({p, tcpProposalsVoterInfo})
             const vi = tcpProposalsVoterInfo === null ? null : tcpProposalsVoterInfo[p.id]
-            console.log({vi})
             if (
               isVotingCompleteState(p.state) &&
               vi !== null &&

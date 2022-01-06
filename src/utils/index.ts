@@ -224,6 +224,8 @@ export const first = <T>(array: Array<T>): T => {
   return array[0]
 }
 
+export const isEmpty = <T>(array: Array<T>) => array.length === 0
+
 export const last = <T>(array: Array<T>): T => {
   enforce(array.length > 0, 'Last for empty array')
   return array[array.length - 1]
@@ -538,3 +540,12 @@ export const numberToHex = (val: number) => '0x' + val.toString(16)
 
 export const convertSVGtoURI = (svg: string) =>
   `data:image/svg+xml;base64,${Buffer.from(svg, 'binary').toString('base64')}`
+
+export const fetchJSON = async <T>(url: string) => {
+  return await fetch(url).then(response => {
+    // parse if found
+    if (response.ok) return response.json()
+    // return null if missing
+    throw new Error(`Request to ${url} failed with status code ${response.status}`)
+  }) as T
+}

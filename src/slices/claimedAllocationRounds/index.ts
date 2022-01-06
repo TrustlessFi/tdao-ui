@@ -31,8 +31,7 @@ export const getClaimedAllocationRounds = createAsyncThunk(
   ): Promise<claimedAllocationRoundsInfo> => {
     const multicall = getMulticallContract(args.trustlessMulticall)
     const genesisAllocation = getContract(args.genesisAllocation, RootContract.GenesisAllocation) as GenesisAllocation
-
-    const roundIDs = args.genesisAllocations.roundIDs
+    const roundIDs = Object.keys(args.genesisAllocations)
 
     const result = await executeMulticalls(
       multicall,
