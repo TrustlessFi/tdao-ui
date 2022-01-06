@@ -327,6 +327,7 @@ export const waitForTransaction = createAsyncThunk(
     try {
       dispatch(waitingForMetamask())
       tx = await executeTransaction(args, provider)
+      dispatch(metamaskComplete())
     } catch (e) {
       const errorMessages = parseMetamaskError(e)
       console.error("failureMessages: " + errorMessages.join(', '))
@@ -360,7 +361,6 @@ export const waitForTransaction = createAsyncThunk(
     data.openTxTab()
 
     const receipt = await provider.waitForTransaction(tx.hash)
-    dispatch(metamaskComplete())
 
     const succeeded = receipt.status === 1
     if (succeeded) {
