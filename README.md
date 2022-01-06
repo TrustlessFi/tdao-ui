@@ -20,7 +20,7 @@ PORT=<port> PROXY_PORT=<proxy_port> yarn start
 
 ## Using hardhat network
 
-If using hardhat, copy the generated `localHardhatAddresses.json` to `src/utils/deploy/localHardhatAddresses.json`.
+If you are using hardhat, copy the generated `localHardhatAddresses.json` to `src/utils/deploy/localHardhatAddresses.json`.
 
 ## Adding genesis rounds
 
