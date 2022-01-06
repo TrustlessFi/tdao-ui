@@ -57,13 +57,13 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
   let unclaimedAllocations: Allocation[] = []
 
   const allocationRows =
-    userAddress === null || claimedAllocationRounds === null || allocations === null
+    claimedAllocationRounds === null || allocations === null
     ? []
     : Object
       .values(allocations).sort((a, b) => parseInt(a.roundID) - parseInt(b.roundID))
       .map(({roundID, count, userToAllocation}) => {
         const claimed = claimedAllocationRounds[roundID]
-        const allocation = userToAllocation[userAddress]
+        const allocation = userAddress === null ? undefined : userToAllocation[userAddress]
         const userCount = bnf(allocation !== undefined ? allocation.count : 0)
 
         if (!claimed && allocation !== undefined && userCount.gt(0)) {
@@ -116,14 +116,14 @@ const Genesis: React.FunctionComponent = () => {
   const downloadRef = React.createRef<HTMLAnchorElement>()
 
   // process debt and liquidity
-  const { debt, liquidity } = waitForGenesisPositions(selector, dispatch) || {
-    debt: [],
-    liquidity: [],
-  }
 
   const chainID = selector((state) => state.chainID.chainID)
-  const userAddress = selector((state) => state.wallet.address)
-  const genesisAllocation = selector((state) => state.chainID.genesisAllocation)
+  const userAddress = selector(state => state.wallet.address)
+  const genesisAllocation = selector(state => state.chainID.genesisAllocation)
+  const genesisPositions = waitForGenesisPositions(selector, dispatch)
+
+  const debt = genesisPositions === null ? [] : genesisPositions.debt
+  const liquidity = genesisPositions === null ? [] : genesisPositions.liquidity
 
   // get debt owners
   const uniqueDebtOwners = unique(debt.map(d => d.owner).sort())
