@@ -9,6 +9,7 @@ import { HashRouter as Router } from 'react-router-dom'
 import LocalStorageManager from './components/library/LocalStorageManager'
 import Notifications from './components/Notifications'
 import RecentTransactions from './components/RecentTransactions'
+import SwitchNetwork from './components/SwitchNetwork'
 
 import './App.css'
 import './styles/night_app.scss'
@@ -42,19 +43,21 @@ function App() {
     <ErrorBoundary>
       <Router>
         <PageHeader />
-        <div style={{ marginTop: 47, padding: 48 }}>
-          <Switch>
-            {Object.values(Tab).map((tab, index) => {
-              const path = '/' + tab.toLowerCase()
-              const paths = index === 0 ? ['/', path] : [path]
-              return paths.map((path) => (
-                <Route exact={path === '/'} path={path} key={path}>
-                  {tabToRender[tab]}
-                </Route>
-              ))
-            })}
-          </Switch>
-        </div>
+        <SwitchNetwork>
+          <div style={{ marginTop: 47, padding: 48 }}>
+            <Switch>
+              {Object.values(Tab).map((tab, index) => {
+                const path = '/' + tab.toLowerCase()
+                const paths = index === 0 ? ['/', path] : [path]
+                return paths.map((path) => (
+                  <Route exact={path === '/'} path={path} key={path}>
+                    {tabToRender[tab]}
+                  </Route>
+                ))
+              })}
+            </Switch>
+          </div>
+        </SwitchNetwork>
       </Router>
       <Notifications />
       <LocalStorageManager />
