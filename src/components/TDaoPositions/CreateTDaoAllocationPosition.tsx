@@ -212,9 +212,9 @@ const CreateTDaoAllocationPosition = () => {
 
   const columnTwo =
     <LargeText>
-      You have {numDisplay(tcpToAllocate)} Tcp to allocate.
+      You have {numDisplay(tcpToAllocate)} aTcp to allocate.
       <ParagraphDivider />
-      Tcp token allocations must be locked for an average of at least 1 year from the time they were granted.
+      aTcp tokens must be locked for an average of at least 1 year from the time they were granted.
       <ParagraphDivider />
       This position will have a TDao multiplier of {multiplier}x, meaning your locked Tcp tokens will
       accrue TDao rewards as if you had locked {numDisplay(count * parseFloat(multiplier))} Tcp.

@@ -80,9 +80,9 @@ const ClaimUnderlyingTokens = () => {
 
   const columnTwo =
     <LargeText>
-      You have {numDisplay(tcpToAllocate)} Tcp to allocate.
+      You have {numDisplay(tcpToAllocate)} aTcp to allocate.
       <ParagraphDivider />
-      Tcp token allocations must be claimed after waiting at least 1 year.
+      Tcp token allocations must be claimed after waiting at least 1 year on average.
       <ParagraphDivider />
       If you would like to lock Tcp on chain and earn TDao instead, select Lock Tokens from the dropdown.
     </LargeText>
