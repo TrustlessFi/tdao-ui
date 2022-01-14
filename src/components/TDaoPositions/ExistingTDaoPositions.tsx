@@ -71,7 +71,7 @@ const ExistingTDaoPositions = () => {
             disabled={tokensToBeAllocated === null || tokensToBeAllocated === 0}
             onClick={() => history.push(`/positions/allocate/lock/tcp`)}
             style={{marginBottom: 16}}>
-            Stake {tokensToBeAllocatedDisplay} Tcp Rewards
+            Stake {tokensToBeAllocatedDisplay} aTcp
           </Button>
           <Button
             disabled={tcpBalance === null || tcpBalance === 0}
