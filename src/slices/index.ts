@@ -7,7 +7,7 @@ export interface sliceState<T> {
   value: T | null
 }
 
-export const initialState: sliceState<any> = {
+export const initialState: sliceState<unknown> = {
   loading: false,
   error: null,
   value: null,
