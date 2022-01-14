@@ -1,11 +1,12 @@
 import { Button, InlineLoading, InlineLoadingStatus } from 'carbon-components-react'
 import AppTile from '../library/AppTile'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import { clearUserTransactions, TransactionStatus, getTxLongName } from '../../slices/transactions'
+import { clearUserTransactions, TransactionStatus, getTxLongName, getTokenAssociatedWithTx } from '../../slices/transactions'
 import Center from '../library/Center'
 import SimpleTable, { TableHeaderOnly } from '../library/SimpleTable'
 import ConnectWalletButton from '../library/ConnectWalletButton'
 import { getSortedUserTxs, UserTxSortOption } from '../library'
+import AddTokenToWalletButton from '../library/AddTokenToWalletButton'
 import { getDateTimeStringMS } from '../../utils'
 import { getEtherscanTxLink, getEtherscanAddressLink } from '../library/ExplorerLink'
 import { getChainIDFromState } from '../../slices/chainID'
@@ -29,7 +30,7 @@ const RecentTransactions = () => {
     userAddress === null || txs.length === 0
     ? (
         <div style={{position: 'relative'}}>
-          <TableHeaderOnly headers={['Nonce', 'Transaction', 'Start Time', 'Status',]} />
+          <TableHeaderOnly headers={['Nonce', 'Add Token to Wallet', 'Transaction', 'Start Time', 'Status',]} />
           <Center>
             <div style={{margin: 32}}>
               {userAddress === null
@@ -47,6 +48,7 @@ const RecentTransactions = () => {
         key: tx.hash,
         data: {
           'Nonce': tx.nonce,
+          'Add Token to Wallet': <AddTokenToWalletButton walletToken={getTokenAssociatedWithTx(tx.type)} />,
           'Transaction': getTxLongName(tx.args),
           'Start Time': getDateTimeStringMS(tx.startTimeMS),
           'Status': <InlineLoading status={txStatusToLoadingStatus[tx.status]} />,

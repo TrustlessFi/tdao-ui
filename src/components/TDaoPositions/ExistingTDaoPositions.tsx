@@ -91,8 +91,6 @@ const ExistingTDaoPositions = () => {
           positionIDs: positionsIDsWithRewards,
         }}
       />
-      <AddTokenToWalletButton walletToken={WalletToken.TCP} />
-      <AddTokenToWalletButton walletToken={WalletToken.TDao} />
     </SpacedList>
   )
 }

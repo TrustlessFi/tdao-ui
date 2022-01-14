@@ -9,6 +9,7 @@ import { clearTcpProposalsVoterInfo } from '../proposalsVoterInfo/tcpProposals'
 import { clearClaimedAllocationRounds } from '../claimedAllocationRounds'
 import { clearTDaoPositions } from '../tdaoPositions'
 import { clearVoteDelegation } from '../voteDelegation'
+import { WalletToken } from '../tokensAddedToWallet'
 import { Allocation } from '../genesisAllocations'
 import { ethers, ContractTransaction } from 'ethers'
 import { ProtocolContract, TDaoRootContract, RootContract } from '../contracts'
@@ -21,7 +22,7 @@ import getContract from '../../utils/getContract'
 import { scale, timeMS } from '../../utils'
 import { parseMetamaskError, extractRevertReasonString } from '../../utils'
 import { ChainID } from '@trustlessfi/addresses'
-import { numDisplay, addressToERC20, uint256Max, sleepS } from '../../utils'
+import { numDisplay, addressToERC20, uint256Max } from '../../utils'
 
 export enum TransactionType {
   UpdateTDaoPositionLockDuration,
@@ -223,6 +224,28 @@ export const getTxShortName = (type: TransactionType) => {
 
 export const getTxErrorName = (type: TransactionType) => getTxShortName(type) + ' Failed'
 
+export const getTokenAssociatedWithTx = (type: TransactionType): WalletToken | null => {
+  switch(type) {
+    case TransactionType.ClaimTcpTokenAllocationImmediately:
+    case TransactionType.DeleteTDaoPosition:
+    case TransactionType.ClaimTcpVotingRewards:
+    case TransactionType.CreateTDaoTcpAllocationPosition:
+    case TransactionType.CreateTDaoPosition:
+      return WalletToken.TCP
+    case TransactionType.ClaimAllTDaoPositionRewards:
+      return WalletToken.TDao
+    case TransactionType.VoteTcpProposal:
+    case TransactionType.SelfDelegateTcp:
+    case TransactionType.ApproveToken:
+    case TransactionType.ClaimGenesisAllocations:
+    case TransactionType.UpdateTDaoPositionLockDuration:
+      return null
+    default:
+      assertUnreachable(type)
+  }
+  return null
+}
+
 const executeTransaction = async (
   args: TransactionArgs,
   provider: ethers.providers.Web3Provider,
@@ -321,8 +344,6 @@ export const waitForTransaction = async (
   dispatch: ThunkDispatch<unknown, unknown, AnyAction>
 ) => {
     const receipt = await provider.waitForTransaction(tx.hash)
-
-    await sleepS(10)
 
     const succeeded = receipt.status === 1
     if (succeeded) {
