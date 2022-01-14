@@ -21,7 +21,7 @@ import getContract from '../../utils/getContract'
 import { scale, timeMS } from '../../utils'
 import { parseMetamaskError, extractRevertReasonString } from '../../utils'
 import { ChainID } from '@trustlessfi/addresses'
-import { numDisplay, addressToERC20, uint256Max } from '../../utils'
+import { numDisplay, addressToERC20, uint256Max, sleepS } from '../../utils'
 
 export enum TransactionType {
   UpdateTDaoPositionLockDuration,
@@ -315,12 +315,14 @@ const executeTransaction = async (
   throw new Error('Shoudnt get here')
 }
 
-export const checkTransaction = async (
+export const waitForTransaction = async (
   tx: TransactionInfo,
   provider: ethers.providers.Web3Provider,
   dispatch: ThunkDispatch<unknown, unknown, AnyAction>
 ) => {
     const receipt = await provider.waitForTransaction(tx.hash)
+
+    await sleepS(10)
 
     const succeeded = receipt.status === 1
     if (succeeded) {
@@ -385,8 +387,8 @@ export const checkTransaction = async (
 }
 
 
-export const waitForTransaction = createAsyncThunk(
-  'transactions/waitForTransaction',
+export const submitTransaction = createAsyncThunk(
+  'transactions/submitTransaction',
   async (data: TransactionData, {dispatch}): Promise<void> => {
     const args = data.args
     const userAddress = data.userAddress
@@ -433,7 +435,7 @@ export const waitForTransaction = createAsyncThunk(
 
     data.openTxTab()
 
-    await checkTransaction(tx, provider, dispatch)
+    await waitForTransaction(tx, provider, dispatch)
   })
 
 const name = 'transactions'
