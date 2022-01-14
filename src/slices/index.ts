@@ -24,8 +24,7 @@ export const getStateWithValue = <T>(value: T | null): sliceState<T> => {
 export const getGenericReducerBuilder = <Args extends {}, Value>(
   builder: ActionReducerMapBuilder<sliceState<Value>>,
   thunk: AsyncThunk<Draft<Value>, Args, {}>,
-): ActionReducerMapBuilder<any> =>  {
-  // TODO replace any with sliceState<Value>
+): ActionReducerMapBuilder<sliceState<Value>> =>  {
   return builder
     .addCase(thunk.pending, (state) => {
       state.loading = true
