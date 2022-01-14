@@ -169,7 +169,7 @@ export const balancesSlice = createSlice({
   initialState: initialState as balancesState,
   reducers: {
     clearBalances: (state) => {
-      state.data.value = null
+      state.value = null
     },
   },
   extraReducers: (builder) => {

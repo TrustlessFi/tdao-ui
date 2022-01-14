@@ -130,7 +130,7 @@ export const tdaoPositionsSlice = createSlice({
   initialState: initialState as tdaoPositionsState,
   reducers: {
     clearTDaoPositions: (state) => {
-      state.data.value = null
+      state.value = null
     },
   },
   extraReducers: (builder) => {

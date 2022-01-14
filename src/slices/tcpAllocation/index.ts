@@ -75,7 +75,7 @@ export const tcpAllocationInfoSlice = createSlice({
   initialState: initialState as TcpAllocationInfoState,
   reducers: {
     clearTcpAllocationInfo: (state) => {
-      state.data.value = null
+      state.value = null
     },
   },
   extraReducers: (builder) => {

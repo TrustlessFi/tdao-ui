@@ -25,7 +25,7 @@ export const tcpProposalsVoterInfoSlice = createSlice({
   initialState: initialState as ProposalsVoterInfoState,
   reducers: {
     clearTcpProposalsVoterInfo: (state) => {
-      state.data.value = null
+      state.value = null
     },
   },
   extraReducers: (builder) => {

@@ -58,7 +58,7 @@ export const slicesToPersist: persistedSlices = {
   [tdaoInfoSlice.name]: {
     slice: tdaoInfoSlice,
     ttl: SHORT_EXPIRATION,
-    getState: (state: RootState) => state.tdaoInfo.data.value
+    getState: (state: RootState) => state.tdaoInfo.value
   },
 }
 

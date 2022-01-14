@@ -53,7 +53,7 @@ export const claimedAllocationRoundsSlice = createSlice({
   initialState: initialState as claimedAllocationRoundsState,
   reducers: {
     clearClaimedAllocationRounds: (state) => {
-      state.data.value = null
+      state.value = null
     },
   },
   extraReducers: (builder) => {

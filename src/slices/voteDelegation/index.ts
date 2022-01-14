@@ -62,7 +62,7 @@ export const voteDelegationSlice = createSlice({
   initialState: initialState as voteDelegationState,
   reducers: {
     clearVoteDelegation: (state) => {
-      state.data.value = null
+      state.value = null
     },
   },
   extraReducers: (builder) => {
