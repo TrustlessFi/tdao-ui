@@ -75,8 +75,8 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
         return {
           data: {
             'Round ID': roundID,
-            'Total': `${numDisplay(count)} Tcp`,
-            'Your Portion': `${numDisplay(unscale(userCount))} Tcp`,
+            'Total': `${numDisplay(count)} aTcp`,
+            'Your Portion': `${numDisplay(unscale(userCount))} aTcp`,
             'Claimed': <BooleanIcon isTrue={claimed} nullState={userCount.isZero()} />,
           },
         }
@@ -89,7 +89,7 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
       style={{}}
       disabled={dataNull || totalCountUnclaimed.isZero() }
       size='sm'
-      title={`Claim ${numDisplay(unscale(totalCountUnclaimed))} Tcp`}
+      title={`Claim ${numDisplay(unscale(totalCountUnclaimed))} aTcp`}
       txArgs={{
         type: TransactionType.ClaimGenesisAllocations,
         genesisAllocation: notNullString(genesisAllocation),
@@ -100,7 +100,7 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
 
   return (
     <AppTile
-      title='Claim Genesis Tcp'
+      title='Claim Genesis aTcp'
       rightElement={claimAllocationButton}>
       {
         allocationsLoading
@@ -199,8 +199,8 @@ const Genesis: React.FunctionComponent = () => {
     style: { textDecoration: "none", color: "inherit" },
     ref: downloadRef,
     hidden: true,
-
   } as React.HTMLProps<HTMLAnchorElement>
+
   if (!downloadDisabled) {
     const data = {
       chainID,
@@ -283,7 +283,6 @@ const Genesis: React.FunctionComponent = () => {
         </div>
         <SimpleTable rows={eligibilityRows} size='compact' clickable={false} />
       </AppTile>
-
       <a {...downloadAnchorProps}>Hidden Genesis Data Download Link</a>
     </>
   )
