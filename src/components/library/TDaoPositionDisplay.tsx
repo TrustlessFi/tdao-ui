@@ -1,7 +1,8 @@
 import LargeText from '../library/LargeText'
 import Center from '../library/Center'
-import { numDisplay, convertSVGtoURI } from '../../utils'
+import { numDisplay } from '../../utils'
 import { TDaoPosition } from '../../slices/tdaoPositions'
+
 
 const TDaoPositionDisplay = ({
   position,
@@ -14,12 +15,11 @@ const TDaoPositionDisplay = ({
   onClick: (positionID: string) => void
   displayRewards: boolean
 } ) => {
-
   return (
     <span style={{marginRight: 16, marginBottom: 16, display: 'inline-block' }}>
       <div style={{width}}>
         <img
-          src={convertSVGtoURI(position.svg)}
+          src={position.imageData.image}
           style={{cursor: 'pointer'}}
           width={width}
           alt={`TDao Position ID ${position.nftTokenID}`}

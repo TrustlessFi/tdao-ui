@@ -7,7 +7,7 @@ import { tdaoInfo } from '../tdaoInfo'
 import getContract, { getMulticallContract } from '../../utils/getContract'
 import { oneContractOneFunctionMC, idToIdAndArg, executeMulticalls, rc, oneContractManyFunctionMC } from '@trustlessfi/multicall'
 import { PromiseType } from '@trustlessfi/utils'
-import { unscale, bnf, unique } from '../../utils'
+import { unscale, bnf, unique, decodeDataURL } from '../../utils'
 
 import { TDaoPositionNFT, TDao } from '@trustlessfi/typechain'
 import { TDaoContract, TDaoRootContract } from '../contracts'
@@ -23,7 +23,11 @@ export interface TDaoPosition {
   durationMonths: number
   underlyingTokenID: number
   canBeUnlocked: boolean
-  svg: string
+  imageData: {
+    name: string
+    description: string
+    image: string
+  }
 }
 
 export interface tdaoPositionsInfo { [key: string]: TDaoPosition }
@@ -52,7 +56,7 @@ export const getTDaoPositions = createAsyncThunk(
 
     const {
       rawPositions,
-      tokenSVGs,
+      tokenImages,
       canBeUnlocked,
       tdaoCurrentInfo ,
       rewardsStatus,
@@ -63,7 +67,7 @@ export const getTDaoPositions = createAsyncThunk(
         (result: any) => result as PromiseType<ReturnType<TDao['getPosition']>>,
         positionArgs,
       ),
-      tokenSVGs: oneContractOneFunctionMC(tdaoPostionNFT, 'tokenURI', rc.String, positionArgs),
+      tokenImages: oneContractOneFunctionMC(tdaoPostionNFT, 'tokenURI', rc.String, positionArgs),
       canBeUnlocked: oneContractOneFunctionMC(tdao, 'positionIsAbleToBeUnlocked', rc.Boolean, positionArgs),
       tdaoCurrentInfo: oneContractManyFunctionMC(
         tdao,
@@ -119,7 +123,7 @@ export const getTDaoPositions = createAsyncThunk(
         durationMonths: rawPositions[id].durationMonths.toNumber(),
         underlyingTokenID: rawPositions[id].tokenID,
         canBeUnlocked: canBeUnlocked[id],
-        svg: tokenSVGs[id]
+        imageData: decodeDataURL(tokenImages[id])
       }]
     }))
   }

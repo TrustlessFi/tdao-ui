@@ -6,7 +6,7 @@ import { contractsInfo } from '../../slices/contracts'
 import { getChainIDFromState } from '../../slices/chainID'
 import { CSSProperties } from 'react';
 import { WalletToken } from '../../slices/tokensAddedToWallet'
-import { addTokenToWallet, convertSVGtoURI } from '../../utils'
+import { addTokenToWallet, convertSVGStringtoURI } from '../../utils'
 import TrustlessLogos from '../../utils/trustless_logos'
 
 const AddTokenToWalletButton = ({
@@ -45,9 +45,9 @@ const AddTokenToWalletButton = ({
   const getTokenIcon = () => {
     switch(walletToken) {
       case WalletToken.TCP:
-        return convertSVGtoURI(TrustlessLogos.black.tcp)
+        return convertSVGStringtoURI(TrustlessLogos.black.tcp)
       case WalletToken.TDao:
-        return convertSVGtoURI(TrustlessLogos.black.tdao)
+        return convertSVGStringtoURI(TrustlessLogos.black.tdao)
     }
   }
 

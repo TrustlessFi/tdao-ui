@@ -540,8 +540,43 @@ export const addTokenToWallet = async (
 
 export const numberToHex = (val: number) => '0x' + val.toString(16)
 
-export const convertSVGtoURI = (svg: string) =>
-  `data:image/svg+xml;base64,${Buffer.from(svg, 'binary').toString('base64')}`
+export const decodeBase64 = (base64String: string) => Buffer.from(base64String, 'base64').toString('utf-8')
+export const encodeBase64 = (theString: string) => Buffer.from(theString, 'binary').toString('base64')
+
+export const decodeDataURL = (dataURL: string) => {
+  const [metadata, rawData] = dataURL.split(',')
+  const base64Encoded = metadata.includes('base64')
+  const rawType = base64Encoded
+    ? metadata.split(';')[0]
+    : metadata
+  const [dataString, type] = rawType.split(':')
+
+  if (dataString !== 'data') throw new Error('Not data url')
+
+  const data =
+    base64Encoded
+    ? decodeBase64(rawData)
+    : rawData
+
+  const [dataType, dataSubType] = type.split('/')
+
+  switch(dataType) {
+    case 'application':
+      switch(dataSubType) {
+        case 'json':
+        return JSON.parse(data)
+        default:
+          throw new Error(`Application data subtype ${dataSubType} not supported`)
+      }
+    case 'image':
+      return data
+    default:
+      throw new Error(`Parse data url of type ${type} not supported.`)
+  }
+}
+
+export const convertSVGStringtoURI = (svgString: string) =>
+  `data:image/svg+xml;base64,${encodeBase64(svgString)}`
 
 export const fetchJSON = async <T>(url: string) => {
   return await fetch(url).then(response => {
