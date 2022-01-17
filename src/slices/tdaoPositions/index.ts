@@ -7,7 +7,7 @@ import { tdaoInfo } from '../tdaoInfo'
 import getContract, { getMulticallContract } from '../../utils/getContract'
 import { oneContractOneFunctionMC, idToIdAndArg, executeMulticalls, rc, oneContractManyFunctionMC } from '@trustlessfi/multicall'
 import { PromiseType } from '@trustlessfi/utils'
-import { unscale, bnf, unique, decodeDataURL } from '../../utils'
+import { unscale, bnf, unique, decodeDataURL, convertSVGStringtoURI } from '../../utils'
 
 import { TDaoPositionNFT, TDao } from '@trustlessfi/typechain'
 import { TDaoContract, TDaoRootContract } from '../contracts'
@@ -112,6 +112,7 @@ export const getTDaoPositions = createAsyncThunk(
         }
       }
 
+
       return [id, {
         nftTokenID: id,
         approximateRewards: unscale(approximateRewards, 18),
@@ -123,7 +124,15 @@ export const getTDaoPositions = createAsyncThunk(
         durationMonths: rawPositions[id].durationMonths.toNumber(),
         underlyingTokenID: rawPositions[id].tokenID,
         canBeUnlocked: canBeUnlocked[id],
-        imageData: decodeDataURL(tokenImages[id])
+        // TODO remove and only go with the first branch once new Rinkeby deployment is out
+        imageData:
+          tokenImages[id].startsWith('data')
+          ? decodeDataURL(tokenImages[id])
+          : {
+            name: '<name not available>',
+            description: '<description not available>',
+            image: convertSVGStringtoURI(tokenImages[id]),
+          }
       }]
     }))
   }
