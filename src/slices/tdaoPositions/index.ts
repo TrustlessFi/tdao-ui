@@ -22,6 +22,7 @@ export interface TDaoPosition {
   endPeriod: number
   durationMonths: number
   underlyingTokenID: number
+  isUserPosition: boolean
   canBeUnlocked: boolean
   imageData: {
     name: string
@@ -46,12 +47,14 @@ export const getTDaoPositions = createAsyncThunk(
   'tdaoPositions/getTDaoPositions',
   async (args: tdaoPositionsArgs): Promise<tdaoPositionsInfo> => {
     const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
-    const tdaoPostionNFT = getContract(args.contracts[TDaoContract.TDaoPositionNFT], TDaoContract.TDaoPositionNFT) as TDaoPositionNFT
+    const tdaoPositionNFT = getContract(args.contracts[TDaoContract.TDaoPositionNFT], TDaoContract.TDaoPositionNFT) as TDaoPositionNFT
     const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
 
-    // fetch the positions
-    const positionIDs = (await tdaoPostionNFT.positionIDs(args.userAddress)).map(id => id.toString())
+    const nextPositionId = await tdaoPositionNFT.nextPositionID();
+    const positionIDs = Array.from(Array(nextPositionId.toBigInt()).keys()).map((v)=>v.toString());
+    const userPositionIds = new Set((await tdaoPositionNFT.positionIDs(args.userAddress)).map((v)=>v.toString()));
 
+    // fetch the positions
     const positionArgs = idToIdAndArg(positionIDs)
 
     const {
@@ -67,7 +70,7 @@ export const getTDaoPositions = createAsyncThunk(
         (result: any) => result as PromiseType<ReturnType<TDao['getPosition']>>,
         positionArgs,
       ),
-      tokenImages: oneContractOneFunctionMC(tdaoPostionNFT, 'tokenURI', rc.String, positionArgs),
+      tokenImages: oneContractOneFunctionMC(tdaoPositionNFT, 'tokenURI', rc.String, positionArgs),
       canBeUnlocked: oneContractOneFunctionMC(tdao, 'positionIsAbleToBeUnlocked', rc.Boolean, positionArgs),
       tdaoCurrentInfo: oneContractManyFunctionMC(
         tdao,
@@ -124,6 +127,7 @@ export const getTDaoPositions = createAsyncThunk(
         durationMonths: rawPositions[id].durationMonths.toNumber(),
         underlyingTokenID: rawPositions[id].tokenID,
         canBeUnlocked: canBeUnlocked[id],
+        isUserPosition: userPositionIds.has(id),
         // TODO remove and only go with the first branch once new Rinkeby deployment is out
         imageData:
           tokenImages[id].startsWith('data')
