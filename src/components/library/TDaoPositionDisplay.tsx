@@ -12,7 +12,7 @@ const TDaoPositionDisplay = ({
 }: {
   position: TDaoPosition
   width: number
-  onClick: (positionID: string) => void
+  onClick?: (positionID: string) => void
   displayRewards: boolean
 } ) => {
   return (
@@ -20,10 +20,10 @@ const TDaoPositionDisplay = ({
       <div style={{width}}>
         <img
           src={position.imageData.image}
-          style={{cursor: 'pointer'}}
+          style={onClick === undefined ? undefined : {cursor: 'pointer'}}
           width={width}
           alt={`TDao Position ID ${position.nftTokenID}`}
-          onClick={() => onClick(position.nftTokenID)}
+          onClick={onClick === undefined ? undefined : () => onClick(position.nftTokenID)}
         />
         {
           displayRewards
@@ -41,7 +41,6 @@ const TDaoPositionDisplay = ({
 
 TDaoPositionDisplay.defaultProps = {
   width: 500,
-  onClick: (_positionID: string) => {},
   displayRewards: true
 }
 
