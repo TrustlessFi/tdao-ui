@@ -172,7 +172,7 @@ const Genesis: React.FunctionComponent = () => {
       return {
         key: index,
         data: {
-          Address: address === userAddress ? <Text color={blue[50]}>{address}</Text> : address,
+          Address: <Text monospace color={address === userAddress ? blue[50] : undefined}>{address}</Text>,
           'Borrow Hue': <BooleanIcon isTrue={debt} />,
           'Provide Uniswap Liquidity': <BooleanIcon isTrue={liquidity} />,
         },
@@ -182,7 +182,7 @@ const Genesis: React.FunctionComponent = () => {
   eligibilityRows.push({
       key: -1,
       data: {
-        Address: ' ',
+        Address: <> </>,
         'Borrow Hue': <>{getPointsString(totalDebtPoints)}</>,
         'Provide Uniswap Liquidity': <>{getPointsString(totalLiquidityPoints)}</>,
       },
@@ -242,7 +242,7 @@ const Genesis: React.FunctionComponent = () => {
           {userAddress === null
             ? <Center><ConnectWalletButton size='sm' /></Center>
             : <SimpleTable rows={[{data: {
-                'Your Address': userAddress === null ? '-' : userAddress,
+                'Your Address': <Text monospace>{userAddress === null ? '-' : userAddress}</Text>,
                 'Borrow Hue': <BooleanIcon isTrue={userDebtEligible} />,
                 'Provide Uniswap Liquidity': <BooleanIcon isTrue={userLiquidityEligible} />,
               }},{data:{
