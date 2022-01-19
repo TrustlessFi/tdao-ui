@@ -24,6 +24,7 @@ export interface TDaoPosition {
   underlyingTokenID: number
   canBeUnlocked: boolean
   imageData: {
+    exists: boolean
     name: string
     description: string
     image: string
@@ -129,6 +130,7 @@ export const getTDaoPositions = createAsyncThunk(
           tokenImages[id].startsWith('data')
           ? decodeDataURL(tokenImages[id])
           : {
+            exists: true,
             name: '<name not available>',
             description: '<description not available>',
             image: convertSVGStringtoURI(tokenImages[id]),
