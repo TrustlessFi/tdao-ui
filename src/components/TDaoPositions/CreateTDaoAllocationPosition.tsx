@@ -21,6 +21,7 @@ import {
   NumberInput,
   Dropdown,
   OnChangeData,
+  Button,
 } from 'carbon-components-react'
 import Breadcrumbs from '../library/Breadcrumbs'
 import InputPicker from '../library/InputPicker'
@@ -186,13 +187,21 @@ const CreateTDaoAllocationPosition = () => {
         id="Tcp Allocation Count Input"
         invalidText=""
         min={0}
-        max={tcpAllocationInfo === null ? 0 : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated}
+        max={tcpToAllocate}
         step={1e-3}
         size="lg"
         onChange={onNumChange((value: number) => setCount(value))}
         value={isNaN(count) ? "" : count }
         style={{}}
       />
+      <Button
+        kind='secondary'
+        onClick={() => setCount(tcpToAllocate)}
+        size='sm'
+        style={{padding: '0 8px'}}
+      >
+        Allocate Max aTcp
+      </Button>
       <PositionMetadata items={metadataItems} />
       <CreateTransactionButton
         style={{}}

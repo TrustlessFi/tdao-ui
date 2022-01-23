@@ -20,10 +20,10 @@ import {
   NumberInput,
   Dropdown,
   OnChangeData,
+  Button,
 } from 'carbon-components-react'
 import Breadcrumbs from '../library/Breadcrumbs'
-import InputPicker from '../library/InputPicker'
-import { TokenAllocationOptions, getMultiplierForMonths } from './'
+import { getMultiplierForMonths } from './'
 import {
   invert, onNumChange, last, range, notNullString,
   days, monthsToDays, getDateStringMS, first,
@@ -133,6 +133,14 @@ const CreateTDaoAllocationPosition = () => {
         value={isNaN(count) ? "" : count }
         style={{}}
       />
+      <Button
+        kind='secondary'
+        onClick={() => setCount(tcpToLock)}
+        size='sm'
+        style={{padding: '0 8px'}}
+      >
+        Lock Max Tcp
+      </Button>
       <PositionMetadata items={metadataItems} />
       {
         balances === null || contracts === null || !balances.tokens[contracts.Tcp].approval.TDao.approved
