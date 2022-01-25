@@ -1,52 +1,16 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit'
-
-import balancesReducer from '../slices/balances'
-import chainIDReducer from '../slices/chainID'
-import claimedAllocationRoundsReducer from '../slices/claimedAllocationRounds'
-import contractsReducer from '../slices/contracts'
-import currentChainInfoReducer from '../slices/currentChainInfo'
-import genesisAllocationsReducer from '../slices/genesisAllocations'
-import genesisPositionsReducer from '../slices/genesisPositions'
-import governorReducer from '../slices/governor'
-import notificationsReducer from '../slices/notifications'
-import tcpProposalsReducer from '../slices/proposals/tcpProposals'
-import tcpProposalsVoterInfoReducer from '../slices/proposalsVoterInfo/tcpProposals'
-import tcpAllocationInfoReducer from '../slices/tcpAllocation'
-import tdaoInfoReducer from '../slices/tdaoInfo'
-import tdaoPositionsReducer from '../slices/tdaoPositions'
-import tokensAddedToWalletReducer from '../slices/tokensAddedToWallet'
-import transactionsReducer from '../slices/transactions'
-import voteDelegationReducer from '../slices/voteDelegation'
-import walletReducer from '../slices/wallet'
+import { RootState } from '../slices/fetchNodes'
+import allSlices from '../slices/allSlices'
 
 export const store = configureStore({
-  reducer: {
-    balances: balancesReducer,
-    chainID: chainIDReducer,
-    claimedAllocationRounds: claimedAllocationRoundsReducer,
-    contracts: contractsReducer,
-    currentChainInfo: currentChainInfoReducer,
-    genesisAllocations: genesisAllocationsReducer,
-    genesisPositions: genesisPositionsReducer,
-    governor: governorReducer,
-    notifications: notificationsReducer,
-    tcpProposals: tcpProposalsReducer,
-    tcpProposalsVoterInfo: tcpProposalsVoterInfoReducer,
-    tcpAllocationInfo: tcpAllocationInfoReducer,
-    tdaoInfo: tdaoInfoReducer,
-    tdaoPositions: tdaoPositionsReducer,
-    tokensAddedToWallet: tokensAddedToWalletReducer,
-    transactions: transactionsReducer,
-    voteDelegation: voteDelegationReducer,
-    wallet: walletReducer,
-  }
+  reducer:
+    Object.fromEntries(
+      Object.entries(allSlices)
+        .map(
+          ([name, slice]) => [name, slice.slice.reducer])
+        ) as {[sliceName in keyof typeof allSlices]: (typeof allSlices)[sliceName]['slice']['reducer']}
 })
 
 export type AppDispatch = typeof store.dispatch
-export type RootState = ReturnType<typeof store.getState>
-export type AppThunk<ReturnType = void> = ThunkAction<
-  ReturnType,
-  RootState,
-  unknown,
-  Action<string>
->
+// type RootState = ReturnType<typeof store.getState> // NOTE: now defined in slices/fetchNodes.ts
+export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action<string>>

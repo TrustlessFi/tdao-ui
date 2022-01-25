@@ -1,10 +1,6 @@
 import { CSSProperties, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import {
-  waitForContracts,
-  waitForVoteDelegation,
-  waitForBalances,
-} from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import { numDisplay } from '../../utils/'
 import AppTile from '../library/AppTile'
 import CreateTransactionButton from '../library/CreateTransactionButton'
@@ -20,18 +16,22 @@ const VoteDelegationPanel = ({
 }) => {
   const dispatch = useAppDispatch()
 
-  const contracts = waitForContracts(selector, dispatch)
-  const balances = waitForBalances(selector, dispatch)
-  const voteDelegation = waitForVoteDelegation(selector, dispatch)
-
-  const tdao = selector(state => state.chainID.tdao)
-  const userAddress = selector(state => state.wallet.address)
+  const {
+    contracts,
+    balances,
+    voteDelegation,
+    userAddress,
+  } = waitFor([
+    'contracts',
+    'balances',
+    'voteDelegation',
+    'userAddress',
+  ], selector, dispatch)
 
   if (
     contracts === null ||
     balances === null ||
     voteDelegation === null ||
-    tdao === null ||
     underlyingTokenAddress === null ||
     userAddress === null
   ) return null // loading

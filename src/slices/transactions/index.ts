@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction, createAsyncThunk, ThunkDispatch, AnyAction } from '@reduxjs/toolkit'
-import { getLocalStorage, assertUnreachable } from '../../utils'
+import { PayloadAction, createAsyncThunk, ThunkDispatch, AnyAction } from '@reduxjs/toolkit'
+import { assertUnreachable } from '../../utils'
 import { waitingForMetamask, metamaskComplete } from '../wallet'
 import getProvider from '../../utils/getProvider'
 import { addNotification } from '../notifications'
@@ -7,22 +7,27 @@ import { clearBalances } from '../balances'
 import { clearTcpAllocationInfo } from '../tcpAllocation'
 import { clearTcpProposalsVoterInfo } from '../proposalsVoterInfo/tcpProposals'
 import { clearClaimedAllocationRounds } from '../claimedAllocationRounds'
-import { clearTDaoPositions } from '../tdaoPositions'
 import { clearVoteDelegation } from '../voteDelegation'
-import { WalletToken } from '../tokensAddedToWallet'
-import { Allocation } from '../genesisAllocations'
 import { ethers, ContractTransaction } from 'ethers'
-import { ProtocolContract, TDaoRootContract, RootContract } from '../contracts'
+import getContract from '../../utils/getContract'
+import { scale, timeMS } from '../../utils'
+import { ChainID } from '@trustlessfi/addresses'
+import { numDisplay } from '../../utils'
+import { createLocalSlice, CacheDuration } from '../'
+import { RootState } from '../fetchNodes'
+import { ProtocolContract, TDaoRootContract, RootContract } from '../contracts/ProtocolContract'
+import { UserGenesisAllocation } from '../genesisAllocations'
 
 import {
   TcpGovernorAlpha, TDao, TcpAllocation, Tcp,
   GovernorAlphaWithVotingRewards, GenesisAllocation
 } from '@trustlessfi/typechain'
-import getContract from '../../utils/getContract'
-import { scale, timeMS } from '../../utils'
-import { parseMetamaskError, extractRevertReasonString } from '../../utils'
-import { ChainID } from '@trustlessfi/addresses'
-import { numDisplay, addressToERC20, uint256Max } from '../../utils'
+import { addressToERC20, uint256Max, parseMetamaskError, extractRevertReasonString } from '../../utils'
+
+export enum WalletToken {
+  TCP = 'TCP',
+  TDao = 'TDao',
+}
 
 export enum TransactionType {
   UpdateTDaoPositionLockDuration,
@@ -123,7 +128,7 @@ export interface txApproveToken {
 export interface txClaimGenesisAllocations {
   type: TransactionType.ClaimGenesisAllocations
   genesisAllocation: string
-  allocations: Allocation[]
+  allocations: UserGenesisAllocation[]
   roundIDs: string[]
 }
 
@@ -459,11 +464,11 @@ export const submitTransaction = createAsyncThunk(
     await waitForTransaction(tx, provider, dispatch)
   })
 
-const name = 'transactions'
-
-export const transactionsSlice = createSlice({
-  name,
-  initialState: getLocalStorage(name, {}) as transactionState,
+const transactionsSlice = createLocalSlice({
+  name: 'transactions',
+  initialState: {} as transactionState,
+  stateSelector: (state: RootState) => state.transactions,
+  cacheDuration: CacheDuration.INFINITE,
   reducers: {
     clearUserTransactions: (state, action: PayloadAction<string>) => {
       const userAddress = action.payload
@@ -488,7 +493,7 @@ export const transactionsSlice = createSlice({
         state[hash].status = TransactionStatus.Failure
       }
     },
-  },
+  }
 })
 
 export const {
@@ -496,6 +501,6 @@ export const {
   transactionCreated,
   transactionSucceeded,
   transactionFailed,
-} = transactionsSlice.actions
+} = transactionsSlice.slice.actions
 
-export default transactionsSlice.reducer
+export default transactionsSlice

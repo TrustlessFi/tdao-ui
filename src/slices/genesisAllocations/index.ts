@@ -1,8 +1,8 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import * as ethers from 'ethers'
-import { initialState, sliceState, getGenericReducerBuilder } from '../'
 import { fetchJSON } from '../../utils'
 import { ChainID } from "@trustlessfi/addresses"
+import { thunkArgs, RootState } from '../fetchNodes'
+import { createChainDataSlice, CacheDuration } from '../'
 
 const chainIDToRoundData: {[chainID in ChainID]: string} = {
   [ChainID.Rinkeby]: 'https://gist.githubusercontent.com/TrustlessOfficial/2d9d275d05ae66cff0be17091d5abe74/raw',
@@ -11,23 +11,10 @@ const chainIDToRoundData: {[chainID in ChainID]: string} = {
 
 interface auth { r: string; s: string; v: number }
 
-export interface Allocation {
-  auth: auth
-  count: string
-  roundID: string
+const authFromSignature = (signature: string): auth => {
+  const { r, s, v } = ethers.utils.splitSignature(signature)
+  return { r, s, v }
 }
-
-export interface genesisAllocationsInfo {
-  [roundID: string]: {
-    roundID: string
-    count: number
-    userToAllocation: {
-      [userAddress: string]: Allocation
-    }
-  }
-}
-
-type genesisAllocationsState = sliceState<genesisAllocationsInfo>
 
 interface Round {
   roundID: string
@@ -49,27 +36,43 @@ interface roundIDtoURI {
   }
 }
 
-const fetchRounds = async (chainID: ChainID) => {
-  // fetch urls for all rounds
-  const rounds = (await fetchJSON<roundIDtoURI>(chainIDToRoundData[chainID]))
+export interface UserGenesisAllocation {
+  auth: auth
+  count: string
+  roundID: string
+}
 
-  // fetch all round files
-  return await Promise.all(
-    Object.values(rounds.roundIDtoURI).map(
-      uri => fetchJSON<Round>(uri.fleekURI)
+export interface genesisAllocationsInfo {
+  [roundID: string]: {
+    roundID: string
+    count: number
+    userToAllocation: { [userAddress: string]: UserGenesisAllocation }
+  }
+}
+
+export interface currentChainInfo {
+  blockNumber: number
+  blockTimestamp: number
+  chainID: number
+}
+
+const genesisAllocationsSlice = createChainDataSlice({
+  name: 'genesisAllocations',
+  dependencies: ['chainID'],
+  stateSelector: (state: RootState) => state.genesisAllocations,
+  cacheDuration: CacheDuration.NONE,
+  thunkFunction:
+    async (args: thunkArgs<'chainID'>) => {
+    // fetch urls for all rounds
+    const rounds = (await fetchJSON<roundIDtoURI>(chainIDToRoundData[args.chainID]))
+
+    // fetch all round files
+    const allRounds = await Promise.all(
+      Object.values(rounds.roundIDtoURI).map(
+        uri => fetchJSON<Round>(uri.fleekURI)
+      )
     )
-  )
-}
 
-const authFromSignature = (signature: string): auth => {
-  const { r, s, v } = ethers.utils.splitSignature(signature)
-  return { r, s, v }
-}
-
-export const getGenesisAllocations = createAsyncThunk(
-  'genesisAllocations/getGenesisAllocations',
-  async (args: {chainID: ChainID}): Promise<genesisAllocationsInfo> => {
-    const allRounds = await fetchRounds(args.chainID)
     return (
       Object.fromEntries(allRounds.map(round => [
         round.roundID,
@@ -89,16 +92,7 @@ export const getGenesisAllocations = createAsyncThunk(
         }
       ]))
     )
-  }
-)
-
-export const genesisAllocationsSlice = createSlice({
-  name: 'genesisAllocations',
-  initialState: initialState as genesisAllocationsState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getGenesisAllocations)
-  },
+    }
 })
 
-export default genesisAllocationsSlice.reducer
+export default genesisAllocationsSlice

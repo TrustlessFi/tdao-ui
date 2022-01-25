@@ -25,14 +25,6 @@ export interface proposalsVoterInfo {
   [proposalID: number]: ProposalVoterInfo
 }
 
-export type proposalsArgs = {
-  contracts: contractsInfo
-  userAddress: string
-  trustlessMulticall: string,
-}
-
-export interface ProposalsVoterInfoState extends sliceState<proposalsVoterInfo> {}
-
 export const fetchProposalsVoterInfo = async (
   userAddress: string,
   governorAlpha: GovernorAlphaWithVotingRewards,

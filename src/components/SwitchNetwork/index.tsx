@@ -1,5 +1,5 @@
 import { FunctionComponent } from "react"
-import React, { useState } from "react"
+import { useState } from "react"
 
 import { Button } from "carbon-components-react"
 import { ChainID, chainIDToName } from '@trustlessfi/addresses'
@@ -12,7 +12,7 @@ import { makeRPCRequest, first, RpcMethod, numberToHex } from '../../utils'
 
 
 const SwitchNetwork: FunctionComponent<{}> = ({ children }) => {
-  const chainID = selector((state) => state.chainID.chainID)
+  const chainID = selector(state => state.chainID)
 
   const [ clicked, setClicked ] = useState(false)
 

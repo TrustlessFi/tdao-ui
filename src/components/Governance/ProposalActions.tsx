@@ -4,8 +4,9 @@ import { BigNumber, ethers } from "ethers"
 import { FunctionComponent } from "react"
 import { Proposal } from "../../slices/proposals"
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import { waitForContracts } from '../../slices/waitFor'
-import { contractsInfo, ProtocolContract } from '../../slices/contracts'
+import waitFor from '../../slices/waitFor'
+import { contractsInfo } from '../../slices/contracts'
+import { ProtocolContract } from '../../slices/contracts/ProtocolContract'
 
 const getProposalActionsRawString = (
   target: string,
@@ -62,7 +63,7 @@ const ProposalActions: FunctionComponent<{
 }> = ({ showRaw = false, proposal }) => {
   const dispatch = useAppDispatch()
 
-  const contracts = waitForContracts(selector, dispatch)
+  const { contracts } = waitFor(['contracts'], selector, dispatch)
 
   const p = proposal
   return (

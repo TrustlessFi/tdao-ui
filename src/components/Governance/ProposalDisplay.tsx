@@ -4,11 +4,7 @@ import { FunctionComponent, useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { Proposal, ProposalState } from '../../slices/proposals'
 import { TransactionType } from '../../slices/transactions'
-import {
-  waitForContracts,
-  waitForTcpProposals,
-  waitForTcpProposalsVoterInfo
-} from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import { ProposalVoterInfo } from '../../slices/proposalsVoterInfo'
 import { numDisplay } from '../../utils'
 import ProgressBar from '../library/ProgressBar'
@@ -37,11 +33,20 @@ const ProposalDisplay: FunctionComponent = () => {
   const params: { proposalID: string } = useParams()
 
   const proposalID = Number(params.proposalID)
-  const contracts = waitForContracts(selector, dispatch)
-  const tcpProposals = waitForTcpProposals(selector, dispatch)
-  const tcpProposalsVoterInfo = waitForTcpProposalsVoterInfo(selector, dispatch)
-  const chainID = selector(state => state.chainID.chainID)
-  const userAddress = selector(state => state.wallet.address)
+
+  const {
+    contracts,
+    tcpProposals,
+    tcpProposalsVoterInfo,
+    chainID,
+    userAddress,
+  } = waitFor([
+    'contracts',
+    'tcpProposals',
+    'tcpProposalsVoterInfo',
+    'chainID',
+    'userAddress',
+  ], selector, dispatch)
 
   const [ voteChoice, setVoteChoice ] = useState<Vote>(Vote['-'])
 

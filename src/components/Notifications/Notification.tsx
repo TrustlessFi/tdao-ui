@@ -6,7 +6,7 @@ import { ErrorFilled24, CheckmarkFilled24, Close24 } from '@carbon/icons-react';
 import { getOpacityTransition } from '../library'
 import ExplorerLink from '../library/ExplorerLink'
 import { assertUnreachable, timeMS } from '../../utils'
-import { notificationsInfo } from '../../slices/notifications'
+import { notificationInfo } from '../../slices/notifications'
 import { getTxErrorName, getTxShortName } from '../../slices/transactions'
 import { useEffect, useState, useRef } from "react";
 import { useAppDispatch } from '../../app/hooks';
@@ -48,7 +48,7 @@ const NotificationText = ({large, children}: {large?: boolean, children: ReactNo
   return <p style={{fontSize: large ? 18 : 14, fontFamily}}>{children}</p>
 }
 
-const Notification = ({ notif }: { notif: notificationsInfo, }) => {
+const Notification = ({ notif }: { notif: notificationInfo, }) => {
   const dispatch = useAppDispatch()
 
   const iconWidth = 56

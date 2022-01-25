@@ -1,144 +1,89 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
-import { sliceState, initialState } from "../"
 import { Governor, TDao } from "@trustlessfi/typechain"
-import { getLocalStorage } from "../../utils"
-import { getGenericReducerBuilder } from "../index"
 import { getMulticallContract } from "../../utils/getContract"
 import { executeMulticalls, rc, oneContractManyFunctionMC } from "@trustlessfi/multicall"
 import getContract from "../../utils/getContract"
+import { ProtocolContract, RootContract, TDaoContract, TDaoRootContract } from './ProtocolContract'
 
-// TODO add TCP Allocation
-export enum ProtocolContract {
-  Accounting = 'Accounting',
-  Auctions = 'Auctions',
-  EnforcedDecentralization = 'EnforcedDecentralization',
-  Hue = 'Hue',
-  HuePositionNFT = 'HuePositionNFT',
-  LendHue = 'LendHue',
-  Liquidations = 'Liquidations',
-  Market = 'Market',
-  Prices = 'Prices',
-  ProtocolLock = 'ProtocolLock',
-  Rates = 'Rates',
-  Rewards = 'Rewards',
-  Settlement = 'Settlement',
-  Tcp = 'Tcp',
-  TcpGovernorAlpha = 'TcpGovernorAlpha',
-  TcpTimelock = 'TcpTimelock',
-  TcpAllocation = 'TcpAllocation',
-}
-
-export enum RootContract {
-  Governor = 'Governor',
-  ProtocolDataAggregator = 'ProtocolDataAggregator',
-  GenesisAllocation = 'GenesisAllocation',
-  TrustlessMulticall = 'TrustlessMulticall',
-}
-
-export enum TDaoContract {
-  TDaoToken = 'TDaoToken',
-  TDaoPositionNFT = 'TDaoPositionNFT',
-  TDaoGovernorAlpha = 'TDaoGovernorAlpha',
-  TDaoTimelock = 'TDaoTimelock',
-  TDaoVotingRewardsSafe = 'TDaoVotingRewardsSafe',
-}
-
-export enum TDaoRootContract {
-  TDao = 'TDao',
-}
-
-export interface contractsArgs {
-  governor: string
-  tdao: string
-  trustlessMulticall: string
-}
-
-export const getContracts = createAsyncThunk(
-  "contracts/getContracts",
-  async (args: contractsArgs): Promise<contractsInfo> => {
-    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
-    const governor = getContract(args.governor, RootContract.Governor) as Governor
-    const tdao = getContract(args.tdao, TDaoRootContract.TDao) as TDao
-
-    const { tcpContracts, tdaoContracts } = await executeMulticalls(
-      trustlessMulticall,
-      {
-        tcpContracts: oneContractManyFunctionMC(
-          governor,
-          {
-            accounting: rc.String,
-            auctions: rc.String,
-            tcp: rc.String,
-            hue: rc.String,
-            huePositionNFT: rc.String,
-            enforcedDecentralization: rc.String,
-            lendHue: rc.String,
-            liquidations: rc.String,
-            market: rc.String,
-            prices: rc.String,
-            protocolLock: rc.String,
-            rates: rc.String,
-            rewards: rc.String,
-            settlement: rc.String,
-            timelock: rc.String,
-            governorAlpha: rc.String,
-            tcpAllocation: rc.String,
-          }
-        ),
-        tdaoContracts: oneContractManyFunctionMC(
-          tdao,
-          {
-            timelock: rc.String,
-            tDaoGovernorAlpha: rc.String,
-            tDaoToken: rc.String,
-            tDaoPositionNFT: rc.String,
-            votingRewardsSafe: rc.String,
-          }
-        ),
-      }
-    )
-
-    return {
-      [ProtocolContract.Accounting]: tcpContracts.accounting,
-      [ProtocolContract.Auctions]: tcpContracts.auctions,
-      [ProtocolContract.EnforcedDecentralization]: tcpContracts.enforcedDecentralization,
-      [ProtocolContract.Hue]: tcpContracts.hue,
-      [ProtocolContract.HuePositionNFT]: tcpContracts.huePositionNFT,
-      [ProtocolContract.LendHue]: tcpContracts.lendHue,
-      [ProtocolContract.Liquidations]: tcpContracts.liquidations,
-      [ProtocolContract.Market]: tcpContracts.market,
-      [ProtocolContract.Prices]: tcpContracts.prices,
-      [ProtocolContract.ProtocolLock]: tcpContracts.protocolLock,
-      [ProtocolContract.Rates]: tcpContracts.rates,
-      [ProtocolContract.Rewards]: tcpContracts.rewards,
-      [ProtocolContract.Settlement]: tcpContracts.settlement,
-      [ProtocolContract.Tcp]: tcpContracts.tcp,
-      [ProtocolContract.TcpGovernorAlpha]: tcpContracts.governorAlpha,
-      [ProtocolContract.TcpTimelock]: tcpContracts.timelock,
-      [ProtocolContract.TcpAllocation]: tcpContracts.tcpAllocation,
-
-      [TDaoContract.TDaoToken]: tdaoContracts.tDaoToken,
-      [TDaoContract.TDaoPositionNFT]: tdaoContracts.tDaoPositionNFT,
-      [TDaoContract.TDaoGovernorAlpha]: tdaoContracts.tDaoGovernorAlpha,
-      [TDaoContract.TDaoTimelock]: tdaoContracts.timelock,
-      [TDaoContract.TDaoVotingRewardsSafe]: tdaoContracts.votingRewardsSafe,
-    }
-  }
-)
+import { thunkArgs, RootState } from '../fetchNodes'
+import { createChainDataSlice, CacheDuration } from '../'
 
 export type contractsInfo = { [key in ProtocolContract | TDaoContract]: string }
 
-export interface ContractsState extends sliceState<contractsInfo> {}
+const contractsSlice = createChainDataSlice({
+  name: 'contracts',
+  dependencies: ['rootContracts'],
+  stateSelector: (state: RootState) => state.contracts,
+  cacheDuration: CacheDuration.LONG,
+  thunkFunction:
+    async (args: thunkArgs<'rootContracts' >) => {
+      const trustlessMulticall = getMulticallContract(args.rootContracts.trustlessMulticall)
+      const governor = getContract(args.rootContracts.governor, RootContract.Governor) as Governor
+      const tdao = getContract(args.rootContracts.tdao, TDaoRootContract.TDao) as TDao
 
-const name = 'contracts'
+      const { tcpContracts, tdaoContracts } = await executeMulticalls(
+        trustlessMulticall,
+        {
+          tcpContracts: oneContractManyFunctionMC(
+            governor,
+            {
+              accounting: rc.String,
+              auctions: rc.String,
+              tcp: rc.String,
+              hue: rc.String,
+              huePositionNFT: rc.String,
+              enforcedDecentralization: rc.String,
+              lendHue: rc.String,
+              liquidations: rc.String,
+              market: rc.String,
+              prices: rc.String,
+              protocolLock: rc.String,
+              rates: rc.String,
+              rewards: rc.String,
+              settlement: rc.String,
+              timelock: rc.String,
+              governorAlpha: rc.String,
+              tcpAllocation: rc.String,
+            }
+          ),
+          tdaoContracts: oneContractManyFunctionMC(
+            tdao,
+            {
+              timelock: rc.String,
+              tDaoGovernorAlpha: rc.String,
+              tDaoToken: rc.String,
+              tDaoPositionNFT: rc.String,
+              votingRewardsSafe: rc.String,
+            }
+          ),
+        }
+      )
 
-export const contractsSlice = createSlice({
-  name,
-  initialState: getLocalStorage(name, initialState) as ContractsState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getContracts)
-  },
+      return {
+        [ProtocolContract.Accounting]: tcpContracts.accounting,
+        [ProtocolContract.Auctions]: tcpContracts.auctions,
+        [ProtocolContract.EnforcedDecentralization]: tcpContracts.enforcedDecentralization,
+        [ProtocolContract.Hue]: tcpContracts.hue,
+        [ProtocolContract.HuePositionNFT]: tcpContracts.huePositionNFT,
+        [ProtocolContract.LendHue]: tcpContracts.lendHue,
+        [ProtocolContract.Liquidations]: tcpContracts.liquidations,
+        [ProtocolContract.Market]: tcpContracts.market,
+        [ProtocolContract.Prices]: tcpContracts.prices,
+        [ProtocolContract.ProtocolLock]: tcpContracts.protocolLock,
+        [ProtocolContract.Rates]: tcpContracts.rates,
+        [ProtocolContract.Rewards]: tcpContracts.rewards,
+        [ProtocolContract.Settlement]: tcpContracts.settlement,
+        [ProtocolContract.Tcp]: tcpContracts.tcp,
+        [ProtocolContract.TcpGovernorAlpha]: tcpContracts.governorAlpha,
+        [ProtocolContract.TcpTimelock]: tcpContracts.timelock,
+        [ProtocolContract.TcpAllocation]: tcpContracts.tcpAllocation,
+
+        [TDaoContract.TDaoToken]: tdaoContracts.tDaoToken,
+        [TDaoContract.TDaoPositionNFT]: tdaoContracts.tDaoPositionNFT,
+        [TDaoContract.TDaoGovernorAlpha]: tdaoContracts.tDaoGovernorAlpha,
+        [TDaoContract.TDaoTimelock]: tdaoContracts.timelock,
+        [TDaoContract.TDaoVotingRewardsSafe]: tdaoContracts.votingRewardsSafe,
+      }
+    },
 })
 
-export default contractsSlice.reducer
+export default contractsSlice

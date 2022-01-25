@@ -1,25 +1,24 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createLocalSlice, CacheDuration } from '../'
+import { RootState } from '../fetchNodes'
 
-export interface walletState {
-  address: string | null,
+export interface wallet {
   connecting: boolean,
-  waitingForMetamask: boolean,
+  waitingForMetamask: boolean
 }
 
-const initialState: walletState = { address: null, connecting: false, waitingForMetamask: false }
-
-export const walletSlice = createSlice({
+const walletSlice = createLocalSlice({
   name: 'wallet',
-  initialState,
+  initialState: { connecting: false, waitingForMetamask: false} as wallet,
+  stateSelector: (state: RootState) => state.wallet,
+  cacheDuration: CacheDuration.NONE,
   reducers: {
-    connecting: (state) => {
+    walletConnecting: (state) => {
       state.connecting = true
     },
-    connected: (state, action: PayloadAction<string | null>) => {
+    walletConnected: (state) => {
       state.connecting = false
-      state.address = action.payload
     },
-    connectionFailed: (state) => {
+    walletConnectionFailed: (state) => {
       state.connecting = false
     },
     waitingForMetamask: (state) => {
@@ -29,15 +28,14 @@ export const walletSlice = createSlice({
       state.waitingForMetamask = false
     },
   },
-  extraReducers: () => {},
 })
 
 export const {
-  connecting,
-  connected,
-  connectionFailed,
+  walletConnecting,
+  walletConnected,
+  walletConnectionFailed,
   waitingForMetamask,
-  metamaskComplete
-} = walletSlice.actions
+  metamaskComplete,
+} = walletSlice.slice.actions
 
-export default walletSlice.reducer
+export default walletSlice

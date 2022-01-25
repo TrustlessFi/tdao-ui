@@ -10,10 +10,10 @@ import {
 } from '@trustlessfi/multicall'
 import { unscale } from '../../utils'
 import { PromiseType } from '@trustlessfi/utils'
-
-
 import { TDao, TcpAllocation } from '@trustlessfi/typechain'
-import { ProtocolContract } from '../contracts'
+import { ProtocolContract } from '../contracts/ProtocolContract'
+import { thunkArgs, RootState } from '../fetchNodes'
+import { createChainDataSlice, CacheDuration } from '../'
 
 export interface tcpAllocationInfo {
   restrictedToUnlockDuration: boolean
@@ -25,64 +25,50 @@ export interface tcpAllocationInfo {
   cumulativeTokensAllocatedxLockYears: string
 }
 
-export interface tcpAllocationInfoArgs {
-  userAddress: string
-  trustlessMulticall: string
-  contracts: contractsInfo
-}
-
-export interface TcpAllocationInfoState extends sliceState<tcpAllocationInfo> {}
-
-export const getTcpAllocationInfo = createAsyncThunk(
-  'tcpAllocation/getTcpAllocationInfo',
-  async (args: tcpAllocationInfoArgs): Promise<tcpAllocationInfo> => {
-    const tcpAllocation = getContract(args.contracts.TcpAllocation, ProtocolContract.TcpAllocation) as TDao
-    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
-
-    const { tdaoInfo } = await executeMulticalls(trustlessMulticall, {
-      tdaoInfo: oneContractManyFunctionMC(
-        tcpAllocation,
-        {
-          restrictedToUnlockDuration: rc.Boolean,
-          restrictedUnlockTime: rc.BigNumberToNumber,
-          startTime: rc.BigNumberToNumber,
-          getUserAllocation:
-            (result: any) => result as PromiseType<ReturnType<TcpAllocation['getUserAllocation']>>,
-        },
-        {
-          restrictedToUnlockDuration: [args.userAddress],
-          getUserAllocation: [args.userAddress],
-        }
-      ),
-    })
-
-    return {
-      restrictedToUnlockDuration: tdaoInfo.restrictedToUnlockDuration,
-      restrictedUnlockTime: tdaoInfo.restrictedUnlockTime,
-      startTime: tdaoInfo.startTime,
-      totalAllocation: unscale(tdaoInfo.getUserAllocation.totalAllocation),
-      minimumAverageTokensAllocatedxLockYears: tdaoInfo.getUserAllocation.minimumAverageTokensAllocatedxLockYears.toString(),
-      tokensAllocated: unscale(tdaoInfo.getUserAllocation.tokensAllocated),
-      cumulativeTokensAllocatedxLockYears: tdaoInfo.getUserAllocation.cumulativeTokensAllocatedxLockYears.toString(),
-    }
-  }
-)
-
-const name = 'tcpAllocationInfo'
-
-export const tcpAllocationInfoSlice = createSlice({
-  name,
-  initialState: initialState as TcpAllocationInfoState,
+const tcpAllocationSlice = createChainDataSlice({
+  name: 'tcpAllocation',
+  dependencies: ['contracts', 'rootContracts', 'userAddress'],
+  stateSelector: (state: RootState) => state.tcpAllocation,
+  cacheDuration: CacheDuration.NONE,
   reducers: {
     clearTcpAllocationInfo: (state) => {
       state.value = null
     },
   },
-  extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getTcpAllocationInfo)
-  },
+  thunkFunction:
+    async (args: thunkArgs<'contracts' | 'rootContracts' | 'userAddress'>) => {
+      const tcpAllocation = getContract(args.contracts.TcpAllocation, ProtocolContract.TcpAllocation) as TDao
+      const trustlessMulticall = getMulticallContract(args.rootContracts.trustlessMulticall)
+
+      const { tdaoInfo } = await executeMulticalls(trustlessMulticall, {
+        tdaoInfo: oneContractManyFunctionMC(
+          tcpAllocation,
+          {
+            restrictedToUnlockDuration: rc.Boolean,
+            restrictedUnlockTime: rc.BigNumberToNumber,
+            startTime: rc.BigNumberToNumber,
+            getUserAllocation:
+              (result: any) => result as PromiseType<ReturnType<TcpAllocation['getUserAllocation']>>,
+          },
+          {
+            restrictedToUnlockDuration: [args.userAddress],
+            getUserAllocation: [args.userAddress],
+          }
+        ),
+      })
+
+      return {
+        restrictedToUnlockDuration: tdaoInfo.restrictedToUnlockDuration,
+        restrictedUnlockTime: tdaoInfo.restrictedUnlockTime,
+        startTime: tdaoInfo.startTime,
+        totalAllocation: unscale(tdaoInfo.getUserAllocation.totalAllocation),
+        minimumAverageTokensAllocatedxLockYears: tdaoInfo.getUserAllocation.minimumAverageTokensAllocatedxLockYears.toString(),
+        tokensAllocated: unscale(tdaoInfo.getUserAllocation.tokensAllocated),
+        cumulativeTokensAllocatedxLockYears: tdaoInfo.getUserAllocation.cumulativeTokensAllocatedxLockYears.toString(),
+      }
+    }
 })
 
-export const { clearTcpAllocationInfo } = tcpAllocationInfoSlice.actions
+export const { clearTcpAllocationInfo } = tcpAllocationSlice.slice.actions
 
-export default tcpAllocationInfoSlice.reducer
+export default tcpAllocationSlice

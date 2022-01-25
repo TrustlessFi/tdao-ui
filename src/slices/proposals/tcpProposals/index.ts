@@ -1,38 +1,31 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { initialState } from '../../'
-import { getGenericReducerBuilder } from '../../'
 import { addressToProtocolToken } from '../../../utils/'
 import getContract from '../../../utils/getContract'
-import { proposalsArgs, proposalsInfo, proposalsState, fetchProposals } from '../'
+import { fetchProposals } from '../'
 import { TcpGovernorAlpha } from '@trustlessfi/typechain'
-import { ProtocolContract } from '../../contracts/'
+import { ProtocolContract } from '../../contracts/ProtocolContract'
+import { thunkArgs, RootState } from '../../fetchNodes'
+import { CacheDuration, createChainDataSlice } from '../../'
 
-export const getTcpProposals = createAsyncThunk(
-  'tcpProposals/getProposals',
-  async (args: proposalsArgs): Promise<proposalsInfo> =>  {
+export interface currentChainInfo {
+  blockNumber: number
+  blockTimestamp: number
+  chainID: number
+}
 
-    return await fetchProposals(
-      getContract(args.contracts.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha) as TcpGovernorAlpha,
-      addressToProtocolToken(args.contracts.Tcp),
-      args.trustlessMulticall,
-      0.005,
-    )
-  }
-)
-
-export const tcpProposalsSlice = createSlice({
+const tcpProposalsSlice = createChainDataSlice({
   name: 'tcpProposals',
-  initialState: initialState as proposalsState,
-  reducers: {
-    clearTcpProposals: (state) => {
-      state.value = null
-    },
-  },
-  extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getTcpProposals)
-  },
+  dependencies: ['rootContracts', 'contracts'],
+  stateSelector: (state: RootState) => state.tcpProposals,
+  cacheDuration: CacheDuration.NONE,
+  thunkFunction:
+    async (args: thunkArgs<'rootContracts' | 'contracts'>) => {
+      return await fetchProposals(
+        getContract(args.contracts.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha) as TcpGovernorAlpha,
+        addressToProtocolToken(args.contracts.Tcp),
+        args.rootContracts.trustlessMulticall,
+        0.005,
+      )
+    }
 })
 
-export const { clearTcpProposals } = tcpProposalsSlice.actions
-
-export default tcpProposalsSlice.reducer
+export default tcpProposalsSlice

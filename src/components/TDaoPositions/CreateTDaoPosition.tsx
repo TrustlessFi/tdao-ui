@@ -1,10 +1,7 @@
 import { useState } from "react"
 import LargeText from '../library/LargeText'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import {
-  waitForBalances,
-  waitForContracts,
-} from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import { numDisplay }  from '../../utils/'
 import PositionMetadata from '../library/PositionMetadata'
 import SpacedList from '../library/SpacedList'
@@ -12,10 +9,6 @@ import ErrorMessage, { reason } from '../library/ErrorMessage'
 import { TransactionType } from '../../slices/transactions'
 import CreateTransactionButton from '../library/CreateTransactionButton'
 import TwoColumnDisplay from '../library/TwoColumnDisplay'
-import {
-  waitForTDaoInfo,
-  waitForCurrentChainInfo,
-} from '../../slices/waitFor'
 import {
   NumberInput,
   Dropdown,
@@ -33,21 +26,30 @@ import ParagraphDivider from '../library/ParagraphDivider'
 const CreateTDaoAllocationPosition = () => {
   const dispatch = useAppDispatch()
 
-  const balances = waitForBalances(selector, dispatch)
-  const contracts = waitForContracts(selector, dispatch)
-  const tdaoInfo = waitForTDaoInfo(selector, dispatch)
-  const currentChainInfo = waitForCurrentChainInfo(selector, dispatch)
-  const userAddress = selector(state => state.wallet.address)
-  const tdao = selector(state => state.chainID.tdao)
+  const {
+    balances,
+    contracts,
+    tdao,
+    currentChainInfo,
+    userAddress,
+    rootContracts,
+  } = waitFor([
+    'balances',
+    'contracts',
+    'tdao',
+    'currentChainInfo',
+    'userAddress',
+    'rootContracts',
+  ], selector, dispatch)
 
   const [ lockDurationMonths, setLockDurationMonths ] = useState(48)
   const [ count, setCount ] = useState(0)
 
   const dataNull =
     balances === null ||
-    tdaoInfo === null ||
-    userAddress === null ||
     tdao === null ||
+    userAddress === null ||
+    rootContracts === null ||
     currentChainInfo === null ||
     contracts === null
 
@@ -61,9 +63,9 @@ const CreateTDaoAllocationPosition = () => {
   }
 
   const extensionOptionsMap = Object.fromEntries(
-    (tdaoInfo === null
+    (tdao === null
       ? [48]
-      : range(tdaoInfo.minMonths, tdaoInfo.maxMonths, tdaoInfo.monthIncrements)
+      : range(tdao.minMonths, tdao.maxMonths, tdao.monthIncrements)
     ).map(op => [op, monthsToMonthsAndYears(op)]))
 
   const tcpToLock =
@@ -153,7 +155,7 @@ const CreateTDaoAllocationPosition = () => {
               type: TransactionType.ApproveToken,
               tokenAddress: balances === null || contracts === null ? '' : balances.tokens[contracts.Tcp].token.address,
               tokenSymbol: balances === null || contracts === null ? '' : balances.tokens[contracts.Tcp].token.symbol,
-              spenderAddress: notNullString(tdao),
+              spenderAddress: rootContracts === null ? '' : rootContracts.tdao,
               spenderName: 'TDao'
             }}
           />
@@ -163,11 +165,11 @@ const CreateTDaoAllocationPosition = () => {
             title="Create Position"
             txArgs={{
               type: TransactionType.CreateTDaoPosition,
-              tdao: notNullString(tdao),
+              tdao: rootContracts === null ? '' : rootContracts.tdao,
               tokenID:
-                tdaoInfo === null || contracts === null
+                tdao === null || contracts === null
                 ? 0
-                : first(Object.values(tdaoInfo.underlyingProtocolTokens).filter(u => u.address === contracts.Tcp)).tokenID,
+                : first(Object.values(tdao.underlyingProtocolTokens).filter(u => u.address === contracts.Tcp)).tokenID,
               count,
               decimals: 18,
               lockDurationMonths,

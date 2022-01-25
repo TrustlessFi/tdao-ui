@@ -12,14 +12,10 @@ import SimpleTable from '../library/SimpleTable'
 import ConnectWalletButton from '../library/ConnectWalletButton'
 import { unique, notNullString, numDisplay, bnf, unscale, sum, isEmpty } from "../../utils"
 import { TransactionType } from '../../slices/transactions'
-import { Allocation } from '../../slices/genesisAllocations'
+import { UserGenesisAllocation } from '../../slices/genesisAllocations'
 
 import { useAppSelector as selector, useAppDispatch } from "../../app/hooks"
-import {
-  waitForGenesisPositions,
-  waitForGenesisAllocations,
-  waitForClaimedAllocationRounds,
-} from "../../slices/waitFor"
+import waitFor from "../../slices/waitFor"
 
 const BooleanIcon: React.FunctionComponent<{
   isTrue: boolean,
@@ -39,28 +35,36 @@ const BooleanIcon: React.FunctionComponent<{
 const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
   const dispatch = useAppDispatch()
 
-  const allocations = waitForGenesisAllocations(selector, dispatch)
-  const claimedAllocationRounds = waitForClaimedAllocationRounds(selector, dispatch)
-  const userAddress = selector(state => state.wallet.address)
-  const genesisAllocation = selector(state => state.chainID.genesisAllocation)
+  const {
+    genesisAllocations,
+    claimedAllocationRounds,
+    userAddress,
+    rootContracts,
+  } = waitFor([
+    'genesisAllocations',
+    'claimedAllocationRounds',
+    'userAddress',
+    'rootContracts',
+  ], selector, dispatch)
+
   const allocationsLoading = selector(state => state.genesisAllocations.loading)
 
   const dataNull =
-    allocations === null ||
+    rootContracts === null ||
     claimedAllocationRounds === null ||
     userAddress === null ||
-    genesisAllocation === null
+    genesisAllocations === null
 
   // process genesis allocations
   let totalCountUnclaimed = bnf(0)
   let unclaimedRoundIDs: string[] = []
-  let unclaimedAllocations: Allocation[] = []
+  let unclaimedAllocations: UserGenesisAllocation[] = []
 
   const allocationRows =
-    claimedAllocationRounds === null || allocations === null
+    claimedAllocationRounds === null || genesisAllocations === null
     ? []
     : Object
-      .values(allocations).sort((a, b) => parseInt(a.roundID) - parseInt(b.roundID))
+      .values(genesisAllocations).sort((a, b) => parseInt(a.roundID) - parseInt(b.roundID))
       .map(({roundID, count, userToAllocation}) => {
         const claimed = claimedAllocationRounds[roundID]
         const allocation = userAddress === null ? undefined : userToAllocation[userAddress]
@@ -92,7 +96,7 @@ const ClaimGenesisAllocationsPanel: React.FunctionComponent = () => {
       title={`Claim ${numDisplay(unscale(totalCountUnclaimed))} aTcp`}
       txArgs={{
         type: TransactionType.ClaimGenesisAllocations,
-        genesisAllocation: notNullString(genesisAllocation),
+        genesisAllocation: rootContracts === null ? '' : rootContracts.genesisAllocation,
         allocations: unclaimedAllocations,
         roundIDs: unclaimedRoundIDs,
       }}
@@ -115,12 +119,17 @@ const Genesis: React.FunctionComponent = () => {
   const dispatch = useAppDispatch()
   const downloadRef = React.createRef<HTMLAnchorElement>()
 
-  // process debt and liquidity
-
-  const chainID = selector((state) => state.chainID.chainID)
-  const userAddress = selector(state => state.wallet.address)
-  const genesisAllocation = selector(state => state.chainID.genesisAllocation)
-  const genesisPositions = waitForGenesisPositions(selector, dispatch)
+  const {
+    chainID,
+    userAddress,
+    rootContracts,
+    genesisPositions,
+  } = waitFor([
+    'chainID',
+    'userAddress',
+    'rootContracts',
+    'genesisPositions',
+  ], selector, dispatch)
 
   const debt = genesisPositions === null ? [] : genesisPositions.debt
   const liquidity = genesisPositions === null ? [] : genesisPositions.liquidity
@@ -191,7 +200,7 @@ const Genesis: React.FunctionComponent = () => {
 
   //download url
   const downloadDisabled =
-    genesisAllocation === null ||
+    rootContracts === null ||
     (debt.length === 0 && liquidity.length === 0) ||
     !chainID
 
@@ -204,7 +213,7 @@ const Genesis: React.FunctionComponent = () => {
   if (!downloadDisabled) {
     const data = {
       chainID,
-      genesisAllocationAddress: genesisAllocation,
+      genesisAllocationAddress: rootContracts === null ? '' : rootContracts.genesisAllocation,
       liquidityPositions: liquidityOwners,
       debtPositions: debtOwners,
     }

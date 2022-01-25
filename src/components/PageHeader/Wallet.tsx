@@ -11,27 +11,27 @@ import ConnectWalletButton from '../library/ConnectWalletButton'
 import { getWalletConnectedFunction } from '../library/WalletConnection'
 import { TransactionStatus } from '../../slices/transactions'
 import { clearEphemeralStorage } from '../library/LocalStorageManager'
-import { getChainIDFromState } from '../../slices/chainID/index';
 import { getEtherscanAddressLink } from '../library/ExplorerLink';
+import waitFor from '../../slices/waitFor'
 
 const Wallet = () => {
   const dispatch = useAppDispatch()
   const history = useHistory()
-  const address = selector(state => state.wallet.address)
-  const chainID = getChainIDFromState(selector(state => state.chainID))
-  const txs = selector(state => state.transactions)
+
+  const {
+    userAddress,
+    chainID,
+    transactions,
+  } = waitFor([
+    'userAddress',
+    'chainID',
+    'transactions',
+  ], selector, dispatch)
 
   const walletConnected = getWalletConnectedFunction(dispatch)
 
   const chainChanged = (chainID: number | string) => {
-    const getCurrentChainID = () => {
-      const id = store.getState().chainID.chainID
-      const unknownID = store.getState().chainID.unknownChainID
-
-      if (id !== null) return id
-      if (unknownID !== null) return unknownID
-      return null
-    }
+    const getCurrentChainID = () => store.getState().chainID
 
     if (typeof chainID === 'string') chainID = parseInt(chainID)
 
@@ -66,12 +66,12 @@ const Wallet = () => {
   })
 
   const countPendingTxs =
-    getSortedUserTxs(chainID, address, txs)
+    getSortedUserTxs(chainID, userAddress, transactions)
       .filter(tx => tx.status === TransactionStatus.Pending)
       .length
 
   return (
-    address !== null && chainID !== null
+    userAddress !== null && chainID !== null
       ? (countPendingTxs > 0
           ? <Button
               size="small"
@@ -85,8 +85,8 @@ const Wallet = () => {
           : <Button
               kind="secondary"
               size="small"
-              onClick={() => window.open(getEtherscanAddressLink(address, chainID), '_blank')}>
-              {abbreviateAddress(address)}
+              onClick={() => window.open(getEtherscanAddressLink(userAddress, chainID), '_blank')}>
+              {abbreviateAddress(userAddress)}
             </Button>
         )
       : <ConnectWalletButton size="sm" />
