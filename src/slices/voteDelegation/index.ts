@@ -21,6 +21,11 @@ const voteDelegationSlice = createChainDataSlice({
   dependencies: ['rootContracts', 'contracts', 'userAddress', 'tdao'],
   stateSelector: (state: RootState) => state.voteDelegation,
   cacheDuration: CacheDuration.NONE,
+  reducers: {
+    clearVoteDelegation: (state) => {
+      state.value = null
+    },
+  },
   thunkFunction:
     async (args: thunkArgs<'rootContracts' | 'contracts' | 'userAddress' | 'tdao' >) => {
       const provider = getProvider()
@@ -45,5 +50,7 @@ const voteDelegationSlice = createChainDataSlice({
       return delegates
     }
 })
+
+export const { clearVoteDelegation } = voteDelegationSlice.slice.actions
 
 export default voteDelegationSlice

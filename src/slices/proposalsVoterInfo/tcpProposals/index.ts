@@ -11,6 +11,11 @@ const tcpProposalsVoterInfoSlice = createChainDataSlice({
   dependencies: ['rootContracts', 'contracts', 'userAddress'],
   stateSelector: (state: RootState) => state.tcpProposalsVoterInfo,
   cacheDuration: CacheDuration.NONE,
+  reducers: {
+    clearTcpProposalsVoterInfo: (state) => {
+      state.value = null
+    },
+  },
   thunkFunction:
     async (args: thunkArgs<'rootContracts' | 'contracts' | 'userAddress'>) => {
       return await fetchProposalsVoterInfo(
@@ -21,5 +26,7 @@ const tcpProposalsVoterInfoSlice = createChainDataSlice({
       )
     }
 })
+
+export const { clearTcpProposalsVoterInfo } = tcpProposalsVoterInfoSlice.slice.actions
 
 export default tcpProposalsVoterInfoSlice

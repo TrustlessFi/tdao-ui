@@ -1,9 +1,4 @@
 import { BigNumber } from "ethers"
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { sliceState, initialState } from '../'
-import { contractsInfo } from '../contracts'
-import { getGenericReducerBuilder } from '../'
-import { tdaoInfo } from '../tdaoInfo'
 import getContract, { getMulticallContract } from '../../utils/getContract'
 import {
   oneContractOneFunctionMC,
@@ -145,5 +140,7 @@ const tdaoPositionsSlice = createChainDataSlice({
       }))
     }
 })
+
+export const { clearTDaoPositions } = tdaoPositionsSlice.slice.actions
 
 export default tdaoPositionsSlice
