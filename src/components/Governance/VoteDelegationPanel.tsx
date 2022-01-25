@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode } from 'react';
+import { CSSProperties } from 'react';
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import waitFor from '../../slices/waitFor'
 import { numDisplay } from '../../utils/'

@@ -2,7 +2,7 @@ import { useParams } from 'react-router';
 import { RadioButtonValue } from 'carbon-components-react'
 import { FunctionComponent, useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import { Proposal, ProposalState } from '../../slices/proposals'
+import { ProposalState } from '../../slices/proposals'
 import { TransactionType } from '../../slices/transactions'
 import waitFor from '../../slices/waitFor'
 import { ProposalVoterInfo } from '../../slices/proposalsVoterInfo'

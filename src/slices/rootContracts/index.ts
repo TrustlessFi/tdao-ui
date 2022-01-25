@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { PayloadAction } from "@reduxjs/toolkit"
 import { ChainID, getAddress } from "@trustlessfi/addresses"
 import { createLocalSlice, CacheDuration } from '../'
 import { RootState } from '../fetchNodes'

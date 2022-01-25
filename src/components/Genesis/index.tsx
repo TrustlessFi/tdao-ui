@@ -10,7 +10,7 @@ import AppTile from '../library/AppTile'
 import Text from '../library/Text'
 import SimpleTable from '../library/SimpleTable'
 import ConnectWalletButton from '../library/ConnectWalletButton'
-import { unique, notNullString, numDisplay, bnf, unscale, sum, isEmpty } from "../../utils"
+import { unique, numDisplay, bnf, unscale, sum, isEmpty } from "../../utils"
 import { TransactionType } from '../../slices/transactions'
 import { UserGenesisAllocation } from '../../slices/genesisAllocations'
 

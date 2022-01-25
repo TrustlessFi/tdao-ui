@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react'
 import { ProposalState } from '../../slices/proposals'
 import { assertUnreachable } from '../../utils'
 import { AppTag } from '../library/AppTag'
-import { Tag, TagTypeName } from 'carbon-components-react';
+import { TagTypeName } from 'carbon-components-react';
 
 export const ProposalDescription: FunctionComponent<{
   ipfsHash: string,

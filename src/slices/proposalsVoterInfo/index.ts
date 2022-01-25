@@ -1,5 +1,3 @@
-import { sliceState } from '../'
-import { contractsInfo } from '../contracts'
 import { GovernorAlphaWithVotingRewards, ProtocolToken } from '@trustlessfi/typechain'
 import { unscale, PromiseType } from "../../utils"
 import { getMulticallContract} from '../../utils/getContract'

@@ -85,7 +85,7 @@ const AddTokenToWalletButton = ({
         chainID === null ||
         userAddress === null
       }>
-      <img src={getTokenIcon()} width={32}/>
+      <img src={getTokenIcon()} width={32} alt={`token ${walletToken === null ? '-' : walletToken}`}/>
       </Button>
   )
 }
