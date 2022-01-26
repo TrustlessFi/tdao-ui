@@ -1,9 +1,6 @@
 import { useState } from "react"
 import { useParams } from 'react-router';
-import {
-  waitForTDaoPositions,
-  waitForTDaoInfo,
-} from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import {
   Dropdown,
   OnChangeData,
@@ -31,28 +28,34 @@ const TDaoPositionIncreaseLockTime = () => {
 
   const positionID = Number(params.positionID)
 
-  const positions = waitForTDaoPositions(selector, dispatch)
-  const tdaoInfo = waitForTDaoInfo(selector, dispatch)
-  const tdao =  selector((state) => state.chainID.tdao)
+  const {
+    tdaoPositions,
+    tdao,
+    rootContracts,
+  } = waitFor([
+    'tdaoPositions',
+    'tdao',
+    'rootContracts',
+  ], selector, dispatch)
 
   const dataNull =
-    positions === null ||
-    tdaoInfo === null ||
+    tdaoPositions === null ||
+    rootContracts === null ||
     tdao === null
 
   const [ newDurationMonths, setNewDurationMonths ] = useState(48)
 
-  const position = positions === null ? null : positions[positionID]
+  const position = tdaoPositions === null ? null : tdaoPositions[positionID]
 
   let monthSelector = null
 
   const extensionOptions: number[] = []
 
-  if (position !== null && tdaoInfo !== null) {
+  if (position !== null && tdao !== null) {
     for (
-      let months = position.durationMonths + tdaoInfo.monthIncrements;
-      months <= tdaoInfo.maxMonths;
-      months += tdaoInfo.monthIncrements) {
+      let months = position.durationMonths + tdao.monthIncrements;
+      months <= tdao.maxMonths;
+      months += tdao.monthIncrements) {
       extensionOptions.push(months)
     }
     if (extensionOptions.length !== 0) {
@@ -97,7 +100,7 @@ const TDaoPositionIncreaseLockTime = () => {
           type: TransactionType.UpdateTDaoPositionLockDuration,
           durationMonths: newDurationMonths,
           positionID,
-          tdao: tdao === null ? '' : tdao,
+          tdao: rootContracts === null ? '' : rootContracts.tdao,
         }}
       />
     </SpacedList>

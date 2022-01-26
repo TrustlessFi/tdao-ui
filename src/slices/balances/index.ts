@@ -1,10 +1,6 @@
-import { sliceState } from '../'
 import { Contract, BigNumber } from 'ethers'
-import { initialState, getGenericReducerBuilder } from '../'
-import { tdaoInfo } from '../tdaoInfo'
 import { unscale, uint255Max, zeroAddress, unique } from '../../utils'
 import erc20Artifact from '@trustlessfi/artifacts/dist/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json'
-import { TDaoRootContract, contractsInfo } from '../contracts'
 import { getMulticallContract} from '../../utils/getContract'
 import {
   executeMulticalls,
@@ -12,66 +8,56 @@ import {
   oneContractManyFunctionMC,
   manyContractOneFunctionMC,
 } from '@trustlessfi/multicall'
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import getProvider from '../../utils/getProvider'
 import { ERC20 } from '@trustlessfi/typechain'
+import { thunkArgs, RootState } from '../fetchNodes'
+import { createChainDataSlice } from '../'
+import { TDaoRootContract } from '../contracts/ProtocolContract'
 
-export interface tokenInfo {
-  address: string,
-  name: string,
-  symbol: string,
-  decimals: number,
-}
-
-type balances = {
-}
-
-export interface approval {
-  allowance: string
-  approving: boolean
-  approved: boolean
-}
-
-interface approvals {
-  [TDaoRootContract.TDao]: approval
-}
-
-type tokenBalances = {
-  [key in string]:  {
-    token: tokenInfo
-    userBalance: number
-    approval: approvals
-    balances: balances
+export interface balances {
+  userEthBalance: number
+  tokens: {
+    [tokenAddress: string]:  {
+      token: {
+        address: string,
+        name: string,
+        symbol: string,
+        decimals: number,
+      }
+      userBalance: number
+      approval: {
+        [key in TDaoRootContract.TDao]: {
+          allowance: string
+          approving: boolean
+          approved: boolean
+        }
+      }
+      balances: {
+        // [ProtocolContract.Accounting]: number
+      }
+    }
   }
 }
 
-export interface balancesInfo {
-  userEthBalance: number
-  tokens: tokenBalances
-}
 
-export interface balancesState extends sliceState<balancesInfo> {}
-
-export interface balancesArgs {
-  userAddress: string,
-  trustlessMulticall: string,
-  tdao: string,
-  contracts: contractsInfo
-  tdaoInfo: tdaoInfo
-}
-
-export const getBalances = createAsyncThunk(
-  'balances/getBalances',
-  async (
-    args: balancesArgs,
-  ): Promise<balancesInfo> => {
+const balancesSlice = createChainDataSlice({
+  name: 'balances',
+  dependencies: ['userAddress', 'rootContracts', 'contracts', 'tdao'],
+  stateSelector: (state: RootState) => state.balances,
+  reducers: {
+    clearBalances: (state) => {
+      state.value = null
+    },
+  },
+  thunkFunction:
+    async (args: thunkArgs<'userAddress' | 'rootContracts' | 'contracts' | 'tdao'>) => {
     const provider = getProvider()
-    const multicall = getMulticallContract(args.trustlessMulticall)
+    const multicall = getMulticallContract(args.rootContracts.trustlessMulticall)
     const tokenContract = new Contract(zeroAddress, erc20Artifact.abi, provider) as ERC20
     const userAddress = args.userAddress
 
     const tokenAddresses = unique(
-      Object.values(args.tdaoInfo.underlyingProtocolTokens)
+      Object.values(args.tdao.underlyingProtocolTokens)
         .map(token => token.address)
           .concat([args.contracts.TDaoToken]))
 
@@ -95,7 +81,7 @@ export const getBalances = createAsyncThunk(
         ),
         tdaoApprovals: manyContractOneFunctionMC(
           tokenContract,
-          Object.fromEntries(tokenAddresses.map(address => [address, [userAddress, args.tdao]])),
+          Object.fromEntries(tokenAddresses.map(address => [address, [userAddress, args.rootContracts.tdao]])),
           'allowance',
           rc.BigNumber,
         ),
@@ -115,7 +101,7 @@ export const getBalances = createAsyncThunk(
     }
 
     const tokenMetadataMap: {[key in string]: poolTokensMetadata} =
-      Object.fromEntries(Object.values(args.tdaoInfo.underlyingProtocolTokens).map(token =>
+      Object.fromEntries(Object.values(args.tdao.underlyingProtocolTokens).map(token =>
         [
           token.address,
           {
@@ -159,24 +145,9 @@ export const getBalances = createAsyncThunk(
         }]
       }))
     }
-  }
-)
-
-const name = 'balances'
-
-export const balancesSlice = createSlice({
-  name,
-  initialState: initialState as balancesState,
-  reducers: {
-    clearBalances: (state) => {
-      state.value = null
-    },
-  },
-  extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getBalances)
-  },
+    }
 })
 
-export const { clearBalances } = balancesSlice.actions
+export const { clearBalances } = balancesSlice.slice.actions
 
-export default balancesSlice.reducer
+export default balancesSlice

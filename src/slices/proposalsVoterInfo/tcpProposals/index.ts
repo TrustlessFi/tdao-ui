@@ -1,38 +1,32 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { initialState } from '../../'
-import { getGenericReducerBuilder } from '../../'
 import { addressToProtocolToken } from '../../../utils/'
 import getContract from '../../../utils/getContract'
-import { proposalsArgs, proposalsVoterInfo, ProposalsVoterInfoState, fetchProposalsVoterInfo } from '../'
+import { fetchProposalsVoterInfo } from '../'
 import { TcpGovernorAlpha } from '@trustlessfi/typechain'
-import { ProtocolContract } from '../../contracts/'
+import { ProtocolContract } from '../../contracts/ProtocolContract'
+import { thunkArgs, RootState } from '../../fetchNodes'
+import { CacheDuration, createChainDataSlice } from '../../'
 
-export const getTcpProposalsVoterInfo = createAsyncThunk(
-  'tcpProposals/getTcpProposalsVoterInfo',
-  async (args: proposalsArgs): Promise<proposalsVoterInfo> =>  {
-
-    return await fetchProposalsVoterInfo(
-      args.userAddress,
-      getContract(args.contracts.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha ) as TcpGovernorAlpha,
-      addressToProtocolToken(args.contracts.Tcp),
-      args.trustlessMulticall,
-    )
-  }
-)
-
-export const tcpProposalsVoterInfoSlice = createSlice({
+const tcpProposalsVoterInfoSlice = createChainDataSlice({
   name: 'tcpProposalsVoterInfo',
-  initialState: initialState as ProposalsVoterInfoState,
+  dependencies: ['rootContracts', 'contracts', 'userAddress'],
+  stateSelector: (state: RootState) => state.tcpProposalsVoterInfo,
+  cacheDuration: CacheDuration.NONE,
   reducers: {
     clearTcpProposalsVoterInfo: (state) => {
       state.value = null
     },
   },
-  extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getTcpProposalsVoterInfo)
-  },
+  thunkFunction:
+    async (args: thunkArgs<'rootContracts' | 'contracts' | 'userAddress'>) => {
+      return await fetchProposalsVoterInfo(
+        args.userAddress,
+        getContract(args.contracts.TcpGovernorAlpha, ProtocolContract.TcpGovernorAlpha ) as TcpGovernorAlpha,
+        addressToProtocolToken(args.contracts.Tcp),
+        args.rootContracts.trustlessMulticall,
+      )
+    }
 })
 
-export const { clearTcpProposalsVoterInfo } = tcpProposalsVoterInfoSlice.actions
+export const { clearTcpProposalsVoterInfo } = tcpProposalsVoterInfoSlice.slice.actions
 
-export default tcpProposalsVoterInfoSlice.reducer
+export default tcpProposalsVoterInfoSlice

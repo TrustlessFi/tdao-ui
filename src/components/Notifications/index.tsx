@@ -1,22 +1,30 @@
-import { useAppSelector as selector } from '../../app/hooks'
+import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
+import waitFor from '../../slices/waitFor'
 
 import Notification from './Notification'
-import { getChainIDFromState } from '../../slices/chainID'
 
 const Notifications = () => {
-  const allNotifications = Object.values(selector(state => state.notifications))
-  const userAddress = selector(state => state.wallet.address)
-  const chainID = getChainIDFromState(selector(state => state.chainID))
+  const dispatch = useAppDispatch()
+
+  const {
+    notifications,
+    userAddress,
+    chainID,
+  } = waitFor([
+    'notifications',
+    'userAddress',
+    'chainID',
+  ], selector, dispatch)
 
   if (
-    allNotifications.length === 0 ||
+    Object.values(notifications).length === 0 ||
     userAddress === null ||
     chainID === null
   ) return null
 
   return (
     <div style={{ position: 'absolute', right: 16, top: 16 }}>
-      {Object.values(allNotifications)
+      {Object.values(notifications)
         .filter(notif => notif.userAddress === userAddress)
         .filter(notif => notif.chainID === chainID)
         .sort((a, b) => a.startTimeMS - b.startTimeMS)

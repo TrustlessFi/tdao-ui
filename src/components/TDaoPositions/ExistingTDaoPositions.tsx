@@ -1,32 +1,33 @@
 import { useHistory } from 'react-router-dom'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import {
-  waitForTDaoPositions,
-  waitForTcpAllocationInfo,
-  waitForBalances,
-  waitForContracts,
-} from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import TDaoPositionDisplay from '../library/TDaoPositionDisplay'
 import CreateTransactionButton from '../library/CreateTransactionButton'
 import RelativeLoading from '../library/RelativeLoading'
 import SpacedList from '../library/SpacedList'
-import AddTokenToWalletButton from '../library/AddTokenToWalletButton'
 import { TransactionType } from '../../slices/transactions'
-import { WalletToken } from '../../slices/tokensAddedToWallet'
 import { Button } from 'carbon-components-react'
 import { numDisplay, sum } from '../../utils'
-
 
 const ExistingTDaoPositions = () => {
   const dispatch = useAppDispatch()
   const history = useHistory()
 
-  const balances = waitForBalances(selector, dispatch)
-  const contracts = waitForContracts(selector, dispatch)
-  const positions = waitForTDaoPositions(selector, dispatch)
-  const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
-  const tdao = selector(state => state.chainID.tdao)
-  const userAddress = selector(state => state.wallet.address)
+  const {
+    balances,
+    contracts,
+    tdaoPositions,
+    tcpAllocation,
+    rootContracts,
+    userAddress,
+  } = waitFor([
+    'balances',
+    'contracts',
+    'tdaoPositions',
+    'tcpAllocation',
+    'rootContracts',
+    'userAddress',
+  ], selector, dispatch)
 
   const tcpBalance =
     balances === null || contracts === null
@@ -35,14 +36,14 @@ const ExistingTDaoPositions = () => {
 
   const positionsIDsWithRewards: string[] = []
   const totalRewards =
-    positions === null || Object.values(positions).length === 0
+    tdaoPositions === null || Object.values(tdaoPositions).length === 0
     ? 0
-    : Object.values(positions).map(p => p.approximateRewards).reduce(sum)
+    : Object.values(tdaoPositions).map(p => p.approximateRewards).reduce(sum)
 
   const positionDisplay =
-    positions === null
+    tdaoPositions === null
     ? null
-    : Object.values(positions).map((position, index) => {
+    : Object.values(tdaoPositions).map((position, index) => {
         if (position.approximateRewards > 0) positionsIDsWithRewards.push(position.nftTokenID)
         return (
           <TDaoPositionDisplay
@@ -54,9 +55,9 @@ const ExistingTDaoPositions = () => {
       })
 
   const tokensToBeAllocated =
-    tcpAllocationInfo === null
+    tcpAllocation === null
     ? null
-    : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated
+    : tcpAllocation.totalAllocation - tcpAllocation.tokensAllocated
   const tokensToBeAllocatedDisplay = tokensToBeAllocated === null ? '-' : numDisplay(tokensToBeAllocated)
 
   const tcpWalletBalanceDisplay =
@@ -83,11 +84,11 @@ const ExistingTDaoPositions = () => {
       </div>
       {positionDisplay}
       <CreateTransactionButton
-        disabled={tcpAllocationInfo === null || tdao == null || positionsIDsWithRewards.length === 0}
+        disabled={tcpAllocation === null || rootContracts == null || positionsIDsWithRewards.length === 0}
         title={`Claim ${numDisplay(totalRewards)} TDao`}
         txArgs={{
           type: TransactionType.ClaimAllTDaoPositionRewards,
-          tdao: tdao === null ? '' : tdao,
+          tdao: rootContracts === null ? '' : rootContracts.tdao,
           positionIDs: positionsIDsWithRewards,
         }}
       />

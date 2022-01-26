@@ -1,11 +1,10 @@
 import { SyntheticEvent } from 'react'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { Button, ButtonKind, ButtonSize } from 'carbon-components-react'
-import { waitForContracts } from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import { contractsInfo } from '../../slices/contracts'
-import { getChainIDFromState } from '../../slices/chainID'
 import { CSSProperties } from 'react';
-import { WalletToken } from '../../slices/tokensAddedToWallet'
+import { WalletToken } from '../../slices/transactions'
 import { addTokenToWallet, convertSVGStringtoURI } from '../../utils'
 import TrustlessLogos from '../../utils/trustless_logos'
 
@@ -26,10 +25,15 @@ const AddTokenToWalletButton = ({
 }) => {
   const dispatch = useAppDispatch()
 
-  const contracts = waitForContracts(selector, dispatch)
-  const chainID = getChainIDFromState(selector(state => state.chainID))
-  // const tokensAddedToWallet = selector(state => state.tokensAddedToWallet)
-  const userAddress = selector(state => state.wallet.address)
+  const {
+    contracts,
+    chainID,
+    userAddress,
+  } = waitFor([
+    'contracts',
+    'chainID',
+    'userAddress',
+  ], selector, dispatch)
 
   if (walletToken === null) return <></>
 
@@ -81,7 +85,7 @@ const AddTokenToWalletButton = ({
         chainID === null ||
         userAddress === null
       }>
-      <img src={getTokenIcon()} width={32}/>
+      <img src={getTokenIcon()} width={32} alt={`token ${walletToken === null ? '-' : walletToken}`}/>
       </Button>
   )
 }

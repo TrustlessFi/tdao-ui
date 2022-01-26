@@ -1,11 +1,7 @@
 import { useState } from "react"
 import LargeText from '../library/LargeText'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
-import {
-  waitForBalances,
-  waitForTcpAllocationInfo,
-  waitForContracts,
-} from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import SpacedList from '../library/SpacedList'
 import { TransactionType } from '../../slices/transactions'
 import CreateTransactionButton from '../library/CreateTransactionButton'
@@ -22,23 +18,28 @@ import ParagraphDivider from '../library/ParagraphDivider'
 const ClaimUnderlyingTokens = () => {
   const dispatch = useAppDispatch()
 
-  const contracts = waitForContracts(selector, dispatch)
-  const balances = waitForBalances(selector, dispatch)
-  const userAddress = selector(state => state.wallet.address)
-  const tcpAllocationInfo = waitForTcpAllocationInfo(selector, dispatch)
-  const tdao = selector(state => state.chainID.tdao)
+  const {
+    contracts,
+    userAddress,
+    tcpAllocation,
+  } = waitFor([
+    'contracts',
+    'userAddress',
+    'tcpAllocation',
+  ], selector, dispatch)
 
   const [ count, setCount ] = useState(0)
 
-  const tcpToAllocate =
-    tcpAllocationInfo === null  || tcpAllocationInfo.totalAllocation < tcpAllocationInfo.tokensAllocated
-      ? 0
-      : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated
-
   const dataNull =
-    balances === null ||
+    contracts === null ||
     userAddress === null ||
-    tdao === null
+    tcpAllocation === null
+
+  const tcpToAllocate =
+    tcpAllocation === null  || tcpAllocation.totalAllocation < tcpAllocation.tokensAllocated
+      ? 0
+      : tcpAllocation.totalAllocation - tcpAllocation.tokensAllocated
+
 
   const isFailing = dataNull
 
@@ -58,7 +59,7 @@ const ClaimUnderlyingTokens = () => {
         id="Tcp Allocation Count Input"
         invalidText=""
         min={0}
-        max={tcpAllocationInfo === null ? 0 : tcpAllocationInfo.totalAllocation - tcpAllocationInfo.tokensAllocated}
+        max={tcpAllocation === null ? 0 : tcpAllocation.totalAllocation - tcpAllocation.tokensAllocated}
         step={1e-3}
         size="lg"
         onChange={onNumChange((value: number) => setCount(value))}

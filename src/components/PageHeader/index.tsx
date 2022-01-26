@@ -26,14 +26,14 @@ import { Tab, tabDisplay } from "../../App"
 import Wallet from "./Wallet"
 import NetworkIndicator from "../library/NetworkIndicator"
 import DebugUtils from "../library/DebugUtils"
-import { first, enforce } from '../../utils'
+import { first } from '../../utils'
 
 const logo = require("../../img/tdao_logo_white.svg")
 const logo_name = require("../../img/tdao_logo_name_white.svg")
 
 const PageHeader = () => {
   const [areNavLinksHidden, setAreNavLinksHidden] = useState(false)
-  const chainID = selector(state => state.chainID.chainID)
+  const chainID = selector(state => state.chainID)
 
   const isSmallViewport = useWindowWidth(() => {
     const navLinksElement = document.getElementById("headerNavigationLinks")

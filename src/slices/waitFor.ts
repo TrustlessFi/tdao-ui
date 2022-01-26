@@ -1,209 +1,60 @@
-import { AppDispatch, store, RootState } from "../app/store"
-import { AsyncThunk } from "@reduxjs/toolkit"
-import { AppSelector } from "../app/hooks"
-import { getGovernorInfo, governorInfo } from "./governor"
-import { getBalances, balancesInfo } from "./balances"
-import { ChainID } from "@trustlessfi/addresses"
-import { getTDaoPositions, tdaoPositionsInfo } from './tdaoPositions'
-import { proposalsInfo } from './proposals/'
-import { getTcpProposals } from './proposals/tcpProposals'
-import { getTcpProposalsVoterInfo } from './proposalsVoterInfo/tcpProposals'
-import { getContracts, contractsInfo } from "./contracts"
-import { getTDaoInfo, tdaoInfo } from './tdaoInfo'
-import { getTcpAllocationInfo, tcpAllocationInfo } from './tcpAllocation'
-import { getCurrentChainInfo } from './currentChainInfo'
-import { sliceState } from "./"
+import { AsyncThunk } from '@reduxjs/toolkit'
+import { AppDispatch, store } from '../app/store'
+import { RootState, sliceStateValues, FetchNode } from './fetchNodes'
+import { AppSelector } from '../app/hooks'
 
-import { getGenesisPositions, genesisPositionsInfo } from "./genesisPositions"
-import { getGenesisAllocations, genesisAllocationsInfo } from "./genesisAllocations"
-import { getClaimedAllocationRounds } from "./claimedAllocationRounds"
-import { getVoteDelegation } from './voteDelegation'
-
-
-interface fetchNodeTypes {
-  chainID: ChainID
-  governor: string
-  tdao: string
-  genesisAllocation: string
-  trustlessMulticall: string
-  protocolDataAggregator: string
-  userAddress: string
-
-  balances: balancesInfo
-  tdaoInfo: tdaoInfo
-  governorInfo: governorInfo
-  contracts: contractsInfo
-  tdaoPositions: tdaoPositionsInfo
-  tcpAllocationInfo: tcpAllocationInfo,
-  genesisAllocations: genesisAllocationsInfo,
-  genesisPositions: genesisPositionsInfo,
-  tcpProposals: proposalsInfo,
-}
+import { sliceState, NonNullValues, SliceDataType } from './'
+import allSlices from './allSlices'
 
 const getWaitFunction = <
-    Dependency extends keyof fetchNodeTypes,
-    Args extends Pick<fetchNodeTypes, Dependency>,
-    Value
-  >(
-    stateSelector: (state: RootState) => sliceState<Value>,
-    thunk: AsyncThunk<Value, Args, {}>,
-    dependencies: Dependency[]
-  ) => (selector: AppSelector, dispatch: AppDispatch) => {
+    Value,
+    Dependencies extends Partial<{[node in FetchNode]: sliceStateValues[node]}>,
+  >(waitForData: {
+    stateSelector: (state: RootState) => sliceState<Value>
+    dependencies: Dependencies
+    thunk: AsyncThunk<Value, NonNullValues<Dependencies>, {}>
+  }) => (selector: AppSelector, dispatch: AppDispatch) => {
+
+    const { stateSelector, thunk, dependencies} = waitForData
     const state = selector(stateSelector)
 
-    const inputArgs = Object.fromEntries(dependencies.map(fetchNode =>
-      [fetchNode, (() => fetchNodesImpl)()[fetchNode](selector, dispatch)]
-    ))
+    const inputArgs = Object.fromEntries(Object.keys(dependencies).map(fetchNode =>
+      [fetchNode, (() => waitForImpl)()[fetchNode as FetchNode](selector, dispatch)]
+    )) as Dependencies
 
     if (Object.values(inputArgs).includes(null)) return null
 
-    if (state !== undefined && state.error !== null) {
+    if (state.error !== null) {
       console.error(state.error.message)
       throw state.error
     }
 
-    if (
-      state === undefined ||
-      (state.value === null && !stateSelector(store.getState()).loading)
-    ) {
-      dispatch(thunk(inputArgs as NonNullable<Args>))
+    if (state.value === null && !stateSelector(store.getState()).loading) {
+      dispatch(thunk(inputArgs as NonNullValues<Dependencies>))
     }
 
-    return state === undefined ? null : state.value
+    return state.value
   }
 
-type FetchNode = keyof fetchNodeTypes
+const getLocalDataSelector = <Value>(slice: {stateSelector: (state: RootState) => Value}) =>
+  (selector: AppSelector, _dispatch: AppDispatch) => selector(slice.stateSelector)
 
+  // TODO avoid using any
+const waitForImpl = Object.fromEntries(
+  Object.entries(allSlices)
+    .map(([sliceName, slice]) => [
+      sliceName,
+      slice.sliceType === SliceDataType.ChainData
+      ? getWaitFunction(slice as any)
+      : getLocalDataSelector(slice as any)
+    ])) as {[key in FetchNode]: (selector: AppSelector, _dispatch: AppDispatch) => sliceStateValues[key]}
 
-export const waitForCurrentChainInfo = getWaitFunction(
-  (state: RootState) => state.currentChainInfo,
-  getCurrentChainInfo,
-  ['trustlessMulticall'],
-)
-
-export const waitForBalances = getWaitFunction(
-  (state: RootState) => state.balances,
-  getBalances,
-  ['tdao', 'trustlessMulticall', 'userAddress', 'tdao', 'contracts', 'tdaoInfo'],
-)
-
-export const waitForTDaoInfo = getWaitFunction(
-  (state: RootState) => state.tdaoInfo,
-  getTDaoInfo,
-  ['tdao', 'trustlessMulticall'],
-)
-
-export const waitForGovernorInfo = getWaitFunction(
-  (state: RootState) => state.governor,
-  getGovernorInfo,
-  ['governor']
-)
-
-export const waitForContracts = getWaitFunction(
-  (state: RootState) => state.contracts,
-  getContracts,
-  ['governor', 'tdao', 'trustlessMulticall'],
-)
-
-export const waitForTDaoPositions = getWaitFunction(
-  (state: RootState) => state.tdaoPositions,
-  getTDaoPositions,
-  ['userAddress', 'tdao', 'contracts', 'trustlessMulticall', 'tdaoInfo']
-)
-
-export const waitForTcpAllocationInfo = getWaitFunction(
-  (state: RootState) => state.tcpAllocationInfo,
-  getTcpAllocationInfo,
-  ['userAddress', 'trustlessMulticall', 'contracts']
-)
-
-export const waitForTcpProposals = getWaitFunction(
-  (state: RootState) => state.tcpProposals,
-  getTcpProposals,
-  ['contracts', 'trustlessMulticall']
-)
-
-export const waitForTcpProposalsVoterInfo = getWaitFunction(
-  (state: RootState) => state.tcpProposalsVoterInfo,
-  getTcpProposalsVoterInfo,
-  ['contracts', 'trustlessMulticall', 'userAddress']
-)
-
-export const waitForGenesisPositions = getWaitFunction(
-  (state: RootState) => state.genesisPositions,
-  getGenesisPositions,
-  ['contracts', 'trustlessMulticall']
-)
-
-export const waitForGenesisAllocations = getWaitFunction(
-  (state: RootState) => state.genesisAllocations,
-  getGenesisAllocations,
-  ['chainID']
-)
-
-export const waitForClaimedAllocationRounds = getWaitFunction(
-  (state: RootState) => state.claimedAllocationRounds,
-  getClaimedAllocationRounds,
-  ['genesisAllocations', 'trustlessMulticall', 'userAddress', 'genesisAllocation']
-)
-
-export const waitForVoteDelegation = getWaitFunction(
-  (state: RootState) => state.voteDelegation,
-  getVoteDelegation,
-  ['userAddress', 'trustlessMulticall', 'contracts', 'tdaoInfo'],
-)
-
-const getStateSelector = <T>(selectorFunc: (state: RootState) => T) =>
-  (selector: AppSelector, _dispatch: AppDispatch) => selector(selectorFunc)
-
-const fetchNodesImpl: {[key in FetchNode]: (selector: AppSelector, _dispatch: AppDispatch) => fetchNodeTypes[key] | null} = {
-  chainID: getStateSelector(state => state.chainID.chainID),
-  governor: getStateSelector(state => state.chainID.governor),
-  tdao: getStateSelector(state => state.chainID.tdao),
-  genesisAllocation: getStateSelector(state => state.chainID.genesisAllocation),
-  trustlessMulticall: getStateSelector(state => state.chainID.trustlessMulticall),
-  protocolDataAggregator: getStateSelector(state => state.chainID.protocolDataAggregator),
-  userAddress: getStateSelector(state => state.wallet.address),
-
-  balances: waitForBalances,
-  tdaoInfo: waitForTDaoInfo,
-  governorInfo: waitForGovernorInfo,
-  contracts: waitForContracts,
-  tdaoPositions: waitForTDaoPositions,
-  tcpAllocationInfo: waitForTcpAllocationInfo,
-  genesisPositions: waitForGenesisPositions,
-  genesisAllocations: waitForGenesisAllocations,
-  tcpProposals: waitForTcpProposals,
-}
-
-
-/*
-export const getWaitFor = <
-  fetchNode extends keyof typeof fetchNodesImpl,
-  Return extends ReturnType<(typeof fetchNodesImpl)[fetchNode]>
->(
+const waitFor = <RequestedNodes extends FetchNode>(
+  requestedNodes: RequestedNodes[],
   selector: AppSelector,
   dispatch: AppDispatch
-) => (
-  fetchNode: fetchNode
-): Return => fetchNodesImpl[fetchNode](selector, dispatch)
-*/
+) => Object.fromEntries(
+  requestedNodes.map(fetchNode => [fetchNode, waitForImpl[fetchNode](selector, dispatch)])
+) as { [requestedNode in RequestedNodes]: sliceStateValues[requestedNode]}
 
-
-/*
-export const getWaitFor = (
-  selector: AppSelector,
-  dispatch: AppDispatch
-) =>
-  <
-    selectedFetchNodes extends keyof fetchNodeTypes,
-    requestedNodes extends Pick<{[key in keyof fetchNodeTypes]: boolean}, selectedFetchNodes>,
-  >(fetchNodes: requestedNodes) =>
-    Object.fromEntries(
-      Object.keys(fetchNodes).map(fetchNode =>
-        [fetchNode, fetchNodesImpl[fetchNode as FetchNode](selector, dispatch)]
-      )
-    ) as {
-      [key in keyof requestedNodes]: null | fetchNodeTypes[key]
-    }
-*/
+export default waitFor

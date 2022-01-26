@@ -1,66 +1,45 @@
-import { sliceState } from '../'
-import { initialState, getGenericReducerBuilder } from '../'
-import { genesisAllocationsInfo } from '../genesisAllocations'
-import { RootContract } from '../contracts'
 import getContract, { getMulticallContract} from '../../utils/getContract'
-import {
-  executeMulticalls,
-  rc,
-  oneContractOneFunctionMC,
-} from '@trustlessfi/multicall'
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { executeMulticalls, rc, oneContractOneFunctionMC } from '@trustlessfi/multicall'
 import { GenesisAllocation } from '@trustlessfi/typechain'
+import { RootContract } from '../contracts/ProtocolContract'
+import { thunkArgs, RootState } from '../fetchNodes'
+import { createChainDataSlice, CacheDuration } from '../'
 
-export interface claimedAllocationRoundsInfo {
+export interface claimedAllocationRounds {
   [roundID: string]: boolean
 }
 
-export interface claimedAllocationRoundsState extends sliceState<claimedAllocationRoundsInfo> {}
-
-export interface claimedAllocationRoundsArgs {
-  genesisAllocations: genesisAllocationsInfo
-  trustlessMulticall: string
-  userAddress: string
-  genesisAllocation: string
-}
-
-export const getClaimedAllocationRounds = createAsyncThunk(
-  'claimedAllocationRounds/getClaimedAllocationRounds',
-  async (
-    args: claimedAllocationRoundsArgs,
-  ): Promise<claimedAllocationRoundsInfo> => {
-    const multicall = getMulticallContract(args.trustlessMulticall)
-    const genesisAllocation = getContract(args.genesisAllocation, RootContract.GenesisAllocation) as GenesisAllocation
-    const roundIDs = Object.keys(args.genesisAllocations)
-
-    const result = await executeMulticalls(
-      multicall,
-      {
-        claimedRounds: oneContractOneFunctionMC(
-          genesisAllocation,
-          'claimedSig',
-          rc.Boolean,
-          Object.fromEntries(roundIDs.map(roundID => [roundID, [args.userAddress, roundID]])),
-        ),
-      }
-    )
-    return result.claimedRounds
-  }
-)
-
-export const claimedAllocationRoundsSlice = createSlice({
+const claimedAllocationRoundsSlice = createChainDataSlice({
   name: 'claimedAllocationRounds',
-  initialState: initialState as claimedAllocationRoundsState,
+  dependencies: ['rootContracts', 'genesisAllocations', 'userAddress'],
+  stateSelector: (state: RootState) => state.claimedAllocationRounds,
+  cacheDuration: CacheDuration.LONG,
   reducers: {
     clearClaimedAllocationRounds: (state) => {
       state.value = null
     },
   },
-  extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getClaimedAllocationRounds)
-  },
+  thunkFunction:
+    async (args: thunkArgs<'rootContracts' | 'genesisAllocations' | 'userAddress'>) => {
+      const multicall = getMulticallContract(args.rootContracts.trustlessMulticall)
+      const genesisAllocation = getContract(args.rootContracts.genesisAllocation, RootContract.GenesisAllocation) as GenesisAllocation
+      const roundIDs = Object.keys(args.genesisAllocations)
+
+      const result = await executeMulticalls(
+        multicall,
+        {
+          claimedRounds: oneContractOneFunctionMC(
+            genesisAllocation,
+            'claimedSig',
+            rc.Boolean,
+            Object.fromEntries(roundIDs.map(roundID => [roundID, [args.userAddress, roundID]])),
+          ),
+        }
+      )
+      return result.claimedRounds
+    },
 })
 
-export const { clearClaimedAllocationRounds } = claimedAllocationRoundsSlice.actions
+export const { clearClaimedAllocationRounds } = claimedAllocationRoundsSlice.slice.actions
 
-export default claimedAllocationRoundsSlice.reducer
+export default claimedAllocationRoundsSlice

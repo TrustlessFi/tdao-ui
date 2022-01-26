@@ -4,9 +4,9 @@ import { TransactionArgs, TransactionStatus } from '../../slices/transactions'
 import ConnectWalletButton from './ConnectWalletButton'
 import { Button, ButtonKind, ButtonSize, InlineLoading } from 'carbon-components-react'
 import { submitTransaction } from '../../slices/transactions'
-import { getChainIDFromState } from '../../slices/chainID'
 import { CSSProperties } from 'react'
 import { notEmpty } from '../../utils'
+import waitFor from '../../slices/waitFor'
 
 const CreateTransactionButton = ({
   txArgs,
@@ -30,10 +30,17 @@ const CreateTransactionButton = ({
   const dispatch = useAppDispatch()
   const history = useHistory()
 
-  const waitingForMetamask = selector(state => state.wallet.waitingForMetamask)
-  const userAddress = selector(state => state.wallet.address)
-  const chainID = getChainIDFromState(selector(state => state.chainID))
-  const transactions = selector(state => state.transactions)
+  const {
+    wallet,
+    userAddress,
+    chainID,
+    transactions,
+  } = waitFor([
+    'wallet',
+    'userAddress',
+    'chainID',
+    'transactions',
+  ], selector, dispatch)
 
   if (chainID === null || (userAddress === null && !showDisabledInsteadOfConnectWallet)) {
     return <ConnectWalletButton size={size} style={style} kind={kind} />
@@ -48,7 +55,7 @@ const CreateTransactionButton = ({
     )
 
   const buttonTitle =
-    waitingForMetamask
+    wallet.waitingForMetamask
     ? 'Waiting for Metamask Confirmation...'
     : title
 
@@ -69,7 +76,7 @@ const CreateTransactionButton = ({
       size={size}
       style={style}
       onClick={() => dispatch(submitTransaction(txData))}
-      disabled={pendingTxExists || waitingForMetamask || disabled === true || userAddress === null}>
+      disabled={pendingTxExists || wallet.waitingForMetamask || disabled === true || userAddress === null}>
       {
         pendingTxExists
         ? <>

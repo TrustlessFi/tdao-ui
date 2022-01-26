@@ -1,5 +1,3 @@
-import { sliceState } from '../'
-import { contractsInfo } from '../contracts'
 import { GovernorAlphaWithVotingRewards, ProtocolToken } from '@trustlessfi/typechain'
 import { unscale, PromiseType } from "../../utils"
 import { getMulticallContract} from '../../utils/getContract'
@@ -24,14 +22,6 @@ export interface ProposalVoterInfo {
 export interface proposalsVoterInfo {
   [proposalID: number]: ProposalVoterInfo
 }
-
-export type proposalsArgs = {
-  contracts: contractsInfo
-  userAddress: string
-  trustlessMulticall: string,
-}
-
-export interface ProposalsVoterInfoState extends sliceState<proposalsVoterInfo> {}
 
 export const fetchProposalsVoterInfo = async (
   userAddress: string,

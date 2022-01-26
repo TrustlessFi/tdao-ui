@@ -1,8 +1,5 @@
 import { useParams } from 'react-router';
-import {
-  waitForTDaoPositions,
-  waitForTDaoInfo,
-} from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import { TransactionType } from '../../slices/transactions'
 import CreateTransactionButton from '../library/CreateTransactionButton'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
@@ -24,16 +21,22 @@ const DeleteTDaoPosition = () => {
 
   const positionID = params.positionID
 
-  const positions = waitForTDaoPositions(selector, dispatch)
-  const tdaoInfo = waitForTDaoInfo(selector, dispatch)
-  const tdao =  selector((state) => state.chainID.tdao)
+  const {
+    tdaoPositions,
+    tdao,
+    rootContracts,
+  } = waitFor([
+    'tdaoPositions',
+    'tdao',
+    'rootContracts',
+  ], selector, dispatch)
 
   const dataNull =
-    positions === null ||
-    tdaoInfo === null ||
-    tdao === null
+    tdaoPositions === null ||
+    tdao === null ||
+    rootContracts === null
 
-  const position = positions === null ? null : positions[positionID]
+  const position = tdaoPositions === null ? null : tdaoPositions[positionID]
 
   const columnOne =
     <>
@@ -56,7 +59,7 @@ const DeleteTDaoPosition = () => {
         txArgs={{
           type: TransactionType.DeleteTDaoPosition,
           positionID,
-          tdao: tdao === null ? '' : tdao,
+          tdao: rootContracts === null ? '' : rootContracts.tdao,
         }}
       />
     </>

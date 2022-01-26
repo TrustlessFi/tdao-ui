@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { connectWallet } from '../library/WalletConnection'
 import { CSSProperties } from 'react'
 import { Button, ButtonKind, ButtonSize } from 'carbon-components-react'
+import waitFor from '../../slices/waitFor'
 
 const ConnectWalletButton = ({
   size,
@@ -15,11 +16,17 @@ const ConnectWalletButton = ({
 }) => {
   const dispatch = useAppDispatch()
 
-  const wallet = selector(state => state.wallet)
+  const {
+    wallet,
+    userAddress,
+  } = waitFor([
+    'wallet',
+    'userAddress',
+  ], selector, dispatch)
 
   const text = wallet.connecting
     ? 'Waiting for User in Metamask...'
-    : (wallet.address !== null
+    : (userAddress !== null
         ? 'Connected'
         : 'Connect a Wallet')
 

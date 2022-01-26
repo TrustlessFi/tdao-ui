@@ -14,7 +14,7 @@ const NetworkIndicator = ({
 }: {
   style?: CSSProperties
 }) => {
-  const chainID = selector(state => state.chainID.chainID)
+  const chainID = selector(state => state.chainID)
 
   // smallest number chain ID
   const correctChainID =

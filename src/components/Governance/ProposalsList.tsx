@@ -1,10 +1,6 @@
 import { useHistory } from 'react-router-dom'
 import { useAppSelector as selector } from '../../app/hooks'
-import {
-  waitForTcpProposals,
-  waitForContracts,
-  waitForTcpProposalsVoterInfo,
-} from '../../slices/waitFor'
+import waitFor from '../../slices/waitFor'
 import { Proposal, isVotingCompleteState, ProposalState } from '../../slices/proposals'
 import AppTile from '../library/AppTile'
 import Center from '../library/Center'
@@ -23,9 +19,15 @@ const ProposalsList: FunctionComponent = () => {
   const dispatch = useDispatch()
   const history = useHistory()
 
-  const tcpProposals = waitForTcpProposals(selector, dispatch)
-  const tcpProposalsVoterInfo = waitForTcpProposalsVoterInfo(selector, dispatch)
-  const contracts = waitForContracts(selector, dispatch)
+  const {
+    contracts,
+    tcpProposals,
+    tcpProposalsVoterInfo,
+  } = waitFor([
+    'contracts',
+    'tcpProposals',
+    'tcpProposalsVoterInfo',
+  ], selector, dispatch)
 
   if (tcpProposals === null) {
     return (

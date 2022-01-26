@@ -1,4 +1,4 @@
-import React, { ReactNode, FunctionComponent, useEffect } from 'react'
+import { ReactNode, FunctionComponent, useEffect } from 'react'
 import { useAppDispatch, useAppSelector as selector } from './app/hooks'
 import getProvider from './utils/getProvider'
 import PageHeader from './components/PageHeader'
@@ -13,6 +13,7 @@ import Notifications from './components/Notifications'
 import RecentTransactions from './components/RecentTransactions'
 import SwitchNetwork from './components/SwitchNetwork'
 import { TransactionStatus, waitForTransaction} from './slices/transactions'
+import { RootState } from './slices/fetchNodes'
 
 import './App.css'
 import './styles/night_app.scss'
@@ -43,7 +44,7 @@ const tabToRender: { [key in Tab]: ReactNode } = {
 
 const App: FunctionComponent<{}> = () => {
   const dispatch = useAppDispatch()
-  const transactions = selector(state => state.transactions)
+  const transactions = selector((state: RootState) => state.transactions)
   const provider = getProvider()
 
   // TODO have this filter on only transactions that are relevant to this view: chainID and address

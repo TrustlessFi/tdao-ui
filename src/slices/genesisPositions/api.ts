@@ -1,11 +1,6 @@
 import { PromiseType } from "@trustlessfi/utils"
 import * as ethers from "ethers"
-import {
-  Accounting,
-  GenesisAllocation,
-  HuePositionNFT,
-  TrustlessMulticallViewOnly,
-} from "@trustlessfi/typechain"
+import { Accounting, HuePositionNFT, TrustlessMulticallViewOnly, } from "@trustlessfi/typechain"
 import {
   executeMulticalls,
   oneContractOneFunctionMC,

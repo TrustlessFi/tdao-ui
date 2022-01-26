@@ -1,90 +1,27 @@
-import { useAppSelector as selector, } from '../../app/hooks'
-import { Slice } from '@reduxjs/toolkit';
-import { RootState } from '../../app/store'
-import { minutes, timeS } from '../../utils/'
-import { transactionsSlice, transactionState } from '../../slices/transactions'
-import { contractsSlice, ContractsState } from '../../slices/contracts'
-import { tdaoInfoSlice, tdaoInfo } from '../../slices/tdaoInfo'
-import { notificationsSlice, notificationsState } from '../../slices/notifications'
-import { tokensAddedToWalletSlice, tokensAddedToWalletState } from '../../slices/tokensAddedToWallet'
+import { useAppSelector as selector } from '../../app/hooks'
+import { RootState } from '../../slices/fetchNodes'
+import allSlices from '../../slices/allSlices'
+import { sliceState, CacheDuration, SliceDataType } from '../../slices'
+import { timeS } from '../../utils'
 
-type slicesState =
-  transactionState |
-  ContractsState |
-  notificationsState |
-  tdaoInfo |
-  tokensAddedToWalletState |
-  null
-
-type persistedSlice = {
-  slice: Slice,
-  ttl: number,
-  getState: (state: RootState) => slicesState
-}
-
-type persistedSlices = {
-  [key in keyof RootState]?: persistedSlice
-}
-
-const NO_EXPIRATION = -1
-const SHORT_EXPIRATION = minutes(1)
-const LONG_EXPIRATION = minutes(60)
-
-export const slicesToPersist: persistedSlices = {
-
-  // Simple slices
-  [contractsSlice.name]: {
-    slice: contractsSlice,
-    ttl: LONG_EXPIRATION,
-    getState: (state: RootState) => state.contracts
-  },
-  [notificationsSlice.name]: {
-    slice: notificationsSlice,
-    ttl: SHORT_EXPIRATION,
-    getState: (state: RootState) => state.notifications
-  },
-  [transactionsSlice.name]: {
-    slice: transactionsSlice,
-    ttl: NO_EXPIRATION,
-    getState: (state: RootState) => state.transactions
-  },
-  [tokensAddedToWalletSlice.name]: {
-    slice: tokensAddedToWalletSlice,
-    ttl: NO_EXPIRATION,
-    getState: (state: RootState) => state.tokensAddedToWallet
-  },
-
-  // Slices with loadable state
-  [tdaoInfoSlice.name]: {
-    slice: tdaoInfoSlice,
-    ttl: SHORT_EXPIRATION,
-    getState: (state: RootState) => state.tdaoInfo.value
-  },
-}
+const year2120 = 4733539200
 
 const LocalStorageManager = () => {
-  for (const [key, slice] of Object.entries(slicesToPersist)) {
-    const sliceState = selector(slice.getState)
-    if (sliceState === null) continue
-    const year2120 = 4733539200
-    const ttl = slice.ttl
-    const expiration = ttl === NO_EXPIRATION ? year2120 : timeS() + ttl
-    const stateWithTimestamp = { expiration, sliceState }
-    localStorage.setItem(key, JSON.stringify(stateWithTimestamp))
-  }
+  Object.values(allSlices).map(slice => {
+    const rawState = selector(slice.stateSelector as (state: RootState) => sliceState<unknown>)
+    const sliceState = slice.sliceType === SliceDataType.ChainData ? rawState.value : rawState
+    if (sliceState !== null && slice.cacheDuration !== CacheDuration.NONE) {
+      const expiration = slice.cacheDuration === CacheDuration.INFINITE ? year2120 : timeS() + slice.cacheDuration
+      const stateWithTimestamp = { expiration, sliceState }
+      localStorage.setItem(slice.name, JSON.stringify(stateWithTimestamp))
+    }
+  })
   return <></>
 }
 
-const permanentLocalStorage: string[] = [
-  transactionsSlice.name,
-  notificationsSlice.name,
-  tokensAddedToWalletSlice.name,
-]
-
-export const clearEphemeralStorage = () => {
-  Object.keys(slicesToPersist)
-    .filter(sliceName => !permanentLocalStorage.includes(sliceName))
-    .map(sliceName => localStorage.removeItem(sliceName))
-}
+export const clearEphemeralStorage = () =>
+  Object.values(allSlices)
+    .filter(slice => slice.cacheDuration !== CacheDuration.INFINITE)
+    .map(slice => localStorage.removeItem(slice.name))
 
 export default LocalStorageManager

@@ -1,8 +1,4 @@
 import { Contract } from 'ethers'
-import { contractsInfo } from '../contracts'
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { sliceState, initialState } from '../'
-import { getGenericReducerBuilder } from '../'
 import { getMulticallContract } from '../../utils/getContract'
 import {
   executeMulticalls,
@@ -12,64 +8,49 @@ import {
 import { zeroAddress } from '../../utils'
 import getProvider from '../../utils/getProvider';
 import protocolTokenArtifact from '@trustlessfi/artifacts/dist/contracts/core/tokens/ProtocolToken.sol/ProtocolToken.json'
-import { tdaoInfo } from '../tdaoInfo'
-
+import { thunkArgs, RootState } from '../fetchNodes'
+import { createChainDataSlice, CacheDuration } from '../'
 import { ProtocolToken } from '@trustlessfi/typechain'
 
 export type voteDelegationInfo = {
-  [key in string]: string
+  [tokenAddress in string]: string
 }
 
-export interface voteDelegationState extends sliceState<voteDelegationInfo> {}
-
-interface voteDelegationArgs {
-  userAddress: string,
-  trustlessMulticall: string
-  contracts: contractsInfo
-  tdaoInfo: tdaoInfo
-}
-
-export const getVoteDelegation = createAsyncThunk(
-  'voteDelegation/getVoteDelegation',
-  async (args: voteDelegationArgs): Promise<voteDelegationInfo> => {
-    const provider = getProvider()
-    const trustlessMulticall = getMulticallContract(args.trustlessMulticall)
-
-    const protocolTokenContract = new Contract(zeroAddress, protocolTokenArtifact.abi, provider) as ProtocolToken
-
-    const tokenAddresses =
-      Object.values(args.tdaoInfo.underlyingProtocolTokens)
-        .map(token => token.address)
-          .concat([args.contracts.TDaoToken])
-
-    const { delegates } = await executeMulticalls(trustlessMulticall, {
-      delegates: manyContractOneFunctionMC(
-        protocolTokenContract,
-        Object.fromEntries(tokenAddresses.map(address => [address, [args.userAddress]])),
-        'delegates',
-        rc.String,
-      )
-    })
-
-    return delegates
-  }
-)
-
-const name = 'voteDelegation'
-
-export const voteDelegationSlice = createSlice({
-  name,
-  initialState: initialState as voteDelegationState,
+const voteDelegationSlice = createChainDataSlice({
+  name: 'voteDelegation',
+  dependencies: ['rootContracts', 'contracts', 'userAddress', 'tdao'],
+  stateSelector: (state: RootState) => state.voteDelegation,
+  cacheDuration: CacheDuration.NONE,
   reducers: {
     clearVoteDelegation: (state) => {
       state.value = null
     },
   },
-  extraReducers: (builder) => {
-    builder = getGenericReducerBuilder(builder, getVoteDelegation)
-  },
+  thunkFunction:
+    async (args: thunkArgs<'rootContracts' | 'contracts' | 'userAddress' | 'tdao' >) => {
+      const provider = getProvider()
+      const trustlessMulticall = getMulticallContract(args.rootContracts.trustlessMulticall)
+
+      const protocolTokenContract = new Contract(zeroAddress, protocolTokenArtifact.abi, provider) as ProtocolToken
+
+      const tokenAddresses =
+        Object.values(args.tdao.underlyingProtocolTokens)
+          .map(token => token.address)
+            .concat([args.contracts.TDaoToken])
+
+      const { delegates } = await executeMulticalls(trustlessMulticall, {
+        delegates: manyContractOneFunctionMC(
+          protocolTokenContract,
+          Object.fromEntries(tokenAddresses.map(address => [address, [args.userAddress]])),
+          'delegates',
+          rc.String,
+        )
+      })
+
+      return delegates
+    }
 })
 
-export const { clearVoteDelegation } = voteDelegationSlice.actions
+export const { clearVoteDelegation } = voteDelegationSlice.slice.actions
 
-export default voteDelegationSlice.reducer
+export default voteDelegationSlice
