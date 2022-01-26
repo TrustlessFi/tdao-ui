@@ -5,6 +5,7 @@ import { Button, InlineLoading } from 'carbon-components-react'
 import { useAppDispatch, useAppSelector as selector } from '../../app/hooks'
 import { store } from '../../app/store'
 import { chainIDFound } from '../../slices/chainID'
+import { chainIDFoundForRootContracts } from '../../slices/rootContracts'
 import { abbreviateAddress } from '../../utils'
 import { getSortedUserTxs } from '../library'
 import ConnectWalletButton from '../library/ConnectWalletButton'
@@ -40,6 +41,7 @@ const Wallet = () => {
     if (currentChainID !== chainID) {
       if (currentChainID === null) {
         dispatch(chainIDFound(chainID))
+        dispatch(chainIDFoundForRootContracts(chainID))
       } else {
         clearEphemeralStorage()
         window.location.reload()
