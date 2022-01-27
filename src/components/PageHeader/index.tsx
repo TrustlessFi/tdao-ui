@@ -1,4 +1,4 @@
-import { MouseEvent } from "react"
+import { MouseEvent, useCallback } from "react"
 import { ChainID } from "@trustlessfi/addresses"
 import { withRouter, useHistory, useLocation } from "react-router"
 import { useAppSelector as selector } from '../../app/hooks'
@@ -111,7 +111,7 @@ const PageHeader = () => {
 
   return (
     <HeaderContainer
-      render={() => (
+      render={useCallback(() => (
         <Header aria-label="Site Header">
           <div
             style={
@@ -159,7 +159,7 @@ const PageHeader = () => {
             </span>
           </div>
         </Header>
-      )}
+      ), [areNavLinksHidden, chainID, isSmallViewport])}
     />
   )
 }
