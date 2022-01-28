@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { useParams } from 'react-router';
+import { useEffect, useState } from "react"
+import { useParams, useHistory } from 'react-router';
 import waitFor from '../../slices/waitFor'
 import {
   Dropdown,
@@ -22,7 +22,8 @@ interface MatchParams {
   positionID: string
 }
 
-const TDaoPositionIncreaseLockTime = () => {
+const IncreaseLockTimeTDaoPosition = () => {
+  const history = useHistory()
   const params: MatchParams = useParams()
   const dispatch = useAppDispatch()
 
@@ -46,6 +47,19 @@ const TDaoPositionIncreaseLockTime = () => {
   const [ newDurationMonths, setNewDurationMonths ] = useState(48)
 
   const position = tdaoPositions === null ? null : tdaoPositions[positionID]
+
+  useEffect(() => {
+    if(position === undefined) return
+    history.push('/positions')
+  }, [history, position])
+
+  if(position === undefined) {
+    return (
+      <div>
+        <LargeText>Position {params.positionID} is not owned by the current user.</LargeText>
+      </div>
+    )
+  }
 
   let monthSelector = null
 
@@ -139,4 +153,4 @@ const TDaoPositionIncreaseLockTime = () => {
 
 }
 
-export default TDaoPositionIncreaseLockTime
+export default IncreaseLockTimeTDaoPosition

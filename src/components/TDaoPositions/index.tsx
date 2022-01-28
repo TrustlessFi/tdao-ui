@@ -1,5 +1,5 @@
 import { Switch, Route } from 'react-router-dom'
-import TDaoPositionIncreaseLockTime from './TDaoPositionIncreaseLockTime'
+import IncreaseLockTimeTDaoPosition from './IncreaseLockTimeTDaoPosition'
 import ExistingTDaoPositions from './ExistingTDaoPositions'
 import DeleteTDaoPosition from './DeleteTDaoPosition'
 import CreateTDaoAllocationPosition from './CreateTDaoAllocationPosition'
@@ -39,8 +39,8 @@ const Positions = () => (
     <Route path='/positions/delete/:positionID'>
       <DeleteTDaoPosition />
     </Route>
-    <Route path='/positions/:positionID'>
-      <TDaoPositionIncreaseLockTime />
+    <Route path='/positions/increase/:positionID'>
+      <IncreaseLockTimeTDaoPosition />
     </Route>
   </Switch>
 )

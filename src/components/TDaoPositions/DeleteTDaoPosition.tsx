@@ -1,4 +1,5 @@
-import { useParams } from 'react-router';
+import { useEffect } from "react"
+import { useParams, useHistory } from 'react-router'
 import waitFor from '../../slices/waitFor'
 import { TransactionType } from '../../slices/transactions'
 import CreateTransactionButton from '../library/CreateTransactionButton'
@@ -16,6 +17,7 @@ interface MatchParams {
 }
 
 const DeleteTDaoPosition = () => {
+  const history = useHistory()
   const params: MatchParams = useParams()
   const dispatch = useAppDispatch()
 
@@ -38,6 +40,19 @@ const DeleteTDaoPosition = () => {
 
   const position = tdaoPositions === null ? null : tdaoPositions[positionID]
 
+  useEffect(() => {
+    if(position === undefined) return
+    history.push('/positions')
+  }, [history, position])
+
+  if(position === undefined) {
+    return (
+      <div>
+        <LargeText>Position {params.positionID} is not owned by the current user.</LargeText>
+      </div>
+    )
+  }
+
   const columnOne =
     <>
       <div>
@@ -45,7 +60,7 @@ const DeleteTDaoPosition = () => {
           options={PositionUpdateOptions}
           initialValue={PositionUpdateOptions.Delete}
           navigation={{
-            [PositionUpdateOptions.IncreaseLockTime]: `/positions/${positionID}`
+            [PositionUpdateOptions.IncreaseLockTime]: `/positions/increase/${positionID}`
           }}
           width={300}
           label="TDao position update options"
