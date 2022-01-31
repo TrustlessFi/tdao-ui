@@ -13,7 +13,6 @@ export const getWalletConnectedFunction = (dispatch: AppDispatch) => (accounts: 
 
   dispatch(walletConnected())
   dispatch(userAddressFound(account))
-
   clearUserData(dispatch)
 }
 

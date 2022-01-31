@@ -1,19 +1,14 @@
-import { FunctionComponent } from "react"
-import { useState } from "react"
-
-import { Button } from "carbon-components-react"
+import { FunctionComponent, useState } from 'react'
 import { ChainID, chainIDToName } from '@trustlessfi/addresses'
-
+import { Button } from 'carbon-components-react'
 import Center from '../library/Center'
 import SpacedList from '../library/SpacedList'
 
-import { useAppSelector as selector } from "../../app/hooks"
+import { useAppSelector as selector } from '../../app/hooks'
 import { makeRPCRequest, first, RpcMethod, numberToHex } from '../../utils'
-
 
 const SwitchNetwork: FunctionComponent<{}> = ({ children }) => {
   const chainID = selector(state => state.chainID)
-
   const [ clicked, setClicked ] = useState(false)
 
   const correctChainID =
@@ -36,8 +31,5 @@ const SwitchNetwork: FunctionComponent<{}> = ({ children }) => {
         </Center>
       </SpacedList>
     : <>{children}</>
-
-
-
 }
 export default SwitchNetwork
