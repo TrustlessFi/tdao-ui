@@ -12,6 +12,8 @@ import { wallet } from './wallet'
 import { genesisAllocationsInfo } from './genesisAllocations'
 import { claimedAllocationRounds } from './claimedAllocationRounds'
 import { genesisPositionsInfo } from './genesisPositions'
+import { selectedTDaoPosition } from './selectedTDaoPosition'
+import { specificTDaoPosition } from './specificTDaoPositions'
 import { tcpAllocationInfo } from './tcpAllocation'
 import { proposalsInfo } from './proposals/'
 import { proposalsVoterInfo } from './proposalsVoterInfo'
@@ -27,6 +29,7 @@ export interface RootState {
   rootContracts: canBeNull<rootContracts>
   userAddress: canBeNull<string>
   notifications: notificationState
+  selectedTDaoPosition: selectedTDaoPosition
   transactions: transactionState
   wallet: wallet
 
@@ -38,6 +41,7 @@ export interface RootState {
   claimedAllocationRounds: sliceState<claimedAllocationRounds>,
   genesisPositions: sliceState<genesisPositionsInfo>,
   tcpAllocation: sliceState<tcpAllocationInfo>,
+  specificTDaoPositions: {[positionID: string]: sliceState<specificTDaoPosition>}
   tcpProposals: sliceState<proposalsInfo>,
   tcpProposalsVoterInfo:sliceState<proposalsVoterInfo>,
   tdao: sliceState<tdaoInfo>,

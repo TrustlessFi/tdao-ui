@@ -10,6 +10,7 @@ import genesisPositionsSlice from './genesisPositions'
 import claimedAllocationRoundsSlice from './claimedAllocationRounds'
 import rootContractsSlice from './rootContracts'
 import notificationsSlice from './notifications'
+import selectedTDaoPositionSlice from './selectedTDaoPosition'
 import transactionsSlice from './transactions'
 import tcpAllocationSlice from './tcpAllocation'
 import tcpProposalsSlice from './proposals/tcpProposals'
@@ -26,6 +27,7 @@ const allSlicesRaw = {
   rootContracts: rootContractsSlice,
   userAddress: userAddressSlice,
   notifications: notificationsSlice,
+  selectedTDaoPosition: selectedTDaoPositionSlice,
   transactions: transactionsSlice,
   wallet: walletSlice,
 
